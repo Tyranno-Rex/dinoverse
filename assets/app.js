@@ -123,9 +123,9 @@ function buildComingSoonPanel(n) {
       '<h2 class="panel-name display">MORE<br>TO COME</h2>' +
       '<p class="panel-desc soon-sub">다양한 것들이 기다리고 있어요.</p>' +
       '<div class="soon-list">' +
-        soonCat('NOVEL', [G('Fantasy + Multiple POV'), 'etc.']) +
-        soonCat('GAME', ['Strategy', G('Strategy + Casual'), G('Roguelike + Casual'), 'etc.']) +
         soonCat('APP', ['Philosophy', 'Love', 'Payment', 'etc.']) +
+        soonCat('GAME', ['Strategy', G('Strategy + Casual'), G('Roguelike + Casual'), 'etc.']) +
+        soonCat('NOVEL', [G('Fantasy + Multiple POV'), 'etc.']) +
       '</div>' +
     '</div>';
   return p;
