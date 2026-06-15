@@ -71,8 +71,8 @@ function buildWall(wall) {
   const reps = Math.ceil((window.innerWidth * 1.4) / unitLen) + 2;
   for (let i = 0; i < rowCount; i++) {
     const row = document.createElement('div');
-    // strict alternation: even = solid black (3D), odd = outline white
-    row.className = 'wall-row ' + (i % 2 ? 'out' : 'blk');
+    // strict alternation: even = solid black (raised), odd = engraved white (recessed)
+    row.className = 'wall-row ' + (i % 2 ? 'rec' : 'blk');
     row.style.fontSize = rowPx + 'px';
     const track = document.createElement('div');
     track.className = 'wall-track';
@@ -99,13 +99,17 @@ function initGate() {
   let entering = false;
 
   // mouse parallax: black layer slides opposite the cursor, white layer with it
-  const amp = () => Math.min(140, window.innerWidth * 0.06);
+  // (horizontal full, vertical a little)
   window.addEventListener('mousemove', (e) => {
     if (entering) return;
-    const nx = (e.clientX / window.innerWidth - 0.5) * 2; // -1 (left) .. 1 (right)
-    const a = amp();
-    wall.style.setProperty('--bx', (-nx * a).toFixed(1) + 'px'); // black: opposite
-    wall.style.setProperty('--wx', (nx * a).toFixed(1) + 'px');  // white: same dir
+    const nx = (e.clientX / window.innerWidth - 0.5) * 2;  // -1 (left) .. 1 (right)
+    const ny = (e.clientY / window.innerHeight - 0.5) * 2; // -1 (top) .. 1 (bottom)
+    const ax = Math.min(140, window.innerWidth * 0.06);
+    const ay = Math.min(60, window.innerHeight * 0.035);
+    wall.style.setProperty('--bx', (-nx * ax).toFixed(1) + 'px'); // black: opposite
+    wall.style.setProperty('--by', (-ny * ay).toFixed(1) + 'px');
+    wall.style.setProperty('--wx', (nx * ax).toFixed(1) + 'px');  // white: same dir
+    wall.style.setProperty('--wy', (ny * ay).toFixed(1) + 'px');
   });
   const enter = () => {
     if (entering) return;
