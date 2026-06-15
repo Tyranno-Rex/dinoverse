@@ -118,6 +118,13 @@ body {
   font-family: var(--display); font-weight: 900; font-size: clamp(120px, 22vh, 320px);
   line-height: 1; color: transparent; -webkit-text-stroke: 2.5px var(--blue-ghost); user-select: none; pointer-events: none;
 }
+.panel-sticker {
+  position: absolute; right: clamp(16px, 4vw, 52px); bottom: clamp(24px, 7vh, 72px);
+  height: clamp(130px, 26vh, 240px); width: auto; z-index: 2;
+  transform: rotate(-6deg);
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+  pointer-events: none; user-select: none;
+}
 .panel-content { position: relative; z-index: 1; }
 .panel-meta { color: #8a8a82; display: flex; gap: 16px; flex-wrap: nowrap; white-space: nowrap; margin-bottom: 18px; }
 .panel-meta .tag { color: var(--blue); }

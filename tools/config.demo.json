@@ -10,6 +10,7 @@
       "description": "",
       "version": "1.0.0",
       "platforms": ["win"],
+      "image": "image/flowdesk.png",
       "password": "",
       "publish": true,
       "files": [
@@ -31,15 +32,16 @@
       "notes": ""
     },
     {
-      "id": "typedino",
-      "name": "TypeDino",
+      "id": "sowhat-dino",
+      "name": "SoWhat-Dino",
       "description": "",
       "version": "0.1.0",
       "platforms": ["win"],
+      "image": "image/sowhat-dino.png",
       "password": "",
       "publish": true,
       "files": [
-        { "label": "Windows 설치 (.msi)", "url": "https://example.com/TypeDino.msi", "size": "—" }
+        { "label": "Windows 설치 (.msi)", "url": "https://example.com/SoWhat-Dino.msi", "size": "—" }
       ],
       "notes": ""
     }
