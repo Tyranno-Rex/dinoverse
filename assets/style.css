@@ -94,9 +94,9 @@ body {
 /* Hero */
 .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 0 clamp(22px, 7vw, 120px); position: relative; }
 .hero-title { font-size: clamp(46px, 13vw, 210px); }
-.hero-title .line { display: block; }
-.hero-sub { font-family: var(--body); font-size: clamp(15px, 2vw, 21px); color: var(--ink-soft); max-width: 40ch; margin: 34px 0 0; }
-.scroll-hint { position: absolute; bottom: 34px; left: clamp(22px, 7vw, 120px); color: var(--blue); animation: pulse 2.2s ease-in-out infinite; }
+.hero-title .line { display: block; white-space: nowrap; }
+.hero-sub { font-family: var(--body); font-size: clamp(15px, 2vw, 21px); color: var(--ink-soft); margin: 34px 0 0; white-space: nowrap; }
+.scroll-hint { position: absolute; bottom: 34px; left: clamp(22px, 7vw, 120px); color: var(--blue); animation: pulse 2.2s ease-in-out infinite; white-space: nowrap; }
 @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
 /* ============================================================
@@ -119,20 +119,20 @@ body {
   line-height: 1; color: transparent; -webkit-text-stroke: 1.5px var(--blue-ghost); user-select: none; pointer-events: none;
 }
 .panel-content { position: relative; z-index: 1; }
-.panel-meta { color: #8a8a82; display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.panel-meta { color: #8a8a82; display: flex; gap: 16px; flex-wrap: nowrap; white-space: nowrap; margin-bottom: 18px; }
 .panel-meta .tag { color: var(--blue); }
-.panel-name { font-size: clamp(32px, 5vw, 64px); color: var(--paper); margin-bottom: 18px; overflow-wrap: anywhere; }
-.panel-desc { font-family: var(--body); color: #b7b7ae; font-size: clamp(14px, 1.6vw, 18px); line-height: 1.55; max-width: 34ch; margin: 0 0 30px; }
+.panel-name { font-size: clamp(32px, 5vw, 64px); color: var(--paper); margin-bottom: 18px; white-space: nowrap; }
+.panel-desc { font-family: var(--body); color: #b7b7ae; font-size: clamp(14px, 1.6vw, 18px); line-height: 1.55; margin: 0 0 30px; white-space: nowrap; }
 .panel-desc:empty::before { content: "— 설명 없음 —"; color: #5f5f58; }
 
 /* intro + footer big words */
 .intro-panel { width: min(440px, 80vw); justify-content: center; color: var(--paper); }
 .intro-big { font-size: clamp(64px, 16vh, 200px); color: transparent; -webkit-text-stroke: 2px var(--blue); }
-.intro-note { font-family: var(--mono); letter-spacing: 0.16em; font-size: 13px; color: #9a9a90; margin-top: 22px; text-transform: uppercase; line-height: 1.7; }
+.intro-note { font-family: var(--mono); letter-spacing: 0.16em; font-size: 13px; color: #9a9a90; margin-top: 22px; text-transform: uppercase; line-height: 1.7; white-space: nowrap; }
 
 .footer { background: var(--blue); color: var(--paper); min-height: 70vh; display: flex; flex-direction: column; justify-content: center; padding: 0 clamp(22px, 7vw, 120px); }
 .footer-big { font-size: clamp(56px, 15vw, 220px); }
-.footer-note { margin-top: 30px; color: var(--paper); opacity: 0.78; }
+.footer-note { margin-top: 30px; color: var(--paper); opacity: 0.78; white-space: nowrap; }
 
 /* ---------- panel actions ---------- */
 .link-btn { background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; }
@@ -147,7 +147,7 @@ body {
   display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
   padding: 16px 0; border-top: 1px solid #2f2f2f; text-decoration: none; color: var(--paper);
   font-family: var(--display); font-weight: 700; font-size: clamp(16px, 2vw, 22px);
-  transition: color 0.15s, padding-left 0.15s;
+  white-space: nowrap; transition: color 0.15s, padding-left 0.15s;
 }
 .file-link:last-child { border-bottom: 1px solid #2f2f2f; }
 .file-link:hover { color: var(--accent); padding-left: 10px; }
