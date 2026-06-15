@@ -2,7 +2,7 @@
 window.DINO_DATA = {
   "config": {
     "title": "DINOVERSE",
-    "heroSub": "OUR APPS, ONE PLACE."
+    "heroSub": "DIVERSE TOOLS. NO EXTINCTION."
   },
   "apps": [
     {
@@ -36,9 +36,9 @@ window.DINO_DATA = {
       "enc": {
         "v": 1,
         "iter": 250000,
-        "salt": "UJysGUuKmncvlFtQPqk6jA==",
-        "iv": "QfUIi6E7ng9Vviqw",
-        "ct": "E62a/owgcYg+zPKvxdmgGoTshbDZkIo04RA67xwbLVKloF6FJh89HOZCI9BI9umLoVeswAmKSvdCVWWBh+DRVJnCOm/vpkF5kbdxN+g3ID/jevr/LCCutSoy1neNkSwxz6Em4murTvP6FZyDch5/szjgSbiMLz5H4TY/MTlJMkfZIw=="
+        "salt": "RD2LkYCyZY21TPFlEtJGcg==",
+        "iv": "vSmBDk4ByVPApRz2",
+        "ct": "XUu1FMBvuSTNe5ZX/fFUFLi9sufA/9HNN1PRfes9QBjMjlvkEm3jv/r9l8x2MWSL2CCZZpjNEqrciT56eNQm+wuyt6TElLpt/z4Ev0xBILq9bAAhOM+rawaeQwXW2KXpddOaXJHZ/A71AFlGqJdrPyL0hsZhSYyFS+/rtIf2VhehVg=="
       }
     },
     {
