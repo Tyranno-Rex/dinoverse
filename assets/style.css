@@ -127,16 +127,26 @@ body {
   padding: 0 clamp(28px, 5vw, 80px);
   border-right: 1px solid #242424; color: var(--paper);
 }
-/* app index number, top-right of each panel (stickers now live on the hero) */
+/* number + sticker sit side by side at top of each panel; flex keeps them apart */
 .panel-badge {
   position: absolute; top: 6vh; left: clamp(28px, 5vw, 80px); right: clamp(28px, 5vw, 80px);
-  display: flex; align-items: center; justify-content: flex-end;
+  display: flex; align-items: center; justify-content: space-between;
   z-index: 2; pointer-events: none;
 }
 .panel-index {
   font-family: var(--display); font-weight: 900; font-size: clamp(80px, 16vh, 190px);
   line-height: 1; color: var(--blue); user-select: none;
 }
+.panel-sticker {
+  flex: 0 0 auto; width: auto; height: clamp(110px, 19vh, 190px);
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5)); user-select: none;
+}
+/* slight angle/size variety per app — beside the number, never on it */
+.panel-sticker--p0 { transform: rotate(-7deg); }
+.panel-sticker--p1 { transform: rotate(8deg); height: clamp(135px, 23vh, 215px); }
+.panel-sticker--p2 { transform: rotate(-4deg); height: clamp(120px, 21vh, 200px); }
+.panel-sticker--p3 { transform: rotate(5deg); }
+.panel-sticker--p4 { transform: rotate(-11deg); }
 .panel-content { position: relative; z-index: 1; }
 .panel-meta { color: #8a8a82; display: flex; gap: 16px; flex-wrap: nowrap; white-space: nowrap; margin-bottom: 18px; }
 .panel-meta .tag { color: var(--blue); }

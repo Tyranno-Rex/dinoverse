@@ -88,6 +88,13 @@ function renderPanels(apps) {
       $('.panel-name', node).textContent = app.name || app.id;
       $('.panel-desc', node).textContent = app.description || '';
 
+      const sticker = $('.panel-sticker', node);
+      if (app.image) {
+        sticker.src = app.image;
+        sticker.alt = app.name || app.id;
+        sticker.classList.add('panel-sticker--p' + (i % 5)); // vary spot/angle per app
+      } else { sticker.remove(); }
+
       const meta = $('.panel-meta', node);
       const bits = [];
       if (app.version) bits.push(`<span class="tag">v${escapeHtml(app.version)}</span>`);
