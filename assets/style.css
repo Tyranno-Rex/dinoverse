@@ -111,8 +111,8 @@ body {
 }
 /* number + sticker sit side by side at top-right; flex keeps them from overlapping */
 .panel-badge {
-  position: absolute; top: 6vh; right: clamp(18px, 4vw, 52px);
-  display: flex; align-items: center; gap: clamp(8px, 1.6vw, 24px);
+  position: absolute; top: 6vh; left: clamp(28px, 5vw, 80px); right: clamp(28px, 5vw, 80px);
+  display: flex; align-items: center; justify-content: space-between;
   z-index: 2; pointer-events: none;
 }
 .panel-index {
@@ -125,8 +125,8 @@ body {
 }
 /* slight angle/size variety per app — beside the number, never on it */
 .panel-sticker--p0 { transform: rotate(-7deg); }
-.panel-sticker--p1 { transform: rotate(8deg); height: clamp(100px, 17vh, 175px); }
-.panel-sticker--p2 { transform: rotate(-4deg); height: clamp(120px, 21vh, 205px); }
+.panel-sticker--p1 { transform: rotate(8deg); height: clamp(135px, 23vh, 215px); }
+.panel-sticker--p2 { transform: rotate(-4deg); height: clamp(120px, 21vh, 200px); }
 .panel-sticker--p3 { transform: rotate(5deg); }
 .panel-sticker--p4 { transform: rotate(-11deg); }
 .panel-content { position: relative; z-index: 1; }
