@@ -1,6 +1,6 @@
 /* ============================================================
    DINOVERSE — Typographic Statements (#6) + Mixed Scroll (#8)
-   Oversized plain sans, mono labels, paper/ink + one acid accent.
+   Oversized plain sans, mono labels, paper/ink + acid lime + electric blue.
    Type carries the design; the app gallery scrolls sideways.
    ============================================================ */
 
@@ -9,8 +9,10 @@
   --paper-2: #e3e0d5;
   --ink: #0c0c0c;
   --ink-soft: #6b6b63;
-  --accent: #ccff00;     /* acid lime */
+  --accent: #ccff00;     /* acid lime — action / highlight */
   --accent-ink: #0c0c0c;
+  --blue: #2b46ff;       /* electric blue — structure / secondary */
+  --blue-ghost: rgba(43, 70, 255, 0.38);
   --line: #c9c6ba;
 
   --display: "Helvetica Neue", Helvetica, Arial, "Inter", system-ui, sans-serif;
@@ -30,6 +32,7 @@ body {
   overflow-x: hidden;
 }
 .hidden { display: none !important; }
+::selection { background: var(--blue); color: var(--paper); }
 
 /* ---------- display + kinetic type ---------- */
 .display {
@@ -93,7 +96,7 @@ body {
 .hero-title { font-size: clamp(46px, 13vw, 210px); }
 .hero-title .line { display: block; }
 .hero-sub { font-family: var(--body); font-size: clamp(15px, 2vw, 21px); color: var(--ink-soft); max-width: 40ch; margin: 34px 0 0; }
-.scroll-hint { position: absolute; bottom: 34px; left: clamp(22px, 7vw, 120px); color: var(--ink-soft); animation: pulse 2.2s ease-in-out infinite; }
+.scroll-hint { position: absolute; bottom: 34px; left: clamp(22px, 7vw, 120px); color: var(--blue); animation: pulse 2.2s ease-in-out infinite; }
 @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
 /* ============================================================
@@ -113,23 +116,23 @@ body {
 .panel-index {
   position: absolute; top: 12vh; right: clamp(20px, 4vw, 56px);
   font-family: var(--display); font-weight: 900; font-size: clamp(120px, 22vh, 320px);
-  line-height: 1; color: transparent; -webkit-text-stroke: 1.5px #2f2f2f; user-select: none; pointer-events: none;
+  line-height: 1; color: transparent; -webkit-text-stroke: 1.5px var(--blue-ghost); user-select: none; pointer-events: none;
 }
 .panel-content { position: relative; z-index: 1; }
 .panel-meta { color: #8a8a82; display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
-.panel-meta .tag { color: var(--accent); }
+.panel-meta .tag { color: var(--blue); }
 .panel-name { font-size: clamp(32px, 5vw, 64px); color: var(--paper); margin-bottom: 18px; overflow-wrap: anywhere; }
 .panel-desc { font-family: var(--body); color: #b7b7ae; font-size: clamp(14px, 1.6vw, 18px); line-height: 1.55; max-width: 34ch; margin: 0 0 30px; }
 .panel-desc:empty::before { content: "— 설명 없음 —"; color: #5f5f58; }
 
 /* intro + footer big words */
 .intro-panel { width: min(440px, 80vw); justify-content: center; color: var(--paper); }
-.intro-big { font-size: clamp(64px, 16vh, 200px); color: transparent; -webkit-text-stroke: 2px var(--accent); }
+.intro-big { font-size: clamp(64px, 16vh, 200px); color: transparent; -webkit-text-stroke: 2px var(--blue); }
 .intro-note { font-family: var(--mono); letter-spacing: 0.16em; font-size: 13px; color: #9a9a90; margin-top: 22px; text-transform: uppercase; line-height: 1.7; }
 
-.footer { background: var(--accent); color: var(--ink); min-height: 70vh; display: flex; flex-direction: column; justify-content: center; padding: 0 clamp(22px, 7vw, 120px); }
+.footer { background: var(--blue); color: var(--paper); min-height: 70vh; display: flex; flex-direction: column; justify-content: center; padding: 0 clamp(22px, 7vw, 120px); }
 .footer-big { font-size: clamp(56px, 15vw, 220px); }
-.footer-note { margin-top: 30px; color: var(--ink); opacity: 0.7; }
+.footer-note { margin-top: 30px; color: var(--paper); opacity: 0.78; }
 
 /* ---------- panel actions ---------- */
 .link-btn { background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; }
