@@ -12,7 +12,7 @@
   --accent: #ccff00;     /* acid lime — action / highlight */
   --accent-ink: #0c0c0c;
   --blue: #2b46ff;       /* electric blue — structure / secondary */
-  --blue-ghost: rgba(43, 70, 255, 0.38);
+  --blue-ghost: rgba(43, 70, 255, 0.7);
   --line: #c9c6ba;
 
   --display: "Helvetica Neue", Helvetica, Arial, "Inter", system-ui, sans-serif;
@@ -116,7 +116,7 @@ body {
 .panel-index {
   position: absolute; top: 12vh; right: clamp(20px, 4vw, 56px);
   font-family: var(--display); font-weight: 900; font-size: clamp(120px, 22vh, 320px);
-  line-height: 1; color: transparent; -webkit-text-stroke: 1.5px var(--blue-ghost); user-select: none; pointer-events: none;
+  line-height: 1; color: transparent; -webkit-text-stroke: 2.5px var(--blue-ghost); user-select: none; pointer-events: none;
 }
 .panel-content { position: relative; z-index: 1; }
 .panel-meta { color: #8a8a82; display: flex; gap: 16px; flex-wrap: nowrap; white-space: nowrap; margin-bottom: 18px; }
