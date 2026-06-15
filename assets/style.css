@@ -93,7 +93,7 @@ body {
 
 /* Hero */
 .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 0 clamp(22px, 7vw, 120px); position: relative; }
-.hero-title { font-size: clamp(46px, 13vw, 210px); }
+.hero-title { font-size: clamp(28px, 8vw, 150px); }
 .hero-title .line { display: block; white-space: nowrap; }
 .hero-sub { font-family: var(--body); font-size: clamp(15px, 2vw, 21px); color: var(--ink-soft); margin: 34px 0 0; white-space: nowrap; }
 .scroll-hint { position: absolute; bottom: 34px; left: clamp(22px, 7vw, 120px); color: var(--blue); animation: pulse 2.2s ease-in-out infinite; white-space: nowrap; }
@@ -132,7 +132,6 @@ body {
 
 .footer { background: var(--blue); color: var(--paper); min-height: 70vh; display: flex; flex-direction: column; justify-content: center; padding: 0 clamp(22px, 7vw, 120px); }
 .footer-big { font-size: clamp(34px, 10.5vw, 180px); white-space: nowrap; }
-.footer-note { margin-top: 30px; color: var(--paper); opacity: 0.78; white-space: nowrap; }
 
 /* ---------- panel actions ---------- */
 .link-btn { background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; }

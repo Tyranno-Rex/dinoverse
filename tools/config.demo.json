@@ -1,13 +1,13 @@
 {
   "config": {
     "title": "DINOVERSE",
-    "heroSub": "배포 중인 앱을 받으세요. 앱마다 개별 코드가 필요할 수 있습니다."
+    "heroSub": "OUR APPS, ONE PLACE."
   },
   "apps": [
     {
       "id": "flowdesk",
       "name": "FlowDesk",
-      "description": "여기에 앱 설명이 들어갑니다. (admin에서 직접 입력)",
+      "description": "",
       "version": "1.0.0",
       "platforms": ["win"],
       "password": "",
@@ -20,7 +20,7 @@
     {
       "id": "brachy",
       "name": "Brachy",
-      "description": "여기에 앱 설명이 들어갑니다. (admin에서 직접 입력)",
+      "description": "",
       "version": "1.0.0",
       "platforms": ["win"],
       "password": "brachy-2026",
@@ -33,7 +33,7 @@
     {
       "id": "typedino",
       "name": "TypeDino",
-      "description": "여기에 앱 설명이 들어갑니다. (admin에서 직접 입력)",
+      "description": "",
       "version": "0.1.0",
       "platforms": ["win"],
       "password": "",
