@@ -12,7 +12,6 @@
   --accent: #ccff00;     /* acid lime — action / highlight */
   --accent-ink: #0c0c0c;
   --blue: #2b46ff;       /* electric blue — structure / secondary */
-  --blue-ghost: rgba(43, 70, 255, 0.7);
   --line: #c9c6ba;
 
   --display: "Helvetica Neue", Helvetica, Arial, "Inter", system-ui, sans-serif;
@@ -89,15 +88,12 @@ body {
   mix-blend-mode: difference; color: #fff; /* inverts over any bg */
 }
 .topbar .wordmark { font-family: var(--display); font-weight: 900; letter-spacing: -0.03em; font-size: 18px; text-transform: uppercase; }
-.topbar .counter { opacity: 0.85; }
 
 /* Hero */
 .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 0 clamp(22px, 7vw, 120px); position: relative; }
 .hero-title { font-size: clamp(28px, 8vw, 150px); }
 .hero-title .line { display: block; white-space: nowrap; }
 .hero-sub { font-family: var(--body); font-size: clamp(15px, 2vw, 21px); color: var(--ink-soft); margin: 34px 0 0; white-space: nowrap; }
-.scroll-hint { position: absolute; bottom: 34px; left: clamp(22px, 7vw, 120px); color: var(--blue); animation: pulse 2.2s ease-in-out infinite; white-space: nowrap; }
-@keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
 /* ============================================================
    HORIZONTAL SCROLL GALLERY (#8 Mixed Scroll)
@@ -116,19 +112,19 @@ body {
 .panel-index {
   position: absolute; top: 12vh; right: clamp(20px, 4vw, 56px);
   font-family: var(--display); font-weight: 900; font-size: clamp(120px, 22vh, 320px);
-  line-height: 1; color: transparent; -webkit-text-stroke: 2.5px var(--blue-ghost); user-select: none; pointer-events: none;
+  line-height: 1; color: var(--blue); user-select: none; pointer-events: none;
 }
 .panel-sticker {
   position: absolute; width: auto; height: clamp(130px, 26vh, 240px); z-index: 2;
   filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
   pointer-events: none; user-select: none;
 }
-/* slapped on at different spots/angles per app — cycled by index in app.js */
-.panel-sticker--p0 { right: clamp(14px, 4vw, 50px); bottom: clamp(22px, 7vh, 70px); transform: rotate(-7deg); }
-.panel-sticker--p1 { left: clamp(14px, 4vw, 50px); bottom: clamp(26px, 9vh, 88px); transform: rotate(9deg); height: clamp(120px, 23vh, 215px); }
-.panel-sticker--p2 { right: clamp(8px, 3vw, 36px); top: clamp(40px, 9vh, 96px); transform: rotate(-5deg); height: clamp(110px, 20vh, 180px); }
-.panel-sticker--p3 { left: 50%; bottom: clamp(18px, 6vh, 60px); transform: translateX(-50%) rotate(6deg); height: clamp(118px, 22vh, 200px); }
-.panel-sticker--p4 { right: clamp(18px, 5vw, 64px); top: clamp(80px, 13vh, 130px); transform: rotate(-12deg); height: clamp(118px, 22vh, 200px); }
+/* slapped over the index number — varied angle/size per app, cycled by index in app.js */
+.panel-sticker--p0 { right: clamp(8px, 3vw, 44px); top: clamp(36px, 9vh, 96px); transform: rotate(-7deg); }
+.panel-sticker--p1 { right: clamp(16px, 5vw, 70px); top: clamp(30px, 7vh, 76px); transform: rotate(8deg); height: clamp(130px, 25vh, 230px); }
+.panel-sticker--p2 { right: clamp(4px, 2vw, 30px); top: clamp(44px, 11vh, 116px); transform: rotate(-4deg); height: clamp(150px, 29vh, 270px); }
+.panel-sticker--p3 { right: clamp(20px, 6vw, 80px); top: clamp(40px, 10vh, 104px); transform: rotate(5deg); height: clamp(130px, 25vh, 230px); }
+.panel-sticker--p4 { right: clamp(10px, 3vw, 48px); top: clamp(34px, 8vh, 88px); transform: rotate(-12deg); height: clamp(130px, 25vh, 230px); }
 .panel-content { position: relative; z-index: 1; }
 .panel-meta { color: #8a8a82; display: flex; gap: 16px; flex-wrap: nowrap; white-space: nowrap; margin-bottom: 18px; }
 .panel-meta .tag { color: var(--blue); }
@@ -142,7 +138,9 @@ body {
 .intro-note { font-family: var(--mono); letter-spacing: 0.16em; font-size: 13px; color: #9a9a90; margin-top: 22px; text-transform: uppercase; line-height: 1.7; white-space: nowrap; }
 
 .footer { background: var(--blue); color: var(--paper); min-height: 70vh; display: flex; flex-direction: column; justify-content: center; padding: 0 clamp(22px, 7vw, 120px); }
-.footer-big { font-size: clamp(34px, 10.5vw, 180px); white-space: nowrap; }
+.footer-verse { margin: 0; font-size: clamp(22px, 6vw, 92px); line-height: 0.98; }
+.footer-verse .line { display: block; white-space: nowrap; }
+.footer-ref { display: block; margin-top: clamp(20px, 4vh, 40px); font-family: var(--mono); font-style: normal; text-transform: uppercase; letter-spacing: 0.18em; font-size: 13px; color: var(--paper); opacity: 0.8; white-space: nowrap; }
 
 /* ---------- panel actions ---------- */
 .link-btn { background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; }

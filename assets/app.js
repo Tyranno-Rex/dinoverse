@@ -106,7 +106,6 @@ function renderPanels(apps) {
       track.appendChild(node);
     });
   }
-  $('#counter').textContent = `01 / ${String($$('.panel', track).length).padStart(2, '0')}`;
 }
 
 function wirePanel(node, app) {
@@ -192,9 +191,6 @@ function updateHScroll() {
   const rect = sec.getBoundingClientRect();
   const progress = total > 0 ? clamp(-rect.top / total, 0, 1) : 0;
   track.style.transform = `translateX(${-progress * distance}px)`;
-  const panels = $$('.panel', track);
-  const idx = clamp(Math.round(progress * (panels.length - 1)), 0, panels.length - 1);
-  $('#counter').textContent = `${String(idx + 1).padStart(2, '0')} / ${String(panels.length).padStart(2, '0')}`;
 }
 
 /* ---------- utils ---------- */
