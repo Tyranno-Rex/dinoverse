@@ -119,12 +119,16 @@ body {
   line-height: 1; color: transparent; -webkit-text-stroke: 2.5px var(--blue-ghost); user-select: none; pointer-events: none;
 }
 .panel-sticker {
-  position: absolute; right: clamp(16px, 4vw, 52px); bottom: clamp(24px, 7vh, 72px);
-  height: clamp(130px, 26vh, 240px); width: auto; z-index: 2;
-  transform: rotate(-6deg);
+  position: absolute; width: auto; height: clamp(130px, 26vh, 240px); z-index: 2;
   filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
   pointer-events: none; user-select: none;
 }
+/* slapped on at different spots/angles per app — cycled by index in app.js */
+.panel-sticker--p0 { right: clamp(14px, 4vw, 50px); bottom: clamp(22px, 7vh, 70px); transform: rotate(-7deg); }
+.panel-sticker--p1 { left: clamp(14px, 4vw, 50px); bottom: clamp(26px, 9vh, 88px); transform: rotate(9deg); height: clamp(120px, 23vh, 215px); }
+.panel-sticker--p2 { right: clamp(8px, 3vw, 36px); top: clamp(40px, 9vh, 96px); transform: rotate(-5deg); height: clamp(110px, 20vh, 180px); }
+.panel-sticker--p3 { left: 50%; bottom: clamp(18px, 6vh, 60px); transform: translateX(-50%) rotate(6deg); height: clamp(118px, 22vh, 200px); }
+.panel-sticker--p4 { right: clamp(18px, 5vw, 64px); top: clamp(80px, 13vh, 130px); transform: rotate(-12deg); height: clamp(118px, 22vh, 200px); }
 .panel-content { position: relative; z-index: 1; }
 .panel-meta { color: #8a8a82; display: flex; gap: 16px; flex-wrap: nowrap; white-space: nowrap; margin-bottom: 18px; }
 .panel-meta .tag { color: var(--blue); }

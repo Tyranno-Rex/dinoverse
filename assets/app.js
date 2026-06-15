@@ -89,8 +89,11 @@ function renderPanels(apps) {
       $('.panel-desc', node).textContent = app.description || '';
 
       const sticker = $('.panel-sticker', node);
-      if (app.image) { sticker.src = app.image; sticker.alt = app.name || app.id; }
-      else { sticker.remove(); }
+      if (app.image) {
+        sticker.src = app.image;
+        sticker.alt = app.name || app.id;
+        sticker.classList.add('panel-sticker--p' + (i % 5)); // vary spot/angle per app
+      } else { sticker.remove(); }
 
       const meta = $('.panel-meta', node);
       const bits = [];

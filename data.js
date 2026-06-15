@@ -31,13 +31,14 @@ window.DINO_DATA = {
       "platforms": [
         "win"
       ],
+      "image": "image/brachy.png",
       "lock": "own",
       "enc": {
         "v": 1,
         "iter": 250000,
-        "salt": "4UrUWMODX0riOe0/imF2qw==",
-        "iv": "UBX2gh12qmQbxtnE",
-        "ct": "14t77pS4CsS2b5pCTzz67qmy2Sh2x80EBRA6GoyV7hsnppGBaLpOa8fHUAyroUEkQ9iNH5W61sgwUZjN0wacByrw79Ua6Yx8Rx559S6DNMt1QZ4TLcIlp68qYjh1t4xbhlq2ggaOGQla2oCiYR1dh9D4LgXHJwm/VySWd7eScQ5s1g=="
+        "salt": "UJysGUuKmncvlFtQPqk6jA==",
+        "iv": "QfUIi6E7ng9Vviqw",
+        "ct": "E62a/owgcYg+zPKvxdmgGoTshbDZkIo04RA67xwbLVKloF6FJh89HOZCI9BI9umLoVeswAmKSvdCVWWBh+DRVJnCOm/vpkF5kbdxN+g3ID/jevr/LCCutSoy1neNkSwxz6Em4murTvP6FZyDch5/szjgSbiMLz5H4TY/MTlJMkfZIw=="
       }
     },
     {

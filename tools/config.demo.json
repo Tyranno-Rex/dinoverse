@@ -24,6 +24,7 @@
       "description": "",
       "version": "1.0.0",
       "platforms": ["win"],
+      "image": "image/brachy.png",
       "password": "brachy-2026",
       "publish": true,
       "files": [
