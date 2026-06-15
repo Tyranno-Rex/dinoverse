@@ -1,0 +1,8 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.log
+
+# dev-only screenshots (regenerated as needed)
+shot-*.png
+preview.html

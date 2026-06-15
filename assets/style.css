@@ -1,0 +1,185 @@
+/* ============================================================
+   DINOVERSE — Typographic Statements (#6) + Mixed Scroll (#8)
+   Oversized plain sans, mono labels, paper/ink + one acid accent.
+   Type carries the design; the app gallery scrolls sideways.
+   ============================================================ */
+
+:root {
+  --paper: #eceae1;
+  --paper-2: #e3e0d5;
+  --ink: #0c0c0c;
+  --ink-soft: #6b6b63;
+  --accent: #ccff00;     /* acid lime */
+  --accent-ink: #0c0c0c;
+  --line: #c9c6ba;
+
+  --display: "Helvetica Neue", Helvetica, Arial, "Inter", system-ui, sans-serif;
+  --mono: "SF Mono", "JetBrains Mono", "Consolas", "Courier New", monospace;
+  --kr: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --body: var(--kr), var(--display);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.hidden { display: none !important; }
+
+/* ---------- display + kinetic type ---------- */
+.display {
+  font-family: var(--display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.045em;
+  line-height: 0.86;
+  margin: 0;
+}
+.accent { color: var(--ink); background: var(--accent); padding: 0 0.12em; }
+[data-split] .ch {
+  display: inline-block;
+  transform: translateY(1.15em) rotate(3deg);
+  opacity: 0;
+  animation: rise 0.7s cubic-bezier(0.2, 0.85, 0.2, 1) forwards;
+  animation-delay: calc(var(--i) * 0.035s);
+}
+@keyframes rise { to { transform: none; opacity: 1; } }
+
+.eyebrow, .counter, .scroll-hint, .panel-meta, .footer-note, .lock-btn, .link-btn, .marquee-row {
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 12px;
+}
+
+/* ---------- shared line input ---------- */
+.line-form { display: flex; align-items: center; gap: 14px; }
+.line-input {
+  flex: 1; min-width: 0; background: transparent; border: none;
+  border-bottom: 2px solid var(--ink); color: var(--ink);
+  font-family: var(--mono); font-size: clamp(18px, 3vw, 26px);
+  letter-spacing: 0.04em; padding: 10px 2px; outline: none;
+}
+.line-input::placeholder { color: var(--ink-soft); letter-spacing: 0.18em; }
+.line-input:focus { border-bottom-color: var(--accent); }
+.arrow-btn {
+  flex: 0 0 auto; width: 58px; height: 58px; border-radius: 50%;
+  border: 2px solid var(--ink); background: var(--ink); color: var(--paper);
+  font-size: 24px; cursor: pointer; transition: transform 0.12s, background 0.2s, color 0.2s;
+}
+.arrow-btn:hover { background: var(--accent); color: var(--ink); border-color: var(--accent); transform: translateX(4px); }
+.arrow-btn:active { transform: scale(0.92); }
+.err { color: #e23b2e; font-family: var(--mono); font-size: 13px; letter-spacing: 0.05em; min-height: 18px; margin: 12px 0 0; }
+
+/* ============================================================
+   GATE
+   ============================================================ */
+.gate { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+.gate-grid { padding: 8vh clamp(22px, 7vw, 120px) 0; max-width: 1400px; }
+.gate .eyebrow { color: var(--ink-soft); }
+.gate-word { font-size: clamp(54px, 16vw, 240px); margin: 0.18em 0 0.1em; }
+.gate-sub { font-size: clamp(15px, 2vw, 20px); color: var(--ink-soft); margin: 0 0 36px; max-width: 30ch; }
+.gate .line-form { max-width: 560px; }
+.gate-grid .err { max-width: 560px; }
+
+/* marquee strip */
+.marquee { margin-top: auto; border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); overflow: hidden; white-space: nowrap; padding: 12px 0; }
+.marquee-row { display: inline-block; animation: scroll-x 22s linear infinite; }
+.marquee-row span { padding: 0 26px; }
+@keyframes scroll-x { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ============================================================
+   MAIN SHELL
+   ============================================================ */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px clamp(18px, 5vw, 60px);
+  mix-blend-mode: difference; color: #fff; /* inverts over any bg */
+}
+.topbar .wordmark { font-family: var(--display); font-weight: 900; letter-spacing: -0.03em; font-size: 18px; text-transform: uppercase; }
+.topbar .counter { opacity: 0.85; }
+.lock-btn { background: none; border: none; color: inherit; cursor: pointer; }
+.lock-btn:hover { color: var(--accent); }
+
+/* Hero */
+.hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 0 clamp(22px, 7vw, 120px); position: relative; }
+.hero-title { font-size: clamp(46px, 13vw, 210px); }
+.hero-title .line { display: block; }
+.hero-sub { font-family: var(--body); font-size: clamp(15px, 2vw, 21px); color: var(--ink-soft); max-width: 40ch; margin: 34px 0 0; }
+.scroll-hint { position: absolute; bottom: 34px; left: clamp(22px, 7vw, 120px); color: var(--ink-soft); animation: pulse 2.2s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+/* ============================================================
+   HORIZONTAL SCROLL GALLERY (#8 Mixed Scroll)
+   Section is tall; inner is pinned; track translates on scroll.
+   ============================================================ */
+.hscroll { position: relative; background: var(--ink); }
+.hsticky { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+.htrack { display: flex; height: 100vh; align-items: stretch; will-change: transform; }
+
+.panel {
+  flex: 0 0 auto; width: min(560px, 86vw); height: 100vh;
+  position: relative; display: flex; flex-direction: column; justify-content: center;
+  padding: 0 clamp(28px, 5vw, 80px);
+  border-right: 1px solid #242424; color: var(--paper);
+}
+.panel-index {
+  position: absolute; top: 12vh; right: clamp(20px, 4vw, 56px);
+  font-family: var(--display); font-weight: 900; font-size: clamp(120px, 22vh, 320px);
+  line-height: 1; color: transparent; -webkit-text-stroke: 1.5px #2f2f2f; user-select: none; pointer-events: none;
+}
+.panel-content { position: relative; z-index: 1; }
+.panel-meta { color: #8a8a82; display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.panel-meta .tag { color: var(--accent); }
+.panel-name { font-size: clamp(32px, 5vw, 64px); color: var(--paper); margin-bottom: 18px; overflow-wrap: anywhere; }
+.panel-desc { font-family: var(--body); color: #b7b7ae; font-size: clamp(14px, 1.6vw, 18px); line-height: 1.55; max-width: 34ch; margin: 0 0 30px; }
+.panel-desc:empty::before { content: "— 설명 없음 —"; color: #5f5f58; }
+
+/* intro + footer big words */
+.intro-panel { width: min(440px, 80vw); justify-content: center; color: var(--paper); }
+.intro-big { font-size: clamp(64px, 16vh, 200px); color: transparent; -webkit-text-stroke: 2px var(--accent); }
+.intro-note { font-family: var(--mono); letter-spacing: 0.16em; font-size: 13px; color: #9a9a90; margin-top: 22px; text-transform: uppercase; line-height: 1.7; }
+
+.footer { background: var(--accent); color: var(--ink); min-height: 70vh; display: flex; flex-direction: column; justify-content: center; padding: 0 clamp(22px, 7vw, 120px); }
+.footer-big { font-size: clamp(56px, 15vw, 220px); }
+.footer-note { margin-top: 30px; color: var(--ink); opacity: 0.7; }
+
+/* ---------- panel actions ---------- */
+.link-btn { background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; }
+.link-btn:hover { text-decoration: underline; }
+.panel .line-input { color: var(--paper); border-bottom-color: var(--paper); }
+.panel .line-input::placeholder { color: #7a7a72; }
+.panel .arrow-btn { border-color: var(--paper); background: var(--paper); color: var(--ink); width: 48px; height: 48px; font-size: 20px; }
+.panel .arrow-btn:hover { background: var(--accent); border-color: var(--accent); }
+
+.files { margin-top: 4px; display: flex; flex-direction: column; gap: 0; }
+.file-link {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  padding: 16px 0; border-top: 1px solid #2f2f2f; text-decoration: none; color: var(--paper);
+  font-family: var(--display); font-weight: 700; font-size: clamp(16px, 2vw, 22px);
+  transition: color 0.15s, padding-left 0.15s;
+}
+.file-link:last-child { border-bottom: 1px solid #2f2f2f; }
+.file-link:hover { color: var(--accent); padding-left: 10px; }
+.file-link .meta { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; color: #8a8a82; }
+.file-link .dl { color: var(--accent); }
+.files .empty, .panel .empty { font-family: var(--mono); color: #8a8a82; font-size: 13px; letter-spacing: 0.1em; padding: 14px 0; }
+
+/* ============================================================
+   Fallback: small screens / reduced motion → native sideways scroll
+   ============================================================ */
+.hscroll.native { height: auto !important; }
+.hscroll.native .hsticky { position: static; height: auto; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+.hscroll.native .htrack { transform: none !important; height: auto; }
+.hscroll.native .panel { height: auto; min-height: 86vh; scroll-snap-align: start; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-split] .ch { animation: none; transform: none; opacity: 1; }
+  html { scroll-behavior: auto; }
+}

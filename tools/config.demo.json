@@ -1,0 +1,48 @@
+{
+  "config": {
+    "title": "DINOVERSE",
+    "heroSub": "배포 중인 앱을 받으세요. 앱마다 개별 코드가 필요할 수 있습니다."
+  },
+  "pagePassword": "dino",
+  "apps": [
+    {
+      "id": "flowdesk",
+      "name": "FlowDesk",
+      "description": "여기에 앱 설명이 들어갑니다. (admin에서 직접 입력)",
+      "version": "1.0.0",
+      "platforms": ["win"],
+      "password": "",
+      "publish": true,
+      "files": [
+        { "label": "Windows 설치 (.exe)", "url": "https://example.com/FlowDesk-Setup.exe", "size": "—" }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "brachy",
+      "name": "Brachy",
+      "description": "여기에 앱 설명이 들어갑니다. (admin에서 직접 입력)",
+      "version": "1.0.0",
+      "platforms": ["win"],
+      "password": "brachy-2026",
+      "publish": true,
+      "files": [
+        { "label": "Windows 설치 (.exe)", "url": "https://example.com/Brachy-Setup.exe", "size": "—" }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "typedino",
+      "name": "TypeDino",
+      "description": "여기에 앱 설명이 들어갑니다. (admin에서 직접 입력)",
+      "version": "0.1.0",
+      "platforms": ["win"],
+      "password": "",
+      "publish": true,
+      "files": [
+        { "label": "Windows 설치 (.msi)", "url": "https://example.com/TypeDino.msi", "size": "—" }
+      ],
+      "notes": ""
+    }
+  ]
+}

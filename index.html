@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>DINOVERSE</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <!-- ===================== GATE ===================== -->
+  <div id="gate" class="gate">
+    <div class="gate-grid">
+      <span class="eyebrow">RESTRICTED / 접근 제한</span>
+      <h1 class="gate-word display" data-split>DINOVERSE</h1>
+      <p class="gate-sub">코드를 입력하면 들어갑니다.</p>
+      <form id="gate-form" class="line-form" autocomplete="off">
+        <input id="gate-pw" type="password" class="line-input" placeholder="PAGE CODE" autocomplete="off" />
+        <button type="submit" class="arrow-btn" id="gate-btn" aria-label="enter">→</button>
+      </form>
+      <p class="err" id="gate-error"></p>
+    </div>
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-row" id="gate-marquee"></div>
+    </div>
+  </div>
+
+  <!-- ===================== MAIN ===================== -->
+  <main id="app" class="app hidden">
+    <header class="topbar">
+      <span class="wordmark" id="site-title">DINOVERSE</span>
+      <span class="counter" id="counter">00 / 00</span>
+      <button id="lock-btn" class="lock-btn">LOCK ✕</button>
+    </header>
+
+    <!-- Hero (vertical) -->
+    <section class="hero">
+      <h1 class="hero-title display">
+        <span class="line" data-split>OUR APPS,</span>
+        <span class="line accent" data-split>ONE PLACE.</span>
+      </h1>
+      <p class="hero-sub" id="hero-sub">배포 중인 앱을 받으세요. 앱마다 개별 코드가 필요할 수 있습니다.</p>
+      <span class="scroll-hint">SCROLL ↓ &nbsp; 옆으로 흐릅니다</span>
+    </section>
+
+    <!-- Horizontal gallery (mixed scroll direction) -->
+    <section class="hscroll" id="hscroll">
+      <div class="hsticky">
+        <div class="htrack" id="htrack">
+          <article class="panel intro-panel">
+            <h2 class="intro-big display" data-split>APPS</h2>
+            <p class="intro-note">→ 옆으로 스크롤해서<br />앱을 둘러보세요</p>
+          </article>
+          <!-- app panels injected here -->
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <h2 class="footer-big display" data-split>STAY HUNGRY.</h2>
+      <p class="footer-note">정적 호스팅 · 클라이언트 측 암호화로 보호됨 · © DINOVERSE</p>
+    </footer>
+  </main>
+
+  <!-- App panel template -->
+  <template id="panel-tpl">
+    <article class="panel">
+      <span class="panel-index"></span>
+      <div class="panel-content">
+        <div class="panel-meta"></div>
+        <h2 class="panel-name display"></h2>
+        <p class="panel-desc"></p>
+        <div class="panel-action">
+          <button class="unlock-btn link-btn">[ UNLOCK ]</button>
+          <form class="app-pw line-form hidden" autocomplete="off">
+            <input type="password" class="app-pw-input line-input" placeholder="APP CODE" autocomplete="off" />
+            <button type="submit" class="arrow-btn" aria-label="enter">→</button>
+            <span class="err app-error"></span>
+          </form>
+          <div class="files hidden"></div>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script src="assets/vendor/lenis.min.js"></script>
+  <script src="assets/crypto.js"></script>
+  <script src="data.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

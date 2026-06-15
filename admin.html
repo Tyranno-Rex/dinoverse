@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>DINOVERSE — admin</title>
+  <style>
+    :root { --paper:#eceae1; --ink:#0c0c0c; --soft:#6b6b63; --accent:#ccff00; --line:#c9c6ba; --mono:"SF Mono","Consolas",monospace; --kr:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--kr); padding:0 0 120px; }
+    .wrap { max-width:840px; margin:0 auto; padding:0 22px; }
+    header.bar { border-bottom:2px solid var(--ink); padding:22px 0; margin-bottom:30px; display:flex; align-items:baseline; justify-content:space-between; }
+    header.bar h1 { font-family:"Helvetica Neue",Arial,sans-serif; font-weight:900; text-transform:uppercase; letter-spacing:-0.04em; font-size:34px; margin:0; }
+    header.bar .tag { font-family:var(--mono); font-size:12px; letter-spacing:0.18em; text-transform:uppercase; color:var(--soft); }
+    .lead { color:var(--soft); font-size:14px; line-height:1.6; margin:-12px 0 30px; }
+    .lead code { background:#dddacb; padding:1px 6px; border-radius:4px; font-family:var(--mono); font-size:12px; }
+    h2.sec { font-family:var(--mono); font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color:var(--soft); border-top:1px solid var(--line); padding-top:24px; margin:34px 0 16px; }
+    label { display:block; font-family:var(--mono); font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--soft); margin:0 0 6px; }
+    input[type=text], input[type=password], textarea { width:100%; background:#fff; border:1.5px solid var(--line); border-radius:8px; padding:10px 12px; font-family:var(--kr); font-size:14px; color:var(--ink); outline:none; }
+    input:focus, textarea:focus { border-color:var(--ink); }
+    textarea { resize:vertical; min-height:54px; }
+    .row { display:flex; gap:14px; flex-wrap:wrap; }
+    .row > div { flex:1; min-width:140px; }
+    .field { margin-bottom:14px; }
+    .pw-wrap { display:flex; gap:8px; }
+    .pw-wrap button { flex:0 0 auto; border:1.5px solid var(--line); background:#fff; border-radius:8px; padding:0 12px; cursor:pointer; }
+    .app { border:1.5px solid var(--line); border-radius:14px; padding:18px; margin-bottom:16px; background:#f5f3ea; }
+    .app.off { opacity:0.5; }
+    .app-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .app-head .id { font-family:var(--mono); font-size:12px; letter-spacing:0.1em; color:var(--soft); }
+    .platforms { display:flex; gap:14px; flex-wrap:wrap; }
+    .platforms label { display:inline-flex; align-items:center; gap:6px; text-transform:none; letter-spacing:0; font-size:13px; font-family:var(--kr); color:var(--ink); margin:0; cursor:pointer; }
+    .files-wrap { margin-top:10px; }
+    .file-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+    .file-row input { flex:1; }
+    .file-row .lbl { flex:0 0 200px; }
+    .file-row .sz { flex:0 0 90px; }
+    .file-row button, .app-actions button { background:none; border:none; color:#c0392b; cursor:pointer; font-family:var(--mono); font-size:12px; }
+    .mini { background:#fff; border:1.5px solid var(--line); border-radius:8px; padding:7px 12px; font-family:var(--mono); font-size:12px; letter-spacing:0.06em; cursor:pointer; text-transform:uppercase; }
+    .mini:hover { border-color:var(--ink); }
+    .toggle { display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; }
+    .actions { position:fixed; bottom:0; left:0; right:0; background:var(--ink); color:var(--paper); padding:16px 22px; display:flex; gap:14px; align-items:center; justify-content:center; z-index:10; }
+    .btn { background:var(--accent); color:var(--ink); border:none; border-radius:999px; padding:13px 26px; font-family:var(--mono); font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; }
+    .btn:hover { filter:brightness(1.05); }
+    .btn.ghost { background:transparent; color:var(--paper); border:1.5px solid #444; }
+    .out { margin-top:20px; }
+    .out textarea { width:100%; min-height:160px; font-family:var(--mono); font-size:11px; background:#0c0c0c; color:#ccff00; border-color:#0c0c0c; }
+    .note { font-size:12px; color:var(--soft); margin-top:8px; line-height:1.6; }
+    .status { font-family:var(--mono); font-size:12px; letter-spacing:0.08em; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="bar">
+      <h1>Dinoverse Admin</h1>
+      <span class="tag">config generator</span>
+    </header>
+    <p class="lead">
+      앱을 고르고 코드를 설정한 뒤 <b>data.js 생성</b>을 누르세요. 생성된 파일을 프로젝트 루트의 <code>data.js</code>로 저장(덮어쓰기)하면 끝입니다.
+      비밀번호는 이 파일에 저장되지 않고, 다운로드 링크는 코드로 <b>AES 암호화</b>되어 들어갑니다.
+    </p>
+
+    <h2 class="sec">사이트 설정</h2>
+    <div class="field"><label>사이트 제목</label><input type="text" id="cfg-title" value="DINOVERSE" /></div>
+    <div class="field"><label>히어로 부제</label><input type="text" id="cfg-hero" value="배포 중인 앱을 받으세요. 앱마다 개별 코드가 필요할 수 있습니다." /></div>
+    <div class="field">
+      <label>페이지 코드 (진입 비번 · 필수)</label>
+      <div class="pw-wrap">
+        <input type="password" id="cfg-pagepw" placeholder="예: dino-2026-xyz" />
+        <button type="button" data-eye="cfg-pagepw">👁</button>
+      </div>
+    </div>
+
+    <h2 class="sec">앱</h2>
+    <div id="apps"></div>
+    <button class="mini" id="add-app">+ 앱 추가</button>
+
+    <div class="out" id="out" style="display:none">
+      <h2 class="sec">생성 결과 (data.js)</h2>
+      <textarea id="out-text" readonly></textarea>
+      <p class="note">아래 <b>다운로드</b>로 받아 프로젝트 루트의 <code>data.js</code>에 덮어쓰세요. (또는 텍스트를 복사해 붙여넣기)</p>
+    </div>
+  </div>
+
+  <div class="actions">
+    <span class="status" id="status"></span>
+    <button class="btn ghost" id="btn-save">상태 저장</button>
+    <button class="btn" id="btn-gen">DATA.JS 생성</button>
+    <button class="btn ghost" id="btn-dl" style="display:none">⬇ 다운로드</button>
+  </div>
+
+  <!-- app row template -->
+  <template id="app-tpl">
+    <div class="app">
+      <div class="app-head">
+        <span class="id"></span>
+        <div class="app-actions">
+          <label class="toggle"><input type="checkbox" class="f-publish" checked /> 배포</label>
+          &nbsp;&nbsp;<button type="button" class="rm-app">삭제 ✕</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field"><label>표시 이름</label><input type="text" class="f-name" /></div>
+        <div class="field" style="flex:0 0 140px"><label>버전</label><input type="text" class="f-version" placeholder="1.0.0" /></div>
+      </div>
+      <div class="field"><label>설명</label><textarea class="f-desc" placeholder="(직접 입력)"></textarea></div>
+      <div class="field">
+        <label>플랫폼</label>
+        <div class="platforms">
+          <label><input type="checkbox" class="f-plat" value="win" /> Windows</label>
+          <label><input type="checkbox" class="f-plat" value="android" /> Android</label>
+          <label><input type="checkbox" class="f-plat" value="mac" /> macOS</label>
+          <label><input type="checkbox" class="f-plat" value="linux" /> Linux</label>
+          <label><input type="checkbox" class="f-plat" value="web" /> Web</label>
+          <label><input type="checkbox" class="f-plat" value="ios" /> iOS</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>앱 코드 (비우면 페이지 코드로만 보호)</label>
+        <div class="pw-wrap">
+          <input type="password" class="f-apppw" placeholder="(선택) 이 앱 전용 비번" />
+          <button type="button" class="eye-app">👁</button>
+        </div>
+      </div>
+      <div class="files-wrap">
+        <label>다운로드 파일</label>
+        <div class="files"></div>
+        <button type="button" class="mini add-file">+ 파일 추가</button>
+      </div>
+    </div>
+  </template>
+
+  <template id="file-tpl">
+    <div class="file-row">
+      <input type="text" class="lbl f-flabel" placeholder="라벨: Windows 설치 (.exe)" />
+      <input type="text" class="f-furl" placeholder="다운로드 URL (GitHub Releases 등)" />
+      <input type="text" class="sz f-fsize" placeholder="42 MB" />
+      <button type="button" class="rm-file">✕</button>
+    </div>
+  </template>
+
+  <script src="assets/crypto.js"></script>
+  <script src="assets/admin.js"></script>
+</body>
+</html>
