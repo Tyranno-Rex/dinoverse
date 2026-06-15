@@ -115,6 +115,7 @@ function renderPanels(apps) {
 function buildComingSoonPanel(n) {
   const p = document.createElement('article');
   p.className = 'panel soon-panel';
+  const G = (s) => ({ group: s }); // a "+"-combined set rendered as ONE chip
   p.innerHTML =
     '<div class="panel-badge"><span class="panel-index">' + String(n).padStart(2, '0') + '</span></div>' +
     '<div class="panel-content">' +
@@ -122,17 +123,28 @@ function buildComingSoonPanel(n) {
       '<h2 class="panel-name display">MORE<br>TO COME</h2>' +
       '<p class="panel-desc soon-sub">다양한 것들이 기다리고 있어요.</p>' +
       '<div class="soon-list">' +
-        soonCat('NOVEL', 'Fantasy · Multiple POV · etc.') +
-        soonCat('GAME', 'Strategy · Strategy + Casual · Roguelike + Casual · etc.') +
-        soonCat('APP', 'Philosophy · Love · Payment · etc.') +
+        soonCat('NOVEL', [G('Fantasy + Multiple POV'), 'etc.']) +
+        soonCat('GAME', ['Strategy', G('Strategy + Casual'), G('Roguelike + Casual'), 'etc.']) +
+        soonCat('APP', ['Philosophy', 'Love', 'Payment', 'etc.']) +
       '</div>' +
     '</div>';
   return p;
 }
 
+// items: array of strings (single) or {group:'a + b'} (combined → one chip).
+// separated by "/" so each item reads distinctly; combined chips show they're one unit.
 function soonCat(label, items) {
+  const inner = items.map(soonItem).join('<span class="soon-sep">/</span>');
   return '<div class="soon-cat"><span class="soon-label">' + label + '</span>' +
-         '<span class="soon-items">' + items + '</span></div>';
+         '<span class="soon-items">' + inner + '</span></div>';
+}
+
+function soonItem(it) {
+  if (it && typeof it === 'object' && it.group) {
+    const txt = escapeHtml(it.group).replace(/\s*\+\s*/g, ' <span class="plus">+</span> ');
+    return '<span class="soon-group">' + txt + '</span>';
+  }
+  return '<span class="soon-item">' + escapeHtml(it) + '</span>';
 }
 
 function wirePanel(node, app) {
