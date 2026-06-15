@@ -154,6 +154,16 @@ body {
 .panel-desc { font-family: var(--body); color: #b7b7ae; font-size: clamp(14px, 1.6vw, 18px); line-height: 1.55; margin: 0 0 30px; white-space: nowrap; }
 .panel-desc:empty::before { content: "— 설명 없음 —"; color: #5f5f58; }
 
+/* ---------- 04 coming-soon teaser (single consolidated card) ---------- */
+/* taller card → start content below the big number instead of centering it */
+.soon-panel { width: min(680px, 90vw); justify-content: flex-start; padding-top: clamp(200px, 30vh, 300px); }
+.soon-sub { white-space: normal; margin-bottom: 22px; }
+.soon-list { margin-top: 2px; }
+.soon-cat { padding: 15px 0; border-top: 1px solid #2f2f2f; }
+.soon-cat:last-child { border-bottom: 1px solid #2f2f2f; }
+.soon-label { display: block; font-family: var(--display); font-weight: 800; letter-spacing: -0.01em; font-size: clamp(18px, 2.6vw, 28px); color: var(--accent); }
+.soon-items { display: block; margin-top: 6px; font-family: var(--mono); font-size: clamp(12px, 1.4vw, 14px); letter-spacing: 0.04em; line-height: 1.55; color: #b7b7ae; white-space: normal; }
+
 /* intro + footer big words */
 .intro-panel { width: min(440px, 80vw); justify-content: center; color: var(--paper); }
 .intro-big { font-size: clamp(64px, 16vh, 200px); color: transparent; -webkit-text-stroke: 2px var(--blue); white-space: nowrap; }
