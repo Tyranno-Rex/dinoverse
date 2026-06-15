@@ -163,12 +163,10 @@ body {
 .soon-cat:last-child { border-bottom: 1px solid #2f2f2f; }
 .soon-label { display: block; font-family: var(--display); font-weight: 800; letter-spacing: -0.01em; font-size: clamp(18px, 2.6vw, 28px); color: var(--accent); }
 .soon-items { display: block; margin-top: 8px; font-family: var(--mono); font-size: clamp(12px, 1.4vw, 14px); letter-spacing: 0.04em; line-height: 2.2; color: #b7b7ae; white-space: normal; }
-/* every item is a chip; singles get a quiet outline, combined sets a blue fill */
-.soon-item { display: inline-block; border: 1px solid #3a3a3a; color: #b7b7ae; border-radius: 999px; padding: 3px 12px; white-space: nowrap; }
+/* every item is a chip with the SAME look; a "+"-combined set is just one pill */
+.soon-item, .soon-group { display: inline-block; border: 1px solid #3a3a3a; color: #b7b7ae; border-radius: 999px; padding: 3px 12px; white-space: nowrap; }
 .soon-sep { color: #4a4a44; padding: 0 9px; }
-/* a "+"-combined set: one pill so it reads as a single unit (parens never render) */
-.soon-group { display: inline-block; border: 1px solid var(--blue); background: rgba(43, 70, 255, 0.16); color: var(--paper); border-radius: 999px; padding: 3px 12px; white-space: nowrap; }
-.soon-group .plus { color: var(--accent); font-weight: 700; padding: 0 1px; }
+.soon-group .plus { font-weight: 700; padding: 0 1px; }
 
 /* intro + footer big words */
 .intro-panel { width: min(440px, 80vw); justify-content: center; color: var(--paper); }
