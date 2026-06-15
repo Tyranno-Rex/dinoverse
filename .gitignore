@@ -6,3 +6,11 @@ Thumbs.db
 # dev-only screenshots (regenerated as needed)
 shot-*.png
 preview.html
+
+# local-only build inputs — hold plaintext app codes; NEVER commit.
+# Only the generated data.js (encrypted blobs) is pushed.
+tools/config.local.json
+tools/config.json
+tools/config.demo.json
+admin.local.html
+.commitmsg.tmp

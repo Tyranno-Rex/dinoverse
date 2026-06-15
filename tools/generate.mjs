@@ -38,7 +38,7 @@ async function encryptJSON(obj, password) {
   return { v: 1, iter: ITER, salt: b64(salt), iv: b64(iv), ct: b64(new Uint8Array(ct)) };
 }
 
-const cfgPath = process.argv[2] || 'tools/config.demo.json';
+const cfgPath = process.argv[2] || 'tools/config.local.json';
 const outPath = process.argv[3] || 'data.js';
 const cfg = JSON.parse(readFileSync(cfgPath, 'utf8'));
 

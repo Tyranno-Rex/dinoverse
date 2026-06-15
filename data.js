@@ -36,9 +36,9 @@ window.DINO_DATA = {
       "enc": {
         "v": 1,
         "iter": 250000,
-        "salt": "RD2LkYCyZY21TPFlEtJGcg==",
-        "iv": "vSmBDk4ByVPApRz2",
-        "ct": "XUu1FMBvuSTNe5ZX/fFUFLi9sufA/9HNN1PRfes9QBjMjlvkEm3jv/r9l8x2MWSL2CCZZpjNEqrciT56eNQm+wuyt6TElLpt/z4Ev0xBILq9bAAhOM+rawaeQwXW2KXpddOaXJHZ/A71AFlGqJdrPyL0hsZhSYyFS+/rtIf2VhehVg=="
+        "salt": "yUItb8/S7c+WC2+u/rUguw==",
+        "iv": "94myg20kqjLIbG9s",
+        "ct": "MGAIT8G5CC96ojvQvbhtnPP5/PXc3sQlfu7qe9JjY72E+kihpMkwxt+5p1VCLvR7I5hnxLCm/XI2XPhPHKkYJXHSv7CvY//IkaArPuEzFvcSzguHsKHhtHuGLyacEWwj3PBBcv87DGu10TqK91ItJUXCoP16v7mjfccRnsJrgRKogQ=="
       }
     },
     {
