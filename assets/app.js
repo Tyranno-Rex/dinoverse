@@ -61,41 +61,51 @@ function initLenis() {
   lenis.on('scroll', updateHScroll);
 }
 
-/* ---------- gate gimmick (click the word to enter) ---------- */
+/* ---------- gate: 3D typography cursor-follower + dive-through ---------- */
 function initGate() {
   const gate = $('#gate');
+  const scene = $('.scene');
   const word = $('#gate-word');
   if (!DATA || !Array.isArray(DATA.apps)) {
     word.textContent = 'NO DATA';
     word.style.cursor = 'default';
     return;
   }
+  const MAX_X = 16, MAX_Y = 22;
   let entering = false;
-  const go = (x, y) => {
+
+  // tilt the word in 3D toward the pointer
+  const onMove = (e) => {
+    if (entering) return;
+    const r = scene.getBoundingClientRect();
+    const dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+    const dy = (e.clientY - (r.top + r.height / 2)) / (window.innerHeight / 2);
+    word.classList.add('active');
+    word.style.transform = `rotateX(${(-dy * MAX_X).toFixed(2)}deg) rotateY(${(clamp(dx, -1.4, 1.4) * MAX_Y).toFixed(2)}deg)`;
+  };
+  const onLeave = () => {
+    if (entering) return;
+    word.style.transform = '';
+    word.classList.remove('active'); // resume idle sway
+  };
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseleave', onLeave);
+
+  // click → dive through the screen, then enter
+  const enter = () => {
     if (entering) return;
     entering = true;
-    spawnShockwave(gate, x, y);
-    gate.classList.add('stomp');
-    setTimeout(() => gate.classList.add('leaving'), 380);
-    setTimeout(() => enterSite(DATA.apps), 780);
+    word.classList.add('active');
+    word.style.transition = 'transform 0.7s cubic-bezier(0.6, 0, 0.3, 1), opacity 0.7s ease';
+    word.style.transform = 'rotateX(0deg) rotateY(0deg) translateZ(620px) scale(1.35)';
+    word.style.opacity = '0';
+    gate.classList.add('leaving');
+    setTimeout(() => enterSite(DATA.apps), 680);
   };
-  word.addEventListener('click', (e) => go(e.clientX, e.clientY));
+  word.addEventListener('click', enter);
   word.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      const r = word.getBoundingClientRect();
-      go(r.left + r.width / 2, r.top + r.height / 2);
-    }
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); enter(); }
   });
-}
-
-function spawnShockwave(gate, x, y) {
-  const r = document.createElement('span');
-  r.className = 'shockwave';
-  r.style.left = x + 'px';
-  r.style.top = y + 'px';
-  gate.appendChild(r);
-  setTimeout(() => r.remove(), 800);
 }
 
 function enterSite(apps) {
