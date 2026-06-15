@@ -296,7 +296,7 @@ function placeStickersRandomly(hero, els) {
   const hb = hero.getBoundingClientRect();
   const pad = 18, margin = 14;
   const forbidden = [];
-  $$('.hero-title, .hero-sub', hero).forEach((el) => {
+  $$('.hero-title, .hero-sub, .scroll-cue', hero).forEach((el) => {
     const r = el.getBoundingClientRect();
     forbidden.push({ x: r.left - hb.left - pad, y: r.top - hb.top - pad, w: r.width + pad * 2, h: r.height + pad * 2 });
   });
