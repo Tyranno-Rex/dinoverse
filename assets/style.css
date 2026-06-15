@@ -77,42 +77,6 @@ body {
 .err { color: #e23b2e; font-family: var(--mono); font-size: 13px; letter-spacing: 0.05em; min-height: 18px; margin: 12px 0 0; }
 
 /* ============================================================
-   GATE — typographic wall with 3D-extruded letters. Mouse parallax:
-   the black (solid) layer slides opposite the cursor, the white
-   (outline) layer slides with it. Click anywhere to enter.
-   ============================================================ */
-.gate { position: relative; min-height: 100vh; overflow: hidden; background: var(--paper); cursor: pointer; }
-.gate.leaving { animation: gateOut 0.5s ease forwards; }
-@keyframes gateOut { to { opacity: 0; } }
-
-.wall { position: absolute; inset: -6% -12%; display: flex; flex-direction: column; justify-content: center; }
-.wall-row {
-  white-space: nowrap; line-height: 0.98;
-  font-family: var(--display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.03em;
-}
-.wall-track { display: inline-block; will-change: transform; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
-
-/* black rows: solid + chunky 3D extrude (raised) — move OPPOSITE the cursor */
-.wall-row.blk { color: #0c0c0c; }
-.wall-row.blk .wall-track {
-  transform: translate(var(--bx, 0px), var(--by, 0px));
-  text-shadow:
-    1px 1px 0 #2a2a2a, 2px 2px 0 #282828, 3px 3px 0 #262626, 4px 4px 0 #242424,
-    5px 5px 0 #202020, 6px 6px 0 #1a1a1a, 7px 7px 0 #141414, 8px 8px 0 #0c0c0c,
-    11px 13px 22px rgba(0, 0, 0, 0.28);
-}
-/* white rows: engraved / debossed (recessed) — move WITH the cursor */
-.wall-row.rec { color: #d6d3c5; }
-.wall-row.rec .wall-track {
-  transform: translate(var(--wx, 0px), var(--wy, 0px));
-  text-shadow:
-    0 -2px 0 rgba(0, 0, 0, 0.5), -2px -2px 3px rgba(0, 0, 0, 0.32),
-    0 2px 0 rgba(255, 255, 255, 1), 2px 3px 3px rgba(255, 255, 255, 0.8);
-}
-
-.sr-enter { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; clip: rect(0 0 0 0); overflow: hidden; }
-
-/* ============================================================
    MAIN SHELL
    ============================================================ */
 .topbar {
@@ -123,8 +87,6 @@ body {
 }
 .topbar .wordmark { font-family: var(--display); font-weight: 900; letter-spacing: -0.03em; font-size: 18px; text-transform: uppercase; }
 .topbar .counter { opacity: 0.85; }
-.lock-btn { background: none; border: none; color: inherit; cursor: pointer; }
-.lock-btn:hover { color: var(--accent); }
 
 /* Hero */
 .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 0 clamp(22px, 7vw, 120px); position: relative; }

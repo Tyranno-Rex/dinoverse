@@ -1,5 +1,5 @@
 // DINOVERSE — site logic.
-// Gate: no password — click the word to enter (fun gimmick).
+// No gate: the page lands directly on the hero ("OUR APPS, ONE PLACE.") + gallery.
 // Per-app codes only: app list is public; each app's files are either open
 // (plaintext) or locked (AES-encrypted with that app's own code).
 // Mixed scroll (#8): gallery translates horizontally, smoothed by Lenis.
@@ -32,10 +32,11 @@ function splitText(el) {
   el.textContent = '';
   let i = 0;
   for (const ch of text) {
+    if (ch === ' ') { el.appendChild(document.createTextNode(' ')); continue; } // keep word spacing
     const span = document.createElement('span');
     span.className = 'ch';
     span.style.setProperty('--i', i++);
-    span.textContent = ch === ' ' ? ' ' : ch;
+    span.textContent = ch;
     el.appendChild(span);
   }
   el.dataset.done = '1';
@@ -60,74 +61,9 @@ function initLenis() {
   lenis.on('scroll', updateHScroll);
 }
 
-/* ---------- gate: typographic wall + cursor lamp + click to enter ---------- */
-function buildWall(wall) {
-  const word = ((DATA.config && DATA.config.title) || 'DINOVERSE').toUpperCase();
-  wall.innerHTML = '';
-  const rowPx = Math.max(48, Math.min(96, Math.round(window.innerWidth * 0.07)));
-  const rowCount = Math.ceil((window.innerHeight * 1.25) / (rowPx * 0.98)) + 2;
-  const charW = rowPx * 0.62; // rough cap-letter advance
-  const unitLen = (word.length + 2) * charW; // word + gap
-  const reps = Math.ceil((window.innerWidth * 1.4) / unitLen) + 2;
-  for (let i = 0; i < rowCount; i++) {
-    const row = document.createElement('div');
-    // strict alternation: even = solid black (raised), odd = engraved white (recessed)
-    row.className = 'wall-row ' + (i % 2 ? 'rec' : 'blk');
-    row.style.fontSize = rowPx + 'px';
-    const track = document.createElement('div');
-    track.className = 'wall-track';
-    let unit = '';
-    for (let k = 0; k < reps; k++) unit += word + '  '; // no dot, just a gap
-    track.textContent = unit + unit; // duplicate → seamless -50% loop
-    row.appendChild(track);
-    wall.appendChild(row);
-  }
-}
-
-function initGate() {
-  const gate = $('#gate');
-  if (!DATA || !Array.isArray(DATA.apps)) {
-    gate.innerHTML = '<div class="wall"><div class="wall-row" style="font-size:48px">NO DATA — admin.html에서 생성하세요</div></div>';
-    gate.style.cursor = 'default';
-    return;
-  }
-  const wall = $('#wall');
-  buildWall(wall);
-  let rt;
-  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => buildWall(wall), 200); });
-
-  let entering = false;
-
-  // mouse parallax: black layer slides opposite the cursor, white layer with it
-  // (horizontal full, vertical a little)
-  window.addEventListener('mousemove', (e) => {
-    if (entering) return;
-    const nx = (e.clientX / window.innerWidth - 0.5) * 2;  // -1 (left) .. 1 (right)
-    const ny = (e.clientY / window.innerHeight - 0.5) * 2; // -1 (top) .. 1 (bottom)
-    const ax = Math.min(140, window.innerWidth * 0.06);
-    const ay = Math.min(60, window.innerHeight * 0.035);
-    wall.style.setProperty('--bx', (-nx * ax).toFixed(1) + 'px'); // black: opposite
-    wall.style.setProperty('--by', (-ny * ay).toFixed(1) + 'px');
-    wall.style.setProperty('--wx', (nx * ax).toFixed(1) + 'px');  // white: same dir
-    wall.style.setProperty('--wy', (ny * ay).toFixed(1) + 'px');
-  });
-  const enter = () => {
-    if (entering) return;
-    entering = true;
-    gate.classList.add('leaving');
-    setTimeout(() => enterSite(DATA.apps), 460);
-  };
-  gate.addEventListener('click', enter);
-  window.addEventListener('keydown', (e) => {
-    if ((e.key === 'Enter' || e.key === ' ') && !gate.classList.contains('hidden')) {
-      e.preventDefault(); enter();
-    }
-  });
-}
-
-function enterSite(apps) {
-  $('#gate').classList.add('hidden');
-  $('#app').classList.remove('hidden');
+/* ---------- start (no gate) ---------- */
+function startSite() {
+  const apps = (DATA && Array.isArray(DATA.apps)) ? DATA.apps : [];
   renderPanels(apps);
   $$('#app [data-split]').forEach(splitText);
   if (lenis) lenis.resize();
@@ -262,5 +198,4 @@ function escapeHtml(s) {
 /* ---------- boot ---------- */
 applyConfig();
 initLenis();
-initGate();
-$('#lock-btn').addEventListener('click', () => location.reload());
+startSite();
