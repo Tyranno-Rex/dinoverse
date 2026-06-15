@@ -47,7 +47,6 @@ function applyConfig() {
   if (cfg.title) {
     document.title = cfg.title;
     $('#site-title').textContent = cfg.title;
-    $('#gate-word').textContent = cfg.title.toUpperCase();
   }
   if (cfg.heroSub) $('#hero-sub').textContent = cfg.heroSub;
 }
@@ -61,50 +60,59 @@ function initLenis() {
   lenis.on('scroll', updateHScroll);
 }
 
-/* ---------- gate: 3D typography cursor-follower + dive-through ---------- */
+/* ---------- gate: typographic wall + cursor lamp + click to enter ---------- */
+function buildWall(wall) {
+  const word = ((DATA.config && DATA.config.title) || 'DINOVERSE').toUpperCase();
+  wall.innerHTML = '';
+  const rowPx = Math.max(48, Math.min(96, Math.round(window.innerWidth * 0.07)));
+  // the wall plane is ~190% of the viewport (it's tilted in 3D), so over-fill
+  const rowCount = Math.ceil((window.innerHeight * 1.9) / (rowPx * 0.92)) + 2;
+  const charW = rowPx * 0.62; // rough cap-letter advance
+  const unitLen = (word.length + 2) * charW; // word + gap
+  const reps = Math.ceil((window.innerWidth * 1.9) / unitLen) + 2;
+  for (let i = 0; i < rowCount; i++) {
+    const row = document.createElement('div');
+    // strict alternation: even = solid black, odd = outline ("검·흰·검·흰")
+    row.className = 'wall-row' + (i % 2 ? ' rev out' : '');
+    row.style.fontSize = rowPx + 'px';
+    const track = document.createElement('div');
+    track.className = 'wall-track';
+    track.style.setProperty('--dur', 16 + (i % 5) * 7 + 's');
+    let unit = '';
+    for (let k = 0; k < reps; k++) unit += word + '  '; // no dot, just a gap
+    track.textContent = unit + unit; // duplicate → seamless -50% loop
+    row.appendChild(track);
+    wall.appendChild(row);
+  }
+}
+
 function initGate() {
   const gate = $('#gate');
-  const scene = $('.scene');
-  const word = $('#gate-word');
   if (!DATA || !Array.isArray(DATA.apps)) {
-    word.textContent = 'NO DATA';
-    word.style.cursor = 'default';
+    gate.innerHTML = '<div class="wall"><div class="wall-row" style="font-size:48px">NO DATA — admin.html에서 생성하세요</div></div>';
+    gate.style.cursor = 'default';
     return;
   }
-  const MAX_X = 16, MAX_Y = 22;
+  buildWall($('#wall'));
+  let rt;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => buildWall($('#wall')), 200); });
+
+  // cursor lamp follows the pointer, inverting the wall beneath it
+  const lamp = $('#lamp');
+  window.addEventListener('mousemove', (e) => { lamp.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`; });
+
   let entering = false;
-
-  // tilt the word in 3D toward the pointer
-  const onMove = (e) => {
-    if (entering) return;
-    const r = scene.getBoundingClientRect();
-    const dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
-    const dy = (e.clientY - (r.top + r.height / 2)) / (window.innerHeight / 2);
-    word.classList.add('active');
-    word.style.transform = `rotateX(${(-dy * MAX_X).toFixed(2)}deg) rotateY(${(clamp(dx, -1.4, 1.4) * MAX_Y).toFixed(2)}deg)`;
-  };
-  const onLeave = () => {
-    if (entering) return;
-    word.style.transform = '';
-    word.classList.remove('active'); // resume idle sway
-  };
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('mouseleave', onLeave);
-
-  // click → dive through the screen, then enter
   const enter = () => {
     if (entering) return;
     entering = true;
-    word.classList.add('active');
-    word.style.transition = 'transform 0.7s cubic-bezier(0.6, 0, 0.3, 1), opacity 0.7s ease';
-    word.style.transform = 'rotateX(0deg) rotateY(0deg) translateZ(620px) scale(1.35)';
-    word.style.opacity = '0';
     gate.classList.add('leaving');
-    setTimeout(() => enterSite(DATA.apps), 680);
+    setTimeout(() => enterSite(DATA.apps), 560);
   };
-  word.addEventListener('click', enter);
-  word.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); enter(); }
+  gate.addEventListener('click', enter);
+  window.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && !gate.classList.contains('hidden')) {
+      e.preventDefault(); enter();
+    }
   });
 }
 

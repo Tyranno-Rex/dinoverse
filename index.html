@@ -8,11 +8,11 @@
   <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
-  <!-- ===================== GATE ===================== -->
+  <!-- ===================== GATE (3D typographic wall) ===================== -->
   <div id="gate" class="gate">
-    <div class="scene">
-      <button type="button" class="gate-word display" id="gate-word" aria-label="입장">DINOVERSE</button>
-    </div>
+    <div class="scene"><div class="wall" id="wall" aria-hidden="true"></div></div>
+    <div class="lamp" id="lamp" aria-hidden="true"></div>
+    <button type="button" id="gate-enter" class="sr-enter" aria-label="입장 — 클릭하여 입장">입장</button>
   </div>
 
   <!-- ===================== MAIN ===================== -->
