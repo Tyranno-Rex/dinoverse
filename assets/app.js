@@ -88,13 +88,6 @@ function renderPanels(apps) {
       $('.panel-name', node).textContent = app.name || app.id;
       $('.panel-desc', node).textContent = app.description || '';
 
-      const sticker = $('.panel-sticker', node);
-      if (app.image) {
-        sticker.src = app.image;
-        sticker.alt = app.name || app.id;
-        sticker.classList.add('panel-sticker--p' + (i % 5)); // vary spot/angle per app
-      } else { sticker.remove(); }
-
       const meta = $('.panel-meta', node);
       const bits = [];
       if (app.version) bits.push(`<span class="tag">v${escapeHtml(app.version)}</span>`);
@@ -193,6 +186,146 @@ function updateHScroll() {
   track.style.transform = `translateX(${-progress * distance}px)`;
 }
 
+/* ---------- draggable hero stickers (drag & drop toy) ---------- */
+let stickerZ = 10;
+
+function setupHeroStickers() {
+  const hero = $('.hero');
+  if (!hero) return;
+  const apps = (DATA && Array.isArray(DATA.apps)) ? DATA.apps : [];
+
+  const layer = document.createElement('div');
+  layer.className = 'hero-stickers';
+  const els = [];
+  const imgEls = [];
+
+  // company sticker — stacked ink badge (intentionally different from footer pill)
+  const studio = document.createElement('div');
+  studio.className = 'drag-sticker drag-sticker--studio';
+  studio.innerHTML = 'SURVIVING<br>DINOS<br>STUDIO';
+  els.push(studio);
+  layer.appendChild(studio);
+
+  // app stickers — the same PNGs that used to sit beside the panel numbers
+  apps.filter((a) => a.image).forEach((a) => {
+    const s = document.createElement('div');
+    s.className = 'drag-sticker drag-sticker--app';
+    const img = document.createElement('img');
+    img.alt = a.name || a.id;
+    img.draggable = false;
+    img.src = a.image;
+    s.appendChild(img);
+    els.push(s);
+    imgEls.push(img);
+    layer.appendChild(s);
+  });
+
+  hero.appendChild(layer);
+
+  // random tilt per sticker
+  els.forEach((el) => {
+    const deg = (Math.random() * 16 - 8).toFixed(1); // -8°..+8°
+    el.style.transform = `rotate(${deg}deg)`;
+  });
+
+  // wait until images report their size, then lay out + enable drag
+  const ready = imgEls.map((img) =>
+    img.complete && img.naturalWidth
+      ? Promise.resolve()
+      : new Promise((res) => { img.onload = res; img.onerror = res; }));
+  Promise.all(ready).then(() => requestAnimationFrame(() => {
+    placeStickersRandomly(hero, els);
+    els.forEach((el) => makeDraggable(el, hero));
+  }));
+
+  window.addEventListener('resize', () => clampStickers(hero, els));
+}
+
+function rectsOverlap(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+// random, non-overlapping placement that keeps clear of the hero text
+function placeStickersRandomly(hero, els) {
+  const hb = hero.getBoundingClientRect();
+  const pad = 18, margin = 14;
+  const forbidden = [];
+  $$('.hero-title, .hero-sub', hero).forEach((el) => {
+    const r = el.getBoundingClientRect();
+    forbidden.push({ x: r.left - hb.left - pad, y: r.top - hb.top - pad, w: r.width + pad * 2, h: r.height + pad * 2 });
+  });
+  forbidden.push({ x: 0, y: 0, w: hb.width, h: 70 }); // topbar / wordmark band
+
+  const placed = [];
+  els.forEach((el, idx) => {
+    const sw = el.offsetWidth, sh = el.offsetHeight;
+    const maxX = Math.max(margin, hb.width - sw - margin);
+    const maxY = Math.max(margin, hb.height - sh - margin);
+    let spot = null;
+    for (let i = 0; i < 600; i++) {
+      const x = margin + Math.random() * (maxX - margin);
+      const y = margin + Math.random() * (maxY - margin);
+      const r = { x, y, w: sw, h: sh };
+      if (forbidden.some((f) => rectsOverlap(r, f))) continue;
+      if (placed.some((p) => rectsOverlap(r, p))) continue;
+      spot = r; break;
+    }
+    if (!spot) { // fallback to spread-out corners if sampling failed
+      const corners = [
+        { x: margin, y: 84 }, { x: maxX, y: 84 },
+        { x: margin, y: maxY }, { x: maxX, y: maxY },
+      ];
+      const c = corners[idx % corners.length];
+      spot = { x: c.x, y: c.y, w: sw, h: sh };
+    }
+    el.style.left = spot.x + 'px';
+    el.style.top = spot.y + 'px';
+    placed.push(spot);
+  });
+}
+
+function clampStickers(hero, els) {
+  const hb = hero.getBoundingClientRect();
+  els.forEach((el) => {
+    const x = Math.min(parseFloat(el.style.left) || 0, hb.width - el.offsetWidth - 6);
+    const y = Math.min(parseFloat(el.style.top) || 0, hb.height - el.offsetHeight - 6);
+    el.style.left = Math.max(6, x) + 'px';
+    el.style.top = Math.max(6, y) + 'px';
+  });
+}
+
+function makeDraggable(el, hero) {
+  let sx, sy, ox, oy, dragging = false, pid = null;
+  el.addEventListener('pointerdown', (e) => {
+    dragging = true; pid = e.pointerId;
+    try { el.setPointerCapture(pid); } catch (_) {}
+    el.classList.add('grabbing');
+    el.style.zIndex = String(++stickerZ);
+    sx = e.clientX; sy = e.clientY;
+    ox = parseFloat(el.style.left) || 0;
+    oy = parseFloat(el.style.top) || 0;
+    e.preventDefault();
+  });
+  el.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const hb = hero.getBoundingClientRect();
+    let nx = ox + (e.clientX - sx);
+    let ny = oy + (e.clientY - sy);
+    nx = Math.max(0, Math.min(nx, hb.width - el.offsetWidth));
+    ny = Math.max(0, Math.min(ny, hb.height - el.offsetHeight));
+    el.style.left = nx + 'px';
+    el.style.top = ny + 'px';
+  });
+  const end = () => {
+    if (!dragging) return;
+    dragging = false;
+    try { el.releasePointerCapture(pid); } catch (_) {}
+    el.classList.remove('grabbing');
+  };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+}
+
 /* ---------- utils ---------- */
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -202,3 +335,4 @@ function escapeHtml(s) {
 applyConfig();
 initLenis();
 startSite();
+setupHeroStickers();
