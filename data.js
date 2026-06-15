@@ -4,34 +4,57 @@ window.DINO_DATA = {
     "title": "DINOVERSE",
     "heroSub": "배포 중인 앱을 받으세요. 앱마다 개별 코드가 필요할 수 있습니다."
   },
-  "list": {
-    "v": 1,
-    "iter": 250000,
-    "salt": "YvoszobuOca80Irg3Nz7ng==",
-    "iv": "ECj05935LPDfmUp4",
-    "ct": "mp/1m5X+vQt8OIn2EIa45Ow57gJjM+VG3Ehr9HqzYyBbmVRTDBOdGHpX/KQQw4/GRnfRt1rl2aKRaftJWmHN+Jm6J7uw2LRNa1yW9rneG04XGhgh0EvMD4C0w1xcko7AQ32Ky+7JAhk8QPfE4TN0fHT90Q1n0HUowqOPBcSsLBTIkU/9M7JdIxXzU37PhHyXTaB6t2p5dDV7S7Wy8OozWuAgmI3OkoARaOM5wtMaYZyvSHzeCykeQdUc2j6pr8f4L98qPN9+SQXDoTb6oMdPa/pXgoUULy+EvwZOytPXH3IeczOl2a7tTFWnxSObNOYBBU5ihS6tkJUlHPdwMXiZbmJpI3rTD8XoAAucBY2ghiUp1JK5P8TAs9wRCrtFFTXQRsl2oQVuC4qT/RD41MctmdbiuY9bHGFwjG74Dt5Fg8U2pI3f06XNINj45xLHdTCA6MTVO1lM7nZ3noAAe/iQr47LYhu7c4X1/AVr0Yq7Gw9EH9pgLeiC0f2qiE5jO0hsn1L/xBiLoZ850i8b5OJyRUaMEZM1G82hczWWBgbz7UXR0csBFYLYhPNKIccoY1/UvW4Yt4phJoWaj/gavW7ToQz152h2g0RBDV4p2oBQ/r/3wD4KIMGwDw9MGnX8FzPmwgqf1LpmRQWtSQmjkGl8eZlWxL6arQDfW1tUldMjzhQSva8yZbgFvl8P1RaWXwPH1Er2"
-  },
-  "downloads": {
-    "flowdesk": {
-      "v": 1,
-      "iter": 250000,
-      "salt": "bKVamsppr6Ki4RORKND/DQ==",
-      "iv": "GmEslUotmi/HTVy3",
-      "ct": "gU5xeq/RomZhLqVZkiR2sEUsKz0hh4XnWl9l6wgAgg8wNmby6fubFxqWAsC5/LqseASPB3VVmN4mQH4Xnmx8vdsAm3EQiDX9kakgmSgor745VgqWrq/l3QBhqHX63RYugpNf31bDBUqTikAwiJEzfMICCFs8/DwHIsMKeSLm7w29IB9K"
+  "apps": [
+    {
+      "id": "flowdesk",
+      "name": "FlowDesk",
+      "description": "여기에 앱 설명이 들어갑니다. (admin에서 직접 입력)",
+      "version": "1.0.0",
+      "platforms": [
+        "win"
+      ],
+      "lock": "open",
+      "files": [
+        {
+          "label": "Windows 설치 (.exe)",
+          "url": "https://example.com/FlowDesk-Setup.exe",
+          "size": "—"
+        }
+      ]
     },
-    "brachy": {
-      "v": 1,
-      "iter": 250000,
-      "salt": "O886nRrWfJHI+WIDSZzdXw==",
-      "iv": "FJwNbbM5ztMivmAp",
-      "ct": "SNkviuDLm+3fED6bi4+DiHbBSd+rZpjVMe08hy0e1NhQ1LLPVvqzrZkc/cod3l5kFlSFiKPbDh3njLp++2wl3mY53MfiHuiULm9EZ4AvB3Z7pqeXlx1xBeCIFhC/SyjGXpiDKuhgobXl4dqRBKd/q0FduAZ0y19SOVQc6DqKUGHjpg=="
+    {
+      "id": "brachy",
+      "name": "Brachy",
+      "description": "여기에 앱 설명이 들어갑니다. (admin에서 직접 입력)",
+      "version": "1.0.0",
+      "platforms": [
+        "win"
+      ],
+      "lock": "own",
+      "enc": {
+        "v": 1,
+        "iter": 250000,
+        "salt": "Ik04KXeRPgQJiMpFvFqA2A==",
+        "iv": "eTwJjryePx8e70Hd",
+        "ct": "O0JLidmPon8xxbgzwtWUhsv0B5uAibwA+1tzQ8m4l3xYJmPJJsZtHEx6fITlb2gRpbrBlIisw83hAKXGXMPeB/0fdHPEhcLXwSM4G2rJXqAuKQviPMa93X4fea02U5d2QNlXg9LuUIV2o5srO5OeWWLkD4pDC/fEGjbJqpDw2E1xLQ=="
+      }
     },
-    "typedino": {
-      "v": 1,
-      "iter": 250000,
-      "salt": "f9EXWFQo8KosKqXgNQz98w==",
-      "iv": "HoTDCB+bx53V6H13",
-      "ct": "fc93ffXYNJlrpxMRUHDnSerKFr1ORLtSYdiulio9qSI/3q3XNpzoc4Y53LbaPSlU5Kr03i1pHN02jyAHjbtT04L79h7EynPFPo4qByWmbghRZsyg+4Se1RGR2sK/lPJGzp86G7kcWKzaAk2ldj54Q7DKnB5sfIWS/q+Mmll5"
+    {
+      "id": "typedino",
+      "name": "TypeDino",
+      "description": "여기에 앱 설명이 들어갑니다. (admin에서 직접 입력)",
+      "version": "0.1.0",
+      "platforms": [
+        "win"
+      ],
+      "lock": "open",
+      "files": [
+        {
+          "label": "Windows 설치 (.msi)",
+          "url": "https://example.com/TypeDino.msi",
+          "size": "—"
+        }
+      ]
     }
-  }
+  ]
 };

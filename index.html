@@ -10,18 +10,13 @@
 <body>
   <!-- ===================== GATE ===================== -->
   <div id="gate" class="gate">
-    <div class="gate-grid">
-      <span class="eyebrow">RESTRICTED / 접근 제한</span>
-      <h1 class="gate-word display" data-split>DINOVERSE</h1>
-      <p class="gate-sub">코드를 입력하면 들어갑니다.</p>
-      <form id="gate-form" class="line-form" autocomplete="off">
-        <input id="gate-pw" type="password" class="line-input" placeholder="PAGE CODE" autocomplete="off" />
-        <button type="submit" class="arrow-btn" id="gate-btn" aria-label="enter">→</button>
-      </form>
-      <p class="err" id="gate-error"></p>
+    <div class="blobs" aria-hidden="true">
+      <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
     </div>
-    <div class="marquee" aria-hidden="true">
-      <div class="marquee-row" id="gate-marquee"></div>
+    <div class="gate-center">
+      <div class="glass">
+        <button type="button" class="gate-word display" id="gate-word" aria-label="입장">DINOVERSE</button>
+      </div>
     </div>
   </div>
 

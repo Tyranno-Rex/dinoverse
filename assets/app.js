@@ -1,10 +1,17 @@
 // DINOVERSE — site logic.
-// Typographic statements (#6): kinetic letter reveals.
-// Mixed scroll (#8): the app gallery translates horizontally as you scroll down,
-//   smoothed by Lenis (vendored). Crypto gate + per-app unlock unchanged.
+// Gate: no password — click the word to enter (fun gimmick).
+// Per-app codes only: app list is public; each app's files are either open
+// (plaintext) or locked (AES-encrypted with that app's own code).
+// Mixed scroll (#8): gallery translates horizontally, smoothed by Lenis.
+//
+// DINO_DATA shape:
+//   { config:{title,heroSub},
+//     apps:[ { id,name,description,version,platforms,
+//              lock:'open', files:[{label,url,size}] }            // open
+//          | { id,name,description,version,platforms,
+//              lock:'own',  enc:<encrypted {files,notes}> } ] }   // needs app code
 
 const DATA = window.DINO_DATA || null;
-let PAGE_PW = null;
 let lenis = null;
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -18,7 +25,6 @@ const REDUCED = () => window.matchMedia('(prefers-reduced-motion: reduce)').matc
 /* ---------- kinetic text splitter ---------- */
 function splitText(el) {
   if (el.dataset.done) {
-    // re-trigger animation
     $$('.ch', el).forEach((c) => { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; });
     return;
   }
@@ -29,7 +35,7 @@ function splitText(el) {
     const span = document.createElement('span');
     span.className = 'ch';
     span.style.setProperty('--i', i++);
-    span.textContent = ch === ' ' ? ' ' : ch;
+    span.textContent = ch === ' ' ? ' ' : ch;
     el.appendChild(span);
   }
   el.dataset.done = '1';
@@ -41,20 +47,9 @@ function applyConfig() {
   if (cfg.title) {
     document.title = cfg.title;
     $('#site-title').textContent = cfg.title;
-    const gw = $('.gate-word');
-    if (gw) gw.textContent = cfg.title.toUpperCase();
+    $('#gate-word').textContent = cfg.title.toUpperCase();
   }
   if (cfg.heroSub) $('#hero-sub').textContent = cfg.heroSub;
-}
-
-/* ---------- marquee ---------- */
-function fillMarquee() {
-  const row = $('#gate-marquee');
-  if (!row) return;
-  const words = ['DOWNLOAD', 'UPDATE', 'DEPLOY', 'INSTALL', 'SHIP'];
-  let html = '';
-  for (let k = 0; k < 2; k++) words.forEach((w) => (html += `<span>${w} ✺</span>`));
-  row.innerHTML = html;
 }
 
 /* ---------- Lenis smooth scroll ---------- */
@@ -66,97 +61,93 @@ function initLenis() {
   lenis.on('scroll', updateHScroll);
 }
 
-/* ---------- gate ---------- */
+/* ---------- gate gimmick (click the word to enter) ---------- */
 function initGate() {
-  const form = $('#gate-form');
-  const err = $('#gate-error');
-  if (!DATA || !DATA.list) {
-    err.textContent = 'NO DATA — admin.html에서 생성하세요.';
-    $('#gate-pw').disabled = true;
+  const gate = $('#gate');
+  const word = $('#gate-word');
+  if (!DATA || !Array.isArray(DATA.apps)) {
+    word.textContent = 'NO DATA';
+    word.style.cursor = 'default';
     return;
   }
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    err.textContent = '';
-    try {
-      const list = await decryptJSON(DATA.list, $('#gate-pw').value);
-      PAGE_PW = $('#gate-pw').value;
-      enterSite(list);
-    } catch {
-      err.textContent = 'WRONG CODE / 코드가 올바르지 않습니다';
-      $('#gate-pw').select();
+  let entering = false;
+  const go = (x, y) => {
+    if (entering) return;
+    entering = true;
+    spawnShockwave(gate, x, y);
+    gate.classList.add('stomp');
+    setTimeout(() => gate.classList.add('leaving'), 380);
+    setTimeout(() => enterSite(DATA.apps), 780);
+  };
+  word.addEventListener('click', (e) => go(e.clientX, e.clientY));
+  word.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const r = word.getBoundingClientRect();
+      go(r.left + r.width / 2, r.top + r.height / 2);
     }
   });
 }
 
-function enterSite(list) {
+function spawnShockwave(gate, x, y) {
+  const r = document.createElement('span');
+  r.className = 'shockwave';
+  r.style.left = x + 'px';
+  r.style.top = y + 'px';
+  gate.appendChild(r);
+  setTimeout(() => r.remove(), 800);
+}
+
+function enterSite(apps) {
   $('#gate').classList.add('hidden');
   $('#app').classList.remove('hidden');
-  renderPanels(list);
-  // animate the hero + headings now that they're visible
+  renderPanels(apps);
   $$('#app [data-split]').forEach(splitText);
   if (lenis) lenis.resize();
   setupHScroll();
 }
 
 /* ---------- render app panels ---------- */
-function renderPanels(list) {
+function renderPanels(apps) {
   const track = $('#htrack');
-  // remove any previously injected panels (keep intro)
   $$('.panel:not(.intro-panel)', track).forEach((n) => n.remove());
 
-  if (!Array.isArray(list) || list.length === 0) {
+  if (!apps.length) {
     const p = document.createElement('article');
     p.className = 'panel';
     p.innerHTML = '<div class="panel-content"><div class="empty">아직 배포된 앱이 없습니다.</div></div>';
     track.appendChild(p);
   } else {
     const tpl = $('#panel-tpl');
-    list.forEach((item, i) => {
+    apps.forEach((app, i) => {
       const node = tpl.content.cloneNode(true);
       $('.panel-index', node).textContent = String(i + 1).padStart(2, '0');
-      $('.panel-name', node).textContent = item.name || item.id;
-      $('.panel-desc', node).textContent = item.description || '';
+      $('.panel-name', node).textContent = app.name || app.id;
+      $('.panel-desc', node).textContent = app.description || '';
 
       const meta = $('.panel-meta', node);
       const bits = [];
-      if (item.version) bits.push(`<span class="tag">v${escapeHtml(item.version)}</span>`);
-      (item.platforms || []).forEach((p) => bits.push(`<span>${PLATFORM_LABEL[p] || escapeHtml(p)}</span>`));
-      bits.push(`<span>${item.lock === 'own' ? '🔒 APP CODE' : 'PAGE CODE'}</span>`);
+      if (app.version) bits.push(`<span class="tag">v${escapeHtml(app.version)}</span>`);
+      (app.platforms || []).forEach((p) => bits.push(`<span>${PLATFORM_LABEL[p] || escapeHtml(p)}</span>`));
+      bits.push(`<span>${app.lock === 'own' ? '🔒 APP CODE' : '↓ FREE'}</span>`);
       meta.innerHTML = bits.join('');
 
-      wirePanel(node, item);
+      wirePanel(node, app);
       track.appendChild(node);
     });
   }
-  $('#counter').textContent = `01 / ${String(($$('.panel', track).length)).padStart(2, '0')}`;
+  $('#counter').textContent = `01 / ${String($$('.panel', track).length).padStart(2, '0')}`;
 }
 
-function wirePanel(node, item) {
+function wirePanel(node, app) {
   const unlockBtn = $('.unlock-btn', node);
   const pwForm = $('.app-pw', node);
   const filesBox = $('.files', node);
   const errEl = $('.app-error', node);
   const input = $('.app-pw-input', node);
 
-  const reveal = async (pw) => {
-    const blob = DATA.downloads && DATA.downloads[item.id];
-    if (!blob) {
-      filesBox.classList.remove('hidden');
-      filesBox.innerHTML = '<div class="empty">다운로드 링크가 아직 없습니다.</div>';
-      return;
-    }
-    renderFiles(filesBox, await decryptJSON(blob, pw));
-    if (lenis) lenis.resize();
-  };
-
-  if (item.lock === 'page') {
-    unlockBtn.textContent = '[ 다운로드 보기 ]';
-    unlockBtn.addEventListener('click', async () => {
-      try { await reveal(PAGE_PW); unlockBtn.classList.add('hidden'); }
-      catch { filesBox.classList.remove('hidden'); filesBox.innerHTML = '<div class="empty">복호화 실패</div>'; }
-    });
-  } else {
+  if (app.lock === 'own') {
+    unlockBtn.textContent = '[ UNLOCK ]';
     unlockBtn.addEventListener('click', () => {
       unlockBtn.classList.add('hidden');
       pwForm.classList.remove('hidden');
@@ -165,8 +156,23 @@ function wirePanel(node, item) {
     pwForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       errEl.textContent = '';
-      try { await reveal(input.value); pwForm.classList.add('hidden'); }
-      catch { errEl.textContent = 'WRONG CODE'; input.select(); }
+      try {
+        const payload = await decryptJSON(app.enc, input.value); // throws on wrong code
+        renderFiles(filesBox, payload);
+        pwForm.classList.add('hidden');
+        if (lenis) lenis.resize();
+      } catch {
+        errEl.textContent = 'WRONG CODE';
+        input.select();
+      }
+    });
+  } else {
+    // open app — files are plaintext
+    unlockBtn.textContent = '[ 다운로드 보기 ]';
+    unlockBtn.addEventListener('click', () => {
+      renderFiles(filesBox, { files: app.files || [] });
+      unlockBtn.classList.add('hidden');
+      if (lenis) lenis.resize();
     });
   }
 }
@@ -216,7 +222,6 @@ function updateHScroll() {
   const rect = sec.getBoundingClientRect();
   const progress = total > 0 ? clamp(-rect.top / total, 0, 1) : 0;
   track.style.transform = `translateX(${-progress * distance}px)`;
-  // counter
   const panels = $$('.panel', track);
   const idx = clamp(Math.round(progress * (panels.length - 1)), 0, panels.length - 1);
   $('#counter').textContent = `${String(idx + 1).padStart(2, '0')} / ${String(panels.length).padStart(2, '0')}`;
@@ -229,8 +234,6 @@ function escapeHtml(s) {
 
 /* ---------- boot ---------- */
 applyConfig();
-fillMarquee();
-$$('.gate [data-split]').forEach(splitText);
 initLenis();
 initGate();
 $('#lock-btn').addEventListener('click', () => location.reload());

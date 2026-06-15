@@ -57,20 +57,13 @@
       <span class="tag">config generator</span>
     </header>
     <p class="lead">
-      앱을 고르고 코드를 설정한 뒤 <b>data.js 생성</b>을 누르세요. 생성된 파일을 프로젝트 루트의 <code>data.js</code>로 저장(덮어쓰기)하면 끝입니다.
-      비밀번호는 이 파일에 저장되지 않고, 다운로드 링크는 코드로 <b>AES 암호화</b>되어 들어갑니다.
+      앱을 고르고 (필요하면) 앱별 코드를 설정한 뒤 <b>data.js 생성</b>을 누르세요. 생성된 파일을 프로젝트 루트의 <code>data.js</code>로 저장(덮어쓰기)하면 끝입니다.
+      진입은 비번 없이 기믹으로 들어갑니다. <b>앱 코드를 넣은 앱만</b> 다운로드 링크가 <b>AES 암호화</b>되고, 비운 앱은 자유 다운로드입니다.
     </p>
 
     <h2 class="sec">사이트 설정</h2>
     <div class="field"><label>사이트 제목</label><input type="text" id="cfg-title" value="DINOVERSE" /></div>
     <div class="field"><label>히어로 부제</label><input type="text" id="cfg-hero" value="배포 중인 앱을 받으세요. 앱마다 개별 코드가 필요할 수 있습니다." /></div>
-    <div class="field">
-      <label>페이지 코드 (진입 비번 · 필수)</label>
-      <div class="pw-wrap">
-        <input type="password" id="cfg-pagepw" placeholder="예: dino-2026-xyz" />
-        <button type="button" data-eye="cfg-pagepw">👁</button>
-      </div>
-    </div>
 
     <h2 class="sec">앱</h2>
     <div id="apps"></div>

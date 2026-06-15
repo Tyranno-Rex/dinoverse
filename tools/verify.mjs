@@ -1,5 +1,5 @@
-// Round-trip check: decrypt the generated data.js using the SAME PBKDF2+AES-GCM
-// the browser uses. Proves admin/CLI output is readable by the site.
+// Round-trip check for the per-app data model: open apps carry plaintext files,
+// locked apps decrypt only with their own code. Uses the same WebCrypto the site uses.
 import { readFileSync } from 'node:fs';
 
 const dec = new TextDecoder();
@@ -14,7 +14,6 @@ async function decryptJSON(blob, password) {
   return JSON.parse(dec.decode(pt));
 }
 
-// load data.js by evaluating the window.DINO_DATA assignment
 const src = readFileSync('data.js', 'utf8');
 const win = {};
 new Function('window', src)(win);
@@ -23,22 +22,20 @@ const D = win.DINO_DATA;
 let pass = 0, fail = 0;
 const ok = (c, m) => (c ? (pass++, console.log('  ✓', m)) : (fail++, console.log('  ✗', m)));
 
-const list = await decryptJSON(D.list, 'dino');
-ok(Array.isArray(list) && list.length === 3, `page code unlocks list (${list.length} apps)`);
+ok(Array.isArray(D.apps) && D.apps.length === 3, `apps list is public (${D.apps.length} apps)`);
 
-const flow = await decryptJSON(D.downloads.flowdesk, 'dino');         // lock: page
-ok(flow.files.length >= 1, 'flowdesk (page-locked) decrypts with page code');
+const open = D.apps.find((a) => a.id === 'flowdesk');
+ok(open.lock === 'open' && Array.isArray(open.files) && open.files.length >= 1, 'open app (flowdesk) has plaintext files, no code');
 
-const brachy = await decryptJSON(D.downloads.brachy, 'brachy-2026');  // lock: own
-ok(brachy.files.length >= 1, 'brachy (app-locked) decrypts with its own code');
+const own = D.apps.find((a) => a.id === 'brachy');
+ok(own.lock === 'own' && own.enc && !own.files, 'locked app (brachy) hides files behind enc');
+
+const dt = await decryptJSON(own.enc, 'brachy-2026');
+ok(dt.files.length >= 1, 'locked app decrypts with its own code');
 
 let rejected = false;
-try { await decryptJSON(D.list, 'wrong'); } catch { rejected = true; }
-ok(rejected, 'wrong code is rejected');
-
-let rejected2 = false;
-try { await decryptJSON(D.downloads.brachy, 'dino'); } catch { rejected2 = true; }
-ok(rejected2, 'app-locked app does NOT open with page code');
+try { await decryptJSON(own.enc, 'wrong'); } catch { rejected = true; }
+ok(rejected, 'wrong app code is rejected');
 
 console.log(`\n${fail === 0 ? 'ALL PASS' : 'FAILURES'}: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
