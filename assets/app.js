@@ -65,19 +65,17 @@ function buildWall(wall) {
   const word = ((DATA.config && DATA.config.title) || 'DINOVERSE').toUpperCase();
   wall.innerHTML = '';
   const rowPx = Math.max(48, Math.min(96, Math.round(window.innerWidth * 0.07)));
-  // the wall plane is ~190% of the viewport (it's tilted in 3D), so over-fill
-  const rowCount = Math.ceil((window.innerHeight * 1.9) / (rowPx * 0.92)) + 2;
+  const rowCount = Math.ceil((window.innerHeight * 1.25) / (rowPx * 0.98)) + 2;
   const charW = rowPx * 0.62; // rough cap-letter advance
   const unitLen = (word.length + 2) * charW; // word + gap
-  const reps = Math.ceil((window.innerWidth * 1.9) / unitLen) + 2;
+  const reps = Math.ceil((window.innerWidth * 1.4) / unitLen) + 2;
   for (let i = 0; i < rowCount; i++) {
     const row = document.createElement('div');
-    // strict alternation: even = solid black, odd = outline ("검·흰·검·흰")
-    row.className = 'wall-row' + (i % 2 ? ' rev out' : '');
+    // strict alternation: even = solid black (3D), odd = outline white
+    row.className = 'wall-row ' + (i % 2 ? 'out' : 'blk');
     row.style.fontSize = rowPx + 'px';
     const track = document.createElement('div');
     track.className = 'wall-track';
-    track.style.setProperty('--dur', 16 + (i % 5) * 7 + 's');
     let unit = '';
     for (let k = 0; k < reps; k++) unit += word + '  '; // no dot, just a gap
     track.textContent = unit + unit; // duplicate → seamless -50% loop
@@ -93,20 +91,27 @@ function initGate() {
     gate.style.cursor = 'default';
     return;
   }
-  buildWall($('#wall'));
+  const wall = $('#wall');
+  buildWall(wall);
   let rt;
-  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => buildWall($('#wall')), 200); });
-
-  // cursor lamp follows the pointer, inverting the wall beneath it
-  const lamp = $('#lamp');
-  window.addEventListener('mousemove', (e) => { lamp.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`; });
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => buildWall(wall), 200); });
 
   let entering = false;
+
+  // mouse parallax: black layer slides opposite the cursor, white layer with it
+  const amp = () => Math.min(140, window.innerWidth * 0.06);
+  window.addEventListener('mousemove', (e) => {
+    if (entering) return;
+    const nx = (e.clientX / window.innerWidth - 0.5) * 2; // -1 (left) .. 1 (right)
+    const a = amp();
+    wall.style.setProperty('--bx', (-nx * a).toFixed(1) + 'px'); // black: opposite
+    wall.style.setProperty('--wx', (nx * a).toFixed(1) + 'px');  // white: same dir
+  });
   const enter = () => {
     if (entering) return;
     entering = true;
     gate.classList.add('leaving');
-    setTimeout(() => enterSite(DATA.apps), 560);
+    setTimeout(() => enterSite(DATA.apps), 460);
   };
   gate.addEventListener('click', enter);
   window.addEventListener('keydown', (e) => {
