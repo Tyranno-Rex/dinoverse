@@ -126,11 +126,11 @@ body {
    Section is tall; inner is pinned; track translates on scroll.
    ============================================================ */
 .hscroll { position: relative; background: var(--ink); }
-.hsticky { position: sticky; top: 0; height: 100vh; overflow: hidden; }
-.htrack { display: flex; height: 100vh; align-items: stretch; will-change: transform; }
+.hsticky { position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden; }
+.htrack { display: flex; height: 100vh; height: 100dvh; align-items: stretch; will-change: transform; }
 
 .panel {
-  flex: 0 0 auto; width: min(560px, 86vw); height: 100vh;
+  flex: 0 0 auto; width: min(560px, 86vw); height: 100vh; height: 100dvh;
   position: relative; display: flex; flex-direction: column; justify-content: center;
   padding: 0 clamp(28px, 5vw, 80px);
   border-right: 1px solid #242424; color: var(--paper);
@@ -240,7 +240,7 @@ body {
 .files .empty, .panel .empty { font-family: var(--mono); color: #8a8a82; font-size: 13px; letter-spacing: 0.1em; padding: 14px 0; }
 
 /* ============================================================
-   Fallback: small screens / reduced motion → native sideways scroll
+   Fallback: reduced motion → native sideways swipe (no JS pin).
    ============================================================ */
 .hscroll.native { height: auto !important; }
 .hscroll.native .hsticky { position: static; height: auto; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
@@ -248,9 +248,9 @@ body {
 .hscroll.native .panel { height: auto; min-height: 86vh; scroll-snap-align: start; }
 
 /* ============================================================
-   Mobile (<=760px): stack the gallery vertically + wrap all text.
-   Touch horizontal-swipe galleries are flaky; a normal vertical
-   stack just works. Desktop keeps the horizontal scroll gallery.
+   Mobile (<=760px): same pinned vertical→horizontal gallery as desktop,
+   just with smaller type and wrapped text. Reduced-motion still falls
+   back to the native swipe carousel (.native rules above).
    ============================================================ */
 @media (max-width: 760px) {
   /* hero: shrink + allow wrap so long headlines never clip off-screen */
@@ -280,6 +280,12 @@ body {
   .hscroll.native .panel { width: 86vw; height: auto; min-height: 86vh; scroll-snap-align: start; }
   .hscroll.native .intro-panel { width: 78vw; }
   .hscroll.native .soon-panel { width: 90vw; padding-top: clamp(120px, 22vh, 200px); }
+
+  /* pinned-mobile (default, non-reduced-motion): panels stay one screen tall and
+     are clipped, so trim oversized desktop widths/spacing to give content room. */
+  .panel { width: 86vw; }
+  .intro-panel { width: 78vw; }
+  .soon-panel { width: 90vw; padding-top: clamp(120px, 20vh, 200px); }
 
   /* desktop-style badge kept (icon far left, number far right), a bit smaller */
   .panel-index { font-size: clamp(56px, 16vh, 120px); }

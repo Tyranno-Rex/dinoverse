@@ -19,7 +19,6 @@ const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
 const PLATFORM_LABEL = { win: 'WINDOWS', android: 'ANDROID', mac: 'MACOS', linux: 'LINUX', web: 'WEB', ios: 'IOS' };
-const SMALL = () => window.matchMedia('(max-width: 760px)').matches;
 const REDUCED = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------- kinetic text splitter ---------- */
@@ -239,12 +238,23 @@ function renderFiles(box, payload) {
 /* ---------- horizontal scroll (#8) ---------- */
 function setupHScroll() {
   const sec = $('#hscroll');
-  if (SMALL() || REDUCED()) { sec.classList.add('native'); return; }
+  // Reduced-motion users still get the simple native swipe carousel.
+  // Everyone else — desktop AND touch — gets the pinned vertical→horizontal effect.
+  if (REDUCED()) { sec.classList.add('native'); return; }
   sec.classList.remove('native');
   resizeHScroll();
   window.addEventListener('resize', resizeHScroll);
-  if (!lenis) window.addEventListener('scroll', updateHScroll, { passive: true });
+  // Native scroll listener (rAF-throttled) drives touch + any non-lenis scroll;
+  // lenis.on('scroll') drives smooth wheel on desktop. updateHScroll is idempotent,
+  // so running both is harmless.
+  window.addEventListener('scroll', requestHScrollUpdate, { passive: true });
   updateHScroll();
+}
+
+let hRaf = 0;
+function requestHScrollUpdate() {
+  if (hRaf) return;
+  hRaf = requestAnimationFrame(() => { hRaf = 0; updateHScroll(); });
 }
 
 function resizeHScroll() {
