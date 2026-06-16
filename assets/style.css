@@ -224,6 +224,49 @@ body {
 .hscroll.native .htrack { transform: none !important; height: auto; }
 .hscroll.native .panel { height: auto; min-height: 86vh; scroll-snap-align: start; }
 
+/* ============================================================
+   Mobile (<=760px): stack the gallery vertically + wrap all text.
+   Touch horizontal-swipe galleries are flaky; a normal vertical
+   stack just works. Desktop keeps the horizontal scroll gallery.
+   ============================================================ */
+@media (max-width: 760px) {
+  /* hero: shrink + allow wrap so long headlines never clip off-screen */
+  .hero { min-height: 86vh; }
+  .hero-title { font-size: clamp(22px, 6vw, 96px); }
+  .hero-title .line { white-space: normal; }
+  .hero-title .line.accent { display: inline; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .hero-sub { white-space: normal; }
+
+  /* hide the draggable hero stickers on mobile — they crowd/overlap the
+     headline; dinos still appear on the app cards + footer sticker */
+  .hero-stickers { display: none; }
+
+  /* gallery -> vertical stack of full-width cards */
+  .hscroll.native .hsticky { overflow: visible; scroll-snap-type: none; }
+  .hscroll.native .htrack { display: block; }
+  .hscroll.native .panel {
+    width: 100%; height: auto; min-height: auto;
+    border-right: none; border-bottom: 1px solid #242424;
+    padding: 46px clamp(22px, 7vw, 40px); scroll-snap-align: none;
+  }
+  .hscroll.native .intro-panel,
+  .hscroll.native .soon-panel { width: 100%; padding-top: 46px; }
+
+  /* badge flows into the card top, left-aligned so the number can't clip */
+  .panel-badge { position: static; left: auto; right: auto; top: auto; justify-content: flex-start; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .panel-index { font-size: clamp(44px, 13vw, 84px); }
+  .panel-sticker,
+  .panel-sticker--p1, .panel-sticker--p2 { height: clamp(72px, 22vw, 118px); }
+
+  /* nothing clips: every line wraps */
+  .panel-name, .panel-desc { white-space: normal; }
+  .panel-meta { white-space: normal; flex-wrap: wrap; gap: 8px 14px; }
+  .intro-big { font-size: clamp(52px, 20vw, 110px); white-space: normal; }
+  .intro-note { white-space: normal; }
+  .footer-verse .line { white-space: normal; }
+  .footer-ref { white-space: normal; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-split] .ch { animation: none; transform: none; opacity: 1; }
   .scroll-cue-arrow { animation: none; }
