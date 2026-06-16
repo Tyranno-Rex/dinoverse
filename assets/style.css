@@ -205,15 +205,18 @@ body {
 }
 .footer-eyebrow { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.22em; font-size: 12px; opacity: 0.7; margin: 0 0 16px; display: block; }
 .footer-name { font-size: clamp(40px, 9vw, 118px); line-height: 0.92; margin: 0; }
-.footer-about { font-family: var(--body); font-size: clamp(15px, 1.9vw, 22px); line-height: 1.6; max-width: 34ch; margin: clamp(22px, 4vh, 38px) 0 0; color: rgba(236, 234, 225, 0.92); }
+.footer-about { font-family: var(--body); font-size: clamp(15px, 1.9vw, 22px); line-height: 1.6; margin: clamp(22px, 4vh, 38px) 0 0; color: rgba(236, 234, 225, 0.92); }
 .footer-cols { display: flex; flex-wrap: wrap; gap: clamp(28px, 6vw, 90px); margin: clamp(34px, 6vh, 56px) 0 0; }
 .footer-col { display: flex; flex-direction: column; gap: 9px; }
 .footer-label { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.18em; font-size: 11px; opacity: 0.6; margin-bottom: 3px; }
 .footer-link { font-family: var(--mono); font-size: clamp(13px, 1.5vw, 16px); color: var(--paper); text-decoration: none; letter-spacing: 0.02em; width: fit-content; border-bottom: 1px solid rgba(236, 234, 225, 0.3); padding-bottom: 2px; transition: color 0.15s, border-color 0.15s; }
 .footer-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
+/* placeholder link (e.g. Discord, before its URL exists) */
+.footer-link--soon, .footer-link--soon:hover { color: rgba(236, 234, 225, 0.55); border-bottom-color: transparent; cursor: default; }
+.footer-link--soon em { font-style: normal; font-size: 0.8em; opacity: 0.75; letter-spacing: 0.1em; margin-left: 4px; }
 .footer-line { font-family: var(--mono); font-size: clamp(12px, 1.4vw, 15px); letter-spacing: 0.08em; opacity: 0.85; }
 .footer-bottom { margin-top: clamp(48px, 9vh, 90px); border-top: 1px solid rgba(236, 234, 225, 0.25); padding-top: clamp(22px, 4vh, 38px); }
-.footer-verse { font-family: var(--display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.015em; font-size: clamp(17px, 2.7vw, 36px); line-height: 1.08; margin: 0; max-width: 22ch; }
+.footer-verse { font-family: var(--display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.015em; font-size: clamp(17px, 2.7vw, 36px); line-height: 1.08; margin: 0; }
 .footer-ref { display: block; margin-top: 14px; font-family: var(--mono); font-style: normal; text-transform: uppercase; letter-spacing: 0.18em; font-size: 12px; color: var(--paper); opacity: 0.75; }
 
 /* ---------- panel actions ---------- */
@@ -286,7 +289,8 @@ body {
   .panel-meta { white-space: normal; flex-wrap: wrap; gap: 8px 14px; }
   .intro-big { font-size: clamp(52px, 20vw, 110px); white-space: normal; }
   .intro-note { white-space: normal; }
-  .footer-verse .line { white-space: normal; }
+  .footer-cols { flex-direction: column; gap: clamp(26px, 5vh, 40px); }
+  .footer-verse { white-space: normal; }
   .footer-ref { white-space: normal; }
 }
 
