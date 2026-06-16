@@ -203,7 +203,6 @@ body {
   min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between;
   padding: clamp(72px, 13vh, 150px) clamp(22px, 7vw, 120px) clamp(40px, 7vh, 70px);
 }
-.footer-eyebrow { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.22em; font-size: 12px; opacity: 0.7; margin: 0 0 16px; display: block; }
 .footer-name { font-size: clamp(40px, 9vw, 118px); line-height: 0.92; margin: 0; }
 .footer-about { font-family: var(--body); font-size: clamp(15px, 1.9vw, 22px); line-height: 1.6; margin: clamp(22px, 4vh, 38px) 0 0; color: rgba(236, 234, 225, 0.92); }
 .footer-cols { display: flex; flex-wrap: wrap; gap: clamp(28px, 6vw, 90px); margin: clamp(34px, 6vh, 56px) 0 0; }
@@ -261,25 +260,29 @@ body {
   .hero-title .line.accent { display: inline; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
   .hero-sub { white-space: normal; }
 
-  /* hide the draggable hero stickers on mobile — they crowd/overlap the
-     headline; dinos still appear on the app cards + footer sticker */
-  .hero-stickers { display: none; }
+  /* keep the draggable hero stickers on mobile — just smaller so they
+     tuck around the headline instead of crowding it */
+  .drag-sticker--app { height: clamp(60px, 17vw, 96px); }
+  .drag-sticker--icon { height: clamp(38px, 11vw, 60px); }
+  .drag-sticker--studio { font-size: 10px; letter-spacing: 0.08em; padding: 9px 12px; }
 
-  /* gallery -> vertical stack of full-width cards */
-  .hscroll.native .hsticky { overflow: visible; scroll-snap-type: none; }
-  .hscroll.native .htrack { display: block; }
-  .hscroll.native .panel {
-    width: 100%; height: auto; min-height: auto;
-    border-right: none; border-bottom: 1px solid #242424;
-    padding: 46px clamp(22px, 7vw, 40px) clamp(150px, 44vw, 200px); scroll-snap-align: none;
+  /* gallery = horizontal swipe carousel on touch: each card is ~one screen
+     wide with a peek of the next; native overflow scroll + snap (no JS pin).
+     The strip box is exactly as tall as its content, so overflow-y:hidden
+     never clips — it just keeps vertical swipes scrolling the page. */
+  .hscroll.native .hsticky {
+    position: static; height: auto;
+    overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
   }
-  /* intro/soon have no mascot, so no reserved bottom zone */
-  .hscroll.native .intro-panel,
-  .hscroll.native .soon-panel { width: 100%; padding-top: 46px; padding-bottom: 46px; }
+  .hscroll.native .htrack { display: flex; height: auto; }
+  .hscroll.native .panel { width: 86vw; height: auto; min-height: 86vh; scroll-snap-align: start; }
+  .hscroll.native .intro-panel { width: 78vw; }
+  .hscroll.native .soon-panel { width: 90vw; padding-top: clamp(120px, 22vh, 200px); }
 
-  /* badge flows into the card top, left-aligned so the number can't clip */
-  .panel-badge { position: static; left: auto; right: auto; top: auto; justify-content: flex-start; align-items: center; gap: 14px; margin-bottom: 14px; }
-  .panel-index { font-size: clamp(44px, 13vw, 84px); }
+  /* desktop-style badge kept (icon far left, number far right), a bit smaller */
+  .panel-index { font-size: clamp(56px, 16vh, 120px); }
   .panel-icon { height: clamp(56px, 15vw, 92px); }
   .panel-sticker,
   .panel-sticker--p1, .panel-sticker--p2 { height: clamp(72px, 22vw, 118px); }
