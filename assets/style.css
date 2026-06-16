@@ -148,9 +148,12 @@ body {
 /* app icon sits right beside the number */
 .panel-num { display: inline-flex; align-items: center; gap: clamp(10px, 1.6vw, 22px); }
 .panel-icon { flex: 0 0 auto; height: clamp(46px, 8vh, 80px); width: auto; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45)); user-select: none; }
+/* mascot is scattered randomly in the lower zone (below content) by JS */
 .panel-sticker {
-  flex: 0 0 auto; width: auto; height: clamp(110px, 19vh, 190px);
+  position: absolute; left: 50%; bottom: clamp(20px, 5vh, 50px);
+  width: auto; height: clamp(110px, 19vh, 190px);
   filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5)); user-select: none;
+  z-index: 0; opacity: 0; transition: opacity 0.3s ease;
 }
 /* slight angle/size variety per app — beside the number, never on it */
 .panel-sticker--p0 { transform: rotate(-7deg); }
@@ -251,10 +254,11 @@ body {
   .hscroll.native .panel {
     width: 100%; height: auto; min-height: auto;
     border-right: none; border-bottom: 1px solid #242424;
-    padding: 46px clamp(22px, 7vw, 40px); scroll-snap-align: none;
+    padding: 46px clamp(22px, 7vw, 40px) clamp(150px, 44vw, 200px); scroll-snap-align: none;
   }
+  /* intro/soon have no mascot, so no reserved bottom zone */
   .hscroll.native .intro-panel,
-  .hscroll.native .soon-panel { width: 100%; padding-top: 46px; }
+  .hscroll.native .soon-panel { width: 100%; padding-top: 46px; padding-bottom: 46px; }
 
   /* badge flows into the card top, left-aligned so the number can't clip */
   .panel-badge { position: static; left: auto; right: auto; top: auto; justify-content: flex-start; align-items: center; gap: 14px; margin-bottom: 14px; }

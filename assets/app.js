@@ -68,6 +68,12 @@ function startSite() {
   $$('#app [data-split]').forEach(splitText);
   if (lenis) lenis.resize();
   setupHScroll();
+  placePanelMascots();
+  let mascotTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(mascotTimer);
+    mascotTimer = setTimeout(placePanelMascots, 160);
+  });
 }
 
 /* ---------- render app panels ---------- */
@@ -151,6 +157,29 @@ function soonItem(it) {
     return '<span class="soon-group">' + txt + '</span>';
   }
   return '<span class="soon-item">' + escapeHtml(it) + '</span>';
+}
+
+/* ---------- scatter each panel's mascot randomly in the zone below its content ---------- */
+function placePanelMascots() {
+  $$('#htrack .panel').forEach((panel) => {
+    const m = panel.querySelector('.panel-sticker');
+    const content = panel.querySelector('.panel-content');
+    if (!m || !content) return;
+    const apply = () => {
+      const pr = panel.getBoundingClientRect();
+      const cr = content.getBoundingClientRect();
+      const mw = m.offsetWidth, mh = m.offsetHeight;
+      const pad = 20, gap = 18;
+      const minTop = (cr.bottom - pr.top) + gap;          // just under the download area
+      const maxTop = Math.max(minTop, pr.height - mh - pad);
+      const maxLeft = Math.max(pad, pr.width - mw - pad);
+      m.style.left = Math.round(pad + Math.random() * (maxLeft - pad)) + 'px';
+      m.style.top = Math.round(minTop + Math.random() * (maxTop - minTop)) + 'px';
+      m.style.opacity = '1';
+    };
+    if (m.complete && m.naturalWidth) apply();
+    else { m.addEventListener('load', apply, { once: true }); m.addEventListener('error', apply, { once: true }); }
+  });
 }
 
 function wirePanel(node, app) {
