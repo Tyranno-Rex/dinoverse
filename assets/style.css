@@ -146,8 +146,8 @@ body {
   line-height: 1; color: var(--blue); user-select: none;
 }
 /* app icon sits right beside the number */
-.panel-num { display: inline-flex; align-items: center; gap: clamp(20px, 2.6vw, 40px); }
-.panel-icon { flex: 0 0 auto; height: clamp(60px, 10vh, 108px); width: auto; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45)); user-select: none; }
+.panel-num { display: inline-flex; align-items: center; gap: clamp(12px, 1.5vw, 24px); }
+.panel-icon { flex: 0 0 auto; height: clamp(70px, 11vh, 120px); width: auto; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45)); user-select: none; }
 /* mascot is scattered randomly in the lower zone (below content) by JS */
 .panel-sticker {
   position: absolute; left: 50%; bottom: clamp(20px, 5vh, 50px);
@@ -273,8 +273,8 @@ body {
   /* badge flows into the card top, left-aligned so the number can't clip */
   .panel-badge { position: static; left: auto; right: auto; top: auto; justify-content: flex-start; align-items: center; gap: 14px; margin-bottom: 14px; }
   .panel-index { font-size: clamp(44px, 13vw, 84px); }
-  .panel-num { gap: 16px; }
-  .panel-icon { height: clamp(50px, 14vw, 84px); }
+  .panel-num { gap: 12px; }
+  .panel-icon { height: clamp(56px, 15vw, 92px); }
   .panel-sticker,
   .panel-sticker--p1, .panel-sticker--p2 { height: clamp(72px, 22vw, 118px); }
 
