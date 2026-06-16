@@ -193,8 +193,10 @@ body {
 .soon-group .plus { font-weight: 700; padding: 0 1px; }
 
 /* intro + footer big words */
-.intro-panel { width: min(440px, 80vw); justify-content: center; color: var(--paper); }
-.intro-big { font-size: clamp(64px, 16vh, 200px); color: transparent; -webkit-text-stroke: 2px var(--blue); white-space: nowrap; }
+/* wide enough (and with trimmed side padding) that the big "APPS" word fits
+   inside the panel instead of spilling past its right border into panel 01 */
+.intro-panel { width: min(560px, 86vw); justify-content: center; color: var(--paper); padding-left: clamp(24px, 4vw, 36px); padding-right: clamp(24px, 4vw, 36px); }
+.intro-big { font-size: clamp(64px, 14vh, 180px); color: transparent; -webkit-text-stroke: 2px var(--blue); white-space: nowrap; }
 .intro-note { font-family: var(--mono); letter-spacing: 0.16em; font-size: 13px; color: #9a9a90; margin-top: 22px; text-transform: uppercase; line-height: 1.7; white-space: nowrap; }
 
 /* footer = the studio's about / contact card */
