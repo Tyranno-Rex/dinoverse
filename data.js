@@ -39,25 +39,26 @@ window.DINO_DATA = {
       "enc": {
         "v": 1,
         "iter": 250000,
-        "salt": "qnKsH/jX96ZwS7vmQQSh4A==",
-        "iv": "YgoIoZN19aUKLoE+",
-        "ct": "L2VHmSznc3uIbOZ/7mFJ4bPSX5n4S4fXaz6CD5aeBEyiZLScwR68ny9EGxEug4Cl1tkjvAmSPlMEMXpQULxnPAbBA52IRHLgeIZucXTUYya9LthwVqoDQvzpev3c8tFPrkurZCwk/6auQlDBRMPUlqs+STnfZm7FPP/Qp0RX3vbLuA=="
+        "salt": "HO1AMZTxwU/wRelw0jPjmQ==",
+        "iv": "18t8P2RV8+usZkIT",
+        "ct": "Hrk+ab5uneomkKBwNhMekRcIWtMGpMtmcjLocmj4S6HvCD2B0spH0b+gLNUf+JEgsjfo5IaVj3MIpAUz8aSjVX/T4HLtNtA7i6UuzqYLkd3KdaYQvf26Jh/Q1P2JUVKPXIYKMEX1FjylC1+ZIC0Yp3NR0VlQtyHVyTj9kFngynLIAA=="
       }
     },
     {
       "id": "sowhat-dino",
       "name": "SoWhat-Dino",
-      "description": "",
+      "description": "바탕화면에 우리 어쩔공룡을 키우시려고요? 좋은 소식이지만 어쩔공룡씨도 좋아할지는 모르겠네요...",
       "version": "0.1.0",
       "platforms": [
         "win"
       ],
       "image": "image/sowhat-dino.png",
+      "icon": "image/sowhat-dino-icon.png",
       "lock": "open",
       "files": [
         {
           "label": "Windows 설치 (.msi)",
-          "url": "https://example.com/SoWhat-Dino.msi",
+          "url": "https://drive.usercontent.google.com/download?id=1LoIp0iE3De1-XaNjbw4viYevN06nq2VK&export=download&confirm=t",
           "size": "—"
         }
       ]
