@@ -39,15 +39,15 @@ window.DINO_DATA = {
       "enc": {
         "v": 1,
         "iter": 250000,
-        "salt": "HO1AMZTxwU/wRelw0jPjmQ==",
-        "iv": "18t8P2RV8+usZkIT",
-        "ct": "Hrk+ab5uneomkKBwNhMekRcIWtMGpMtmcjLocmj4S6HvCD2B0spH0b+gLNUf+JEgsjfo5IaVj3MIpAUz8aSjVX/T4HLtNtA7i6UuzqYLkd3KdaYQvf26Jh/Q1P2JUVKPXIYKMEX1FjylC1+ZIC0Yp3NR0VlQtyHVyTj9kFngynLIAA=="
+        "salt": "meiaGbGMuNRNVMm6/R5xyQ==",
+        "iv": "J4gs3231KGQDXhe0",
+        "ct": "vQ2pZf24WuvW3M4kkHksSZyga4dZk2i9fGrQ5GqxBVh/e9I1XuhiTAF5miTlshsBsiBwDA0a22W6jCjFu6bcPe4i5IBkAAs3hZxjwlrfUWS+6LOw6PBi1zHnUizjfnJotGZBZxenUnJ6jJmbdMG4SS7n118sYFDc2rKv0HW+GO0xBQ=="
       }
     },
     {
       "id": "sowhat-dino",
       "name": "SoWhat-Dino",
-      "description": "바탕화면에 우리 어쩔공룡을 키우시려고요? 좋은 소식이지만 어쩔공룡씨도 좋아할지는 모르겠네요...",
+      "description": "바탕화면에 우리 어쩔공룡을 키우시려고요? 저에게는 좋은 소식이지만 어쩔공룡씨도 좋아할지는 모르겠네요..",
       "version": "0.1.0",
       "platforms": [
         "win"
