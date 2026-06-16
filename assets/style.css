@@ -111,7 +111,8 @@ body {
 }
 .drag-sticker.grabbing { cursor: grabbing; filter: drop-shadow(0 16px 30px rgba(0, 0, 0, 0.32)); }
 .drag-sticker--app { height: clamp(92px, 14vh, 150px); }
-.drag-sticker--app img { display: block; height: 100%; width: auto; pointer-events: none; -webkit-user-drag: none; }
+.drag-sticker--icon { height: clamp(54px, 9vh, 92px); }
+.drag-sticker--app img, .drag-sticker--icon img { display: block; height: 100%; width: auto; pointer-events: none; -webkit-user-drag: none; }
 /* company sticker — distinct from footer's lime pill: stacked ink badge, lime text */
 .drag-sticker--studio {
   background: var(--ink); color: var(--accent);
@@ -144,6 +145,9 @@ body {
   font-family: var(--display); font-weight: 900; font-size: clamp(80px, 16vh, 190px);
   line-height: 1; color: var(--blue); user-select: none;
 }
+/* app icon sits right beside the number */
+.panel-num { display: inline-flex; align-items: center; gap: clamp(10px, 1.6vw, 22px); }
+.panel-icon { flex: 0 0 auto; height: clamp(46px, 8vh, 80px); width: auto; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45)); user-select: none; }
 .panel-sticker {
   flex: 0 0 auto; width: auto; height: clamp(110px, 19vh, 190px);
   filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5)); user-select: none;
@@ -255,6 +259,8 @@ body {
   /* badge flows into the card top, left-aligned so the number can't clip */
   .panel-badge { position: static; left: auto; right: auto; top: auto; justify-content: flex-start; align-items: center; gap: 14px; margin-bottom: 14px; }
   .panel-index { font-size: clamp(44px, 13vw, 84px); }
+  .panel-num { gap: 10px; }
+  .panel-icon { height: clamp(38px, 11vw, 64px); }
   .panel-sticker,
   .panel-sticker--p1, .panel-sticker--p2 { height: clamp(72px, 22vw, 118px); }
 

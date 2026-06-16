@@ -24,8 +24,8 @@ const ok = (c, m) => (c ? (pass++, console.log('  ✓', m)) : (fail++, console.l
 
 ok(Array.isArray(D.apps) && D.apps.length === 3, `apps list is public (${D.apps.length} apps)`);
 
-const open = D.apps.find((a) => a.id === 'flowdesk');
-ok(open.lock === 'open' && Array.isArray(open.files) && open.files.length >= 1, 'open app (flowdesk) has plaintext files, no code');
+const open = D.apps.find((a) => a.id === 'restile');
+ok(open.lock === 'open' && Array.isArray(open.files) && open.files.length >= 1, 'open app (restile) has plaintext files, no code');
 
 const own = D.apps.find((a) => a.id === 'brachy');
 ok(own.lock === 'own' && own.enc && !own.files, 'locked app (brachy) hides files behind enc');

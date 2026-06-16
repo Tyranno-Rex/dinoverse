@@ -95,6 +95,12 @@ function renderPanels(apps) {
         sticker.classList.add('panel-sticker--p' + (i % 5)); // vary spot/angle per app
       } else { sticker.remove(); }
 
+      const icon = $('.panel-icon', node);
+      if (app.icon) {
+        icon.src = app.icon;
+        icon.alt = (app.name || app.id) + ' icon';
+      } else { icon.remove(); }
+
       const meta = $('.panel-meta', node);
       const bits = [];
       if (app.version) bits.push(`<span class="tag">v${escapeHtml(app.version)}</span>`);
@@ -260,6 +266,20 @@ function setupHeroStickers() {
     img.alt = a.name || a.id;
     img.draggable = false;
     img.src = a.image;
+    s.appendChild(img);
+    els.push(s);
+    imgEls.push(img);
+    layer.appendChild(s);
+  });
+
+  // app icons — added as extra draggable stickers (smaller than mascots)
+  apps.filter((a) => a.icon).forEach((a) => {
+    const s = document.createElement('div');
+    s.className = 'drag-sticker drag-sticker--icon';
+    const img = document.createElement('img');
+    img.alt = (a.name || a.id) + ' icon';
+    img.draggable = false;
+    img.src = a.icon;
     s.appendChild(img);
     els.push(s);
     imgEls.push(img);

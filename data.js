@@ -6,19 +6,20 @@ window.DINO_DATA = {
   },
   "apps": [
     {
-      "id": "flowdesk",
-      "name": "FlowDesk",
+      "id": "restile",
+      "name": "Restile",
       "description": "",
       "version": "1.0.0",
       "platforms": [
         "win"
       ],
-      "image": "image/flowdesk.png",
+      "image": "image/restile-mascot.png",
+      "icon": "image/restile-icon.ico",
       "lock": "open",
       "files": [
         {
           "label": "Windows 설치 (.exe)",
-          "url": "https://example.com/FlowDesk-Setup.exe",
+          "url": "https://example.com/Restile-Setup.exe",
           "size": "—"
         }
       ]
@@ -31,14 +32,15 @@ window.DINO_DATA = {
       "platforms": [
         "win"
       ],
-      "image": "image/brachy.png",
+      "image": "image/brachy-mascot.png",
+      "icon": "image/brachy-icon.png",
       "lock": "own",
       "enc": {
         "v": 1,
         "iter": 250000,
-        "salt": "yUItb8/S7c+WC2+u/rUguw==",
-        "iv": "94myg20kqjLIbG9s",
-        "ct": "MGAIT8G5CC96ojvQvbhtnPP5/PXc3sQlfu7qe9JjY72E+kihpMkwxt+5p1VCLvR7I5hnxLCm/XI2XPhPHKkYJXHSv7CvY//IkaArPuEzFvcSzguHsKHhtHuGLyacEWwj3PBBcv87DGu10TqK91ItJUXCoP16v7mjfccRnsJrgRKogQ=="
+        "salt": "kARPB1/jEDDr32gaFi7BEQ==",
+        "iv": "AxTPgIaYyGq7QSox",
+        "ct": "HKTM9w5z4lK9n9YagXB02rFPnNgeyBu9QiM4bk86nuhNFtIRiOrcEG3P1APKnLXOOCWyPb+JF9woBo4gkf7mNyJlup+u9ySoxD02gyBT/ddxANkPcdE8ANzNqCtij7UqPFHNMhD0WeSwj0hcTV7o1YbaqXH+8tFlRxDuvQ7dc+geng=="
       }
     },
     {
