@@ -143,11 +143,11 @@ body {
 }
 .panel-index {
   font-family: var(--display); font-weight: 900; font-size: clamp(80px, 16vh, 190px);
-  line-height: 1; color: var(--blue); user-select: none;
+  line-height: 1; color: var(--blue); user-select: none; margin-left: auto; /* push number to the far right */
 }
-/* app icon sits right beside the number */
-.panel-num { display: inline-flex; align-items: center; gap: clamp(12px, 1.5vw, 24px); }
+/* icon stays at the far left of the badge */
 .panel-icon { flex: 0 0 auto; height: clamp(70px, 11vh, 120px); width: auto; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45)); user-select: none; }
+.soon-panel .panel-index { margin-left: 0; } /* 04 has no icon — keep it left */
 /* mascot is scattered randomly in the lower zone (below content) by JS */
 .panel-sticker {
   position: absolute; left: 50%; bottom: clamp(20px, 5vh, 50px);
@@ -197,20 +197,24 @@ body {
 .intro-big { font-size: clamp(64px, 16vh, 200px); color: transparent; -webkit-text-stroke: 2px var(--blue); white-space: nowrap; }
 .intro-note { font-family: var(--mono); letter-spacing: 0.16em; font-size: 13px; color: #9a9a90; margin-top: 22px; text-transform: uppercase; line-height: 1.7; white-space: nowrap; }
 
-.footer { position: relative; background: var(--blue); color: var(--paper); min-height: 70vh; display: flex; flex-direction: column; justify-content: center; padding: 0 clamp(22px, 7vw, 120px); }
-/* studio sign-off — small die-cut sticker stuck in the corner */
-.studio-sticker {
-  position: absolute; bottom: clamp(24px, 6vh, 60px); right: clamp(22px, 7vw, 120px);
-  transform: rotate(-5deg);
-  background: var(--accent); color: var(--ink);
-  font-family: var(--mono); font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.14em; font-size: clamp(10px, 1.1vw, 13px);
-  padding: 9px 14px; border: 2px solid var(--ink); border-radius: 999px;
-  white-space: nowrap; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); user-select: none;
+/* footer = the studio's about / contact card */
+.footer {
+  position: relative; background: var(--blue); color: var(--paper);
+  min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between;
+  padding: clamp(72px, 13vh, 150px) clamp(22px, 7vw, 120px) clamp(40px, 7vh, 70px);
 }
-.footer-verse { margin: 0; font-size: clamp(22px, 6vw, 92px); line-height: 0.98; }
-.footer-verse .line { display: block; white-space: nowrap; }
-.footer-ref { display: block; margin-top: clamp(20px, 4vh, 40px); font-family: var(--mono); font-style: normal; text-transform: uppercase; letter-spacing: 0.18em; font-size: 13px; color: var(--paper); opacity: 0.8; white-space: nowrap; }
+.footer-eyebrow { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.22em; font-size: 12px; opacity: 0.7; margin: 0 0 16px; display: block; }
+.footer-name { font-size: clamp(40px, 9vw, 118px); line-height: 0.92; margin: 0; }
+.footer-about { font-family: var(--body); font-size: clamp(15px, 1.9vw, 22px); line-height: 1.6; max-width: 34ch; margin: clamp(22px, 4vh, 38px) 0 0; color: rgba(236, 234, 225, 0.92); }
+.footer-cols { display: flex; flex-wrap: wrap; gap: clamp(28px, 6vw, 90px); margin: clamp(34px, 6vh, 56px) 0 0; }
+.footer-col { display: flex; flex-direction: column; gap: 9px; }
+.footer-label { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.18em; font-size: 11px; opacity: 0.6; margin-bottom: 3px; }
+.footer-link { font-family: var(--mono); font-size: clamp(13px, 1.5vw, 16px); color: var(--paper); text-decoration: none; letter-spacing: 0.02em; width: fit-content; border-bottom: 1px solid rgba(236, 234, 225, 0.3); padding-bottom: 2px; transition: color 0.15s, border-color 0.15s; }
+.footer-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
+.footer-line { font-family: var(--mono); font-size: clamp(12px, 1.4vw, 15px); letter-spacing: 0.08em; opacity: 0.85; }
+.footer-bottom { margin-top: clamp(48px, 9vh, 90px); border-top: 1px solid rgba(236, 234, 225, 0.25); padding-top: clamp(22px, 4vh, 38px); }
+.footer-verse { font-family: var(--display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.015em; font-size: clamp(17px, 2.7vw, 36px); line-height: 1.08; margin: 0; max-width: 22ch; }
+.footer-ref { display: block; margin-top: 14px; font-family: var(--mono); font-style: normal; text-transform: uppercase; letter-spacing: 0.18em; font-size: 12px; color: var(--paper); opacity: 0.75; }
 
 /* ---------- panel actions ---------- */
 .link-btn { background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; }
@@ -273,7 +277,6 @@ body {
   /* badge flows into the card top, left-aligned so the number can't clip */
   .panel-badge { position: static; left: auto; right: auto; top: auto; justify-content: flex-start; align-items: center; gap: 14px; margin-bottom: 14px; }
   .panel-index { font-size: clamp(44px, 13vw, 84px); }
-  .panel-num { gap: 12px; }
   .panel-icon { height: clamp(56px, 15vw, 92px); }
   .panel-sticker,
   .panel-sticker--p1, .panel-sticker--p2 { height: clamp(72px, 22vw, 118px); }
