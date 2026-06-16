@@ -8,18 +8,19 @@ window.DINO_DATA = {
     {
       "id": "restile",
       "name": "Restile",
-      "description": "",
+      "description": "Restile은 앱 창을 모니터·존·위치에 고정하고, 가상 데스크톱을 넘나들어도 각 데스크톱의 배치를 그대로 유지해, 창이 흐트러지면 포커스를 뺏지 않고 조용히 제자리로 복원합니다.",
       "version": "1.0.0",
       "platforms": [
         "win"
       ],
       "image": "image/restile-mascot.png",
       "icon": "image/restile-icon.ico",
+      "paid": true,
       "lock": "open",
       "files": [
         {
           "label": "Windows 설치 (.exe)",
-          "url": "https://example.com/Restile-Setup.exe",
+          "url": "https://drive.usercontent.google.com/download?id=1qn8W79yZvNelVYEc1270dIuZCEWmDika&export=download&confirm=t",
           "size": "—"
         }
       ]
@@ -38,9 +39,9 @@ window.DINO_DATA = {
       "enc": {
         "v": 1,
         "iter": 250000,
-        "salt": "kARPB1/jEDDr32gaFi7BEQ==",
-        "iv": "AxTPgIaYyGq7QSox",
-        "ct": "HKTM9w5z4lK9n9YagXB02rFPnNgeyBu9QiM4bk86nuhNFtIRiOrcEG3P1APKnLXOOCWyPb+JF9woBo4gkf7mNyJlup+u9ySoxD02gyBT/ddxANkPcdE8ANzNqCtij7UqPFHNMhD0WeSwj0hcTV7o1YbaqXH+8tFlRxDuvQ7dc+geng=="
+        "salt": "qnKsH/jX96ZwS7vmQQSh4A==",
+        "iv": "YgoIoZN19aUKLoE+",
+        "ct": "L2VHmSznc3uIbOZ/7mFJ4bPSX5n4S4fXaz6CD5aeBEyiZLScwR68ny9EGxEug4Cl1tkjvAmSPlMEMXpQULxnPAbBA52IRHLgeIZucXTUYya9LthwVqoDQvzpev3c8tFPrkurZCwk/6auQlDBRMPUlqs+STnfZm7FPP/Qp0RX3vbLuA=="
       }
     },
     {

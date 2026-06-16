@@ -111,7 +111,8 @@ function renderPanels(apps) {
       const bits = [];
       if (app.version) bits.push(`<span class="tag">v${escapeHtml(app.version)}</span>`);
       (app.platforms || []).forEach((p) => bits.push(`<span>${PLATFORM_LABEL[p] || escapeHtml(p)}</span>`));
-      bits.push(`<span>${app.lock === 'own' ? '🔒 APP CODE' : '↓ FREE'}</span>`);
+      const access = app.lock === 'own' ? '🔒 APP CODE' : (app.paid ? '💳 PAID' : '↓ FREE');
+      bits.push(`<span>${access}</span>`);
       meta.innerHTML = bits.join('');
 
       wirePanel(node, app);
