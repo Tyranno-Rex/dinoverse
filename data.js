@@ -27,7 +27,7 @@ window.DINO_DATA = {
     },
     {
       "id": "brachy",
-      "name": "Brachy Calendar",
+      "name": "Brachy\nCalendar",
       "description": "",
       "version": "0.2.0",
       "platforms": [
@@ -39,9 +39,9 @@ window.DINO_DATA = {
       "enc": {
         "v": 1,
         "iter": 250000,
-        "salt": "ZKLVriNMFUsyIHeDzDS/DQ==",
-        "iv": "ocPCc1NBpo34gVlt",
-        "ct": "vWb2/s2J6NHxTefu8+SX5hwaIWqC7Aumuv+ckP+sNSXHwAPhM9X2/SpN8w5KCb5+0Kb/HaZr1OrqulujmmlmHWU6rkSLgJxbM860fwJGezGvkSllxZTQk4QmBw5azUy5qS4qEHpM2i1LNnDhKF/RQ7rqXkYkFaKulHy2dZyCgtRG65NeeAcSbajcNrIGP8OU+diKCcExXaYWPkj5wFFPEw0I0JdcAgpNew7uGTjWjtScGf9tFy6vclz6Bk5VyRY3qiZRgqOvhGvzZA=="
+        "salt": "NjHZgx+zk8q9DvS11k1yAg==",
+        "iv": "a3KxGfJszqrMez5n",
+        "ct": "0w5W8KC/pk4O0cdRbAsdoe4clitdS5ddYv0wOryzhfSt56SnRY+WGP93m8q1VbQS0GipMnwy96RXeBkXBXRE3n3wFOEJTSabOcRlfu9GlSwRCbvSRlGESAVsgDuNsxOcDgfzVfJRYgWK425JduJP0MIM+aSb3X2p1Yed5VIZ4UxDltmqrZ4oRyR3hkYjBruv3GxlBWmC7ZjNTToqeo+Q4YTQXKKWVgiGXomxOYcT6FogsO8EeXmjR+znGcjP9rDKi78RbtsxPRqL/g=="
       }
     },
     {

@@ -19,6 +19,8 @@ const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
 const PLATFORM_LABEL = { win: 'WINDOWS', android: 'ANDROID', mac: 'MACOS', linux: 'LINUX', web: 'WEB', ios: 'IOS' };
+// A name may carry explicit line breaks ("Brachy\nCalendar"); flat() is for alt text.
+const flatName = (s) => s.replace(/\n/g, ' ');
 const REDUCED = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------- kinetic text splitter ---------- */
@@ -90,20 +92,25 @@ function renderPanels(apps) {
     apps.forEach((app, i) => {
       const node = tpl.content.cloneNode(true);
       $('.panel-index', node).textContent = String(i + 1).padStart(2, '0');
-      $('.panel-name', node).textContent = app.name || app.id;
+      const rawName = app.name || app.id;
+      const nameEl = $('.panel-name', node);
+      rawName.split('\n').forEach((part, k) => {
+        if (k) nameEl.appendChild(document.createElement('br'));
+        nameEl.appendChild(document.createTextNode(part));
+      });
       $('.panel-desc', node).textContent = app.description || '';
 
       const sticker = $('.panel-sticker', node);
       if (app.image) {
         sticker.src = app.image;
-        sticker.alt = app.name || app.id;
+        sticker.alt = flatName(rawName);
         sticker.classList.add('panel-sticker--p' + (i % 5)); // vary spot/angle per app
       } else { sticker.remove(); }
 
       const icon = $('.panel-icon', node);
       if (app.icon) {
         icon.src = app.icon;
-        icon.alt = (app.name || app.id) + ' icon';
+        icon.alt = flatName(rawName) + ' icon';
       } else { icon.remove(); }
 
       const meta = $('.panel-meta', node);
