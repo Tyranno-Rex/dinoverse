@@ -30,7 +30,11 @@ ok(open.lock === 'open' && Array.isArray(open.files) && open.files.length >= 1, 
 const own = D.apps.find((a) => a.id === 'brachy');
 ok(own.lock === 'own' && own.enc && !own.files, 'locked app (brachy) hides files behind enc');
 
-const dt = await decryptJSON(own.enc, 'brachy-2026');
+// Code comes from the local-only config (never hardcode it — this file is public).
+const localCfg = JSON.parse(readFileSync('tools/config.local.json', 'utf8'));
+const ownCode = localCfg.apps.find((a) => a.id === 'brachy').password;
+
+const dt = await decryptJSON(own.enc, ownCode);
 ok(dt.files.length >= 1, 'locked app decrypts with its own code');
 
 let rejected = false;
