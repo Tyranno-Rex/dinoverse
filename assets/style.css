@@ -181,16 +181,7 @@ body {
 /* ---------- 04 coming-soon teaser (single consolidated card) ---------- */
 /* taller card → start content below the big number instead of centering it */
 .soon-panel { width: min(680px, 90vw); justify-content: flex-start; padding-top: clamp(200px, 30vh, 300px); }
-.soon-sub { white-space: normal; margin-bottom: 22px; }
-.soon-list { margin-top: 2px; }
-.soon-cat { padding: 15px 0; border-top: 1px solid #2f2f2f; }
-.soon-cat:last-child { border-bottom: 1px solid #2f2f2f; }
-.soon-label { display: block; font-family: var(--display); font-weight: 800; letter-spacing: -0.01em; font-size: clamp(18px, 2.6vw, 28px); color: var(--accent); }
-.soon-items { display: block; margin-top: 8px; font-family: var(--mono); font-size: clamp(12px, 1.4vw, 14px); letter-spacing: 0.04em; line-height: 2.2; color: #b7b7ae; white-space: normal; }
-/* every item is a chip with the SAME look; a "+"-combined set is just one pill */
-.soon-item, .soon-group { display: inline-block; border: 1px solid #3a3a3a; color: #b7b7ae; border-radius: 999px; padding: 3px 12px; white-space: nowrap; }
-.soon-sep { color: #4a4a44; padding: 0 9px; }
-.soon-group .plus { font-weight: 700; padding: 0 1px; }
+.soon-sub { white-space: normal; }
 
 /* intro + footer big words */
 /* wide enough (and with trimmed side padding) that the big "APPS" word fits
