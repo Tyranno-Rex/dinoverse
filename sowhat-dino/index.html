@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>SOWHAT-DINO — DINOVERSE</title>
+  <link rel="icon" href="../image/sowhat-dino-icon.png" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="topbar-back" href="../">← DINOVERSE</a>
+    <span class="topbar-name">SOWHAT-DINO</span>
+    <a class="topbar-get" href="#get">[ DOWNLOAD ]</a>
+  </header>
+
+  <!-- ============ 1. HERO — the box overflows ============ -->
+  <section class="hero">
+    <img class="hero-art" src="image/hero/main-page.webp"
+         alt="SOWHAT DINO — 초록 상자에 눌러 담은 노란 풍선 글자" />
+    <!-- furniture spilling out of the box; filled by app.js -->
+    <div class="spill" id="spill" aria-hidden="true"></div>
+    <a class="scroll-cue" href="#intro">
+      <span>SCROLL</span><span class="scroll-cue-arrow" aria-hidden="true">↓</span>
+    </a>
+  </section>
+
+  <!-- ============ 2. 어쩔공룡 ============ -->
+  <section class="intro" id="intro">
+    <div class="intro-inner">
+      <div class="sprite sprite--hero" data-sprite="sowhat" data-dur="2.4s" aria-hidden="true"></div>
+      <div class="intro-copy">
+        <p class="eyebrow">DESKTOP COMPANION · WINDOWS · v0.1.0</p>
+        <h2 class="display intro-title">어쩔<br />공룡</h2>
+        <p class="intro-lead">바탕화면에 우리 어쩔공룡씨를 모시겠다고요? 저에게는 좋은 소식이지만, 어쩔공룡씨도 좋아할지는 모르겠네요...</p>
+        <p class="intro-note">창 위를 걸어 다니고, 가구를 놓아 주면 알아서 쓰고, 부르지 않아도 뭔가를 합니다. 대부분은 어쩌라는 표정으로요.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. 동작 폭포 ============ -->
+  <section class="motion">
+    <h2 class="display section-title">DOES<br /><span class="hl">WHATEVER</span></h2>
+    <p class="section-sub">시키지 않아도 하는 동작 <span id="motion-count">31</span>가지</p>
+    <div class="marquee" id="marquee" aria-hidden="true"></div>
+    <div class="motion-star">
+      <div class="sprite sprite--star" data-sprite="dance" data-dur="1.6s" aria-hidden="true"></div>
+      <span class="motion-star-label">DANCING</span>
+    </div>
+  </section>
+
+  <!-- ============ 4. 가구 벽 ============ -->
+  <section class="deco">
+    <header class="deco-head">
+      <h2 class="display section-title"><span id="deco-count">397</span><br />THINGS<br />TO PLACE</h2>
+      <p class="section-sub">침대부터 화분까지, 바탕화면에 그냥 쏟아 놓으세요.</p>
+    </header>
+    <div class="deco-wall" id="deco-wall"></div>
+  </section>
+
+  <!-- ============ 5. DOWNLOAD ============ -->
+  <section class="get" id="get">
+    <div class="get-box">
+      <div class="sprite sprite--get" data-sprite="guitar" data-dur="2s" aria-hidden="true"></div>
+      <div class="get-copy">
+        <p class="eyebrow">FREE · BETA</p>
+        <h2 class="display get-title">TAKE IT<br />HOME</h2>
+        <a class="get-btn" href="https://drive.usercontent.google.com/download?id=1LoIp0iE3De1-XaNjbw4viYevN06nq2VK&amp;export=download&amp;confirm=t">
+          Windows 설치 (.msi)
+        </a>
+        <p class="get-note">Windows 10/11 · 베타 버전이라 가끔 어쩔 수 없는 일이 생깁니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <a class="footer-back" href="../">← DINOVERSE</a>
+    <p class="footer-studio">SURVIVING DINOS STUDIO · INDIE · EST. 2026</p>
+  </footer>
+
+  <script src="assets/manifest.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

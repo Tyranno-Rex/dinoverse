@@ -1,0 +1,378 @@
+/* ============================================================
+   SOWHAT-DINO — the box overflows.
+   Palette sampled straight off data/sowhat-dino/main-page.png.
+   Mono labels + oversized display type keep it a sibling of DINOVERSE.
+   ============================================================ */
+
+:root {
+  --blue: #005ed1;
+  --lime: #82d162;
+  --green: #247e22;
+  --green-deep: #085117;
+  --yellow: #fec301;
+  --ink: #0a0a0a;
+  --paper: #eceae1;
+
+  --display: "Helvetica Neue", Helvetica, Arial, "Inter", system-ui, sans-serif;
+  --mono: "SF Mono", "JetBrains Mono", "Consolas", "Courier New", monospace;
+  --kr: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { margin: 0; }
+body {
+  background: var(--blue);
+  color: var(--ink);
+  font-family: var(--kr), var(--display);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+img { max-width: 100%; display: block; }
+::selection { background: var(--yellow); color: var(--ink); }
+
+.display {
+  font-family: var(--display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.045em;
+  line-height: 0.84;
+  margin: 0;
+}
+.eyebrow, .section-sub, .topbar, .scroll-cue, .marquee-label,
+.motion-star-label, .deco-cat-label, .get-note, .footer {
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 12px;
+}
+
+/* ---------- topbar ---------- */
+.topbar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px clamp(14px, 4vw, 40px);
+  background: var(--ink);
+  color: var(--lime);
+}
+.topbar a { color: inherit; text-decoration: none; }
+.topbar a:hover { color: var(--yellow); }
+.topbar-name { color: var(--paper); }
+.topbar-get { color: var(--yellow); }
+
+/* ---------- 1. hero ---------- */
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 76px clamp(10px, 3vw, 48px) 0;
+  overflow: hidden;
+}
+.hero-art {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1400px;
+  /* the reference art already carries its own blue bed — let it bleed */
+  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.35));
+}
+
+/* furniture pouring out of the box, forever.
+   Two layers so the wordmark stays readable: most of the rain falls behind
+   the art, a few big pieces tumble in front for depth. */
+.spill { position: absolute; inset: 0; pointer-events: none; }
+.spill-back { z-index: 1; }
+.spill-front { z-index: 3; }
+.spill-layer { position: absolute; inset: 0; }
+.spill img {
+  position: absolute;
+  top: -22vh;
+  width: var(--w);
+  animation: spill-fall var(--dur) linear var(--delay) infinite;
+  will-change: transform;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.3));
+}
+@keyframes spill-fall {
+  from { transform: translateY(0) rotate(var(--r0)); }
+  to   { transform: translateY(135vh) rotate(var(--r1)); }
+}
+
+.scroll-cue {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  background: var(--ink);
+  color: var(--lime);
+  text-decoration: none;
+  border-radius: 999px;
+}
+.scroll-cue-arrow { animation: nudge 1.4s ease-in-out infinite; }
+@keyframes nudge { 50% { transform: translateY(4px); } }
+
+/* ---------- sprite sheets (steps playback) ---------- */
+.sprite {
+  background-repeat: no-repeat;
+  background-size: calc(var(--n) * 100%) 100%;
+  background-position-x: 0%;
+  /* jump-none: n stops landing exactly on 0%..100%, so no neighbouring
+     frame bleeds in. Plain steps(n) would advance by 100/n and drift. */
+  animation: sprite-play var(--dur, 2s) steps(var(--n), jump-none) infinite;
+  image-rendering: -webkit-optimize-contrast;
+}
+@keyframes sprite-play {
+  from { background-position-x: 0%; }
+  to   { background-position-x: 100%; }
+}
+
+/* ---------- 2. intro ---------- */
+.intro {
+  position: relative;
+  z-index: 3;
+  background: var(--yellow);
+  padding: clamp(60px, 10vw, 130px) clamp(18px, 5vw, 72px);
+  border-top: 10px solid var(--ink);
+}
+.intro-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(190px, 300px) 1fr;
+  gap: clamp(28px, 5vw, 70px);
+  align-items: center;
+}
+.sprite--hero { width: 100%; aspect-ratio: var(--ar); }
+.intro-title {
+  font-size: clamp(64px, 13vw, 170px);
+  margin: 10px 0 22px;
+  color: var(--green-deep);
+  /* hangul needs more room than the latin display setting allows */
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+}
+.intro-lead {
+  font-size: clamp(19px, 2.3vw, 28px);
+  line-height: 1.5;
+  font-weight: 700;
+  margin: 0 0 18px;
+  max-width: 22em;
+}
+.intro-note {
+  font-size: clamp(15px, 1.5vw, 18px);
+  line-height: 1.7;
+  margin: 0;
+  max-width: 26em;
+  color: #6a5200;
+}
+
+/* ---------- section headings ---------- */
+.section-title { font-size: clamp(52px, 11vw, 150px); }
+.section-sub {
+  /* the .hl highlight box overshoots its tight line box — clear it */
+  position: relative;
+  z-index: 1;
+  margin: clamp(30px, 4vw, 52px) 0 0;
+  opacity: 0.75;
+}
+/* inline-block so the highlight box follows line-height instead of the font's
+   full ascent/descent — otherwise it swallows the line above */
+.hl {
+  display: inline-block;
+  color: var(--ink);
+  background: var(--yellow);
+  line-height: 0.84;
+  padding: 0.14em 0.1em 0.1em;
+}
+
+/* ---------- 3. motion marquee ---------- */
+.motion {
+  position: relative;
+  background: var(--blue);
+  color: var(--paper);
+  padding: clamp(60px, 9vw, 120px) 0 clamp(70px, 10vw, 140px);
+  border-top: 10px solid var(--ink);
+  overflow: hidden;
+}
+.motion .section-title, .motion .section-sub { padding: 0 clamp(18px, 5vw, 72px); }
+.marquee { margin-top: clamp(34px, 6vw, 66px); display: grid; gap: 14px; }
+.marquee-row {
+  display: flex;
+  gap: 14px;
+  width: max-content;
+  animation: marquee var(--dur) linear infinite;
+}
+.marquee-row--rev { animation-direction: reverse; }
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.marquee-card {
+  flex: 0 0 auto;
+  width: clamp(130px, 15vw, 190px);
+  background: var(--green-deep);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  padding: 10px 10px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.marquee-card img { height: clamp(96px, 12vw, 150px); width: auto; object-fit: contain; }
+.marquee-label {
+  display: block;
+  /* bleed past the card's 10px side padding so the label fills the bottom */
+  width: calc(100% + 20px);
+  margin: 8px -10px 0;
+  padding: 7px 4px;
+  text-align: center;
+  font-size: 10px;
+  background: var(--lime);
+  color: var(--ink);
+  border-radius: 0 0 8px 8px;
+}
+
+/* the one that actually moves, parked on top of the marquee */
+.motion-star {
+  position: absolute;
+  right: clamp(10px, 5vw, 80px);
+  top: clamp(24px, 6vw, 70px);
+  z-index: 4;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+.sprite--star {
+  width: clamp(150px, 20vw, 280px);
+  aspect-ratio: var(--ar);
+}
+.motion-star-label {
+  background: var(--yellow);
+  color: var(--ink);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+/* ---------- 4. deco wall ---------- */
+.deco {
+  background: var(--green-deep);
+  color: var(--paper);
+  padding: clamp(60px, 9vw, 120px) clamp(14px, 4vw, 60px) clamp(70px, 10vw, 140px);
+  border-top: 10px solid var(--ink);
+}
+.deco-head { max-width: 1180px; margin: 0 auto clamp(34px, 6vw, 70px); }
+.deco-head .section-title { color: var(--lime); }
+.deco-wall { max-width: 1400px; margin: 0 auto; }
+.deco-cat { margin-bottom: clamp(28px, 4vw, 54px); }
+.deco-cat-label {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--green);
+  color: var(--lime);
+}
+.deco-cat-n { margin-left: auto; opacity: 0.6; }
+.deco-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+  gap: 5px;
+}
+.deco-grid img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  transition: transform 0.16s ease, background 0.16s ease;
+}
+.deco-grid img:hover {
+  transform: scale(1.45) rotate(-4deg);
+  background: var(--yellow);
+  position: relative;
+  z-index: 2;
+}
+
+/* ---------- 5. download ---------- */
+.get {
+  background: var(--blue);
+  padding: clamp(60px, 9vw, 130px) clamp(18px, 5vw, 72px);
+  border-top: 10px solid var(--ink);
+}
+.get-box {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: var(--green-deep);
+  border: 12px solid var(--lime);
+  border-radius: 8px;
+  padding: clamp(28px, 5vw, 62px);
+  display: grid;
+  grid-template-columns: minmax(150px, 260px) 1fr;
+  gap: clamp(24px, 5vw, 60px);
+  align-items: center;
+}
+.sprite--get { width: 100%; aspect-ratio: var(--ar); }
+.get-copy { color: var(--paper); }
+.get-copy .eyebrow { color: var(--lime); }
+.get-title { font-size: clamp(46px, 8vw, 104px); color: var(--yellow); margin: 10px 0 26px; }
+.get-btn {
+  display: inline-block;
+  background: var(--yellow);
+  color: var(--ink);
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 15px;
+  text-decoration: none;
+  padding: 18px 30px;
+  border: 4px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 0 8px 0 var(--ink);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.get-btn:hover { transform: translateY(4px); box-shadow: 0 4px 0 var(--ink); }
+.get-note { margin: 22px 0 0; color: var(--lime); opacity: 0.8; line-height: 1.8; }
+
+/* ---------- footer ---------- */
+.footer {
+  background: var(--ink);
+  color: var(--lime);
+  padding: 40px clamp(18px, 5vw, 72px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: space-between;
+}
+.footer a { color: var(--yellow); text-decoration: none; }
+.footer p { margin: 0; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 760px) {
+  .intro-inner, .get-box { grid-template-columns: 1fr; }
+  .sprite--hero, .sprite--get { width: min(230px, 60vw); }
+  .motion-star { position: static; margin: 30px auto 0; }
+  .topbar { font-size: 10px; letter-spacing: 0.12em; }
+  .deco-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); }
+  /* the art is very wide — let it run past the viewport so it still reads
+     (.hero clips, so this never adds page-level horizontal scroll) */
+  .hero-art { width: 132%; max-width: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .spill, .scroll-cue-arrow { display: none; }
+  .sprite, .marquee-row { animation: none; }
+}
