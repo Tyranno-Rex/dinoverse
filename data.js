@@ -6,21 +6,20 @@ window.DINO_DATA = {
   },
   "apps": [
     {
-      "id": "restile",
-      "name": "Restile",
-      "description": "Restile은 앱 창을 모니터·존·위치에 고정하고, 가상 데스크톱을 넘나들어도 각 데스크톱의 배치를 그대로 유지해, 창이 흐트러지면 포커스를 뺏지 않고 조용히 제자리로 복원합니다.",
-      "version": "1.0.0",
+      "id": "sowhat-dino",
+      "name": "SoWhat-Dino",
+      "description": "바탕화면에 우리 어쩔공룡씨를 모시겠다고요? 저에게는 좋은 소식이지만, 어쩔공룡씨도 좋아할지는 모르겠네요...",
+      "version": "0.1.0",
       "platforms": [
         "win"
       ],
-      "image": "image/restile-mascot.png",
-      "icon": "image/restile-icon.ico",
-      "paid": true,
+      "image": "image/sowhat-dino.png",
+      "icon": "image/sowhat-dino-icon.png",
       "lock": "open",
       "files": [
         {
-          "label": "Windows 설치 (.exe)",
-          "url": "https://drive.usercontent.google.com/download?id=1qn8W79yZvNelVYEc1270dIuZCEWmDika&export=download&confirm=t",
+          "label": "Windows 설치 (.msi)",
+          "url": "https://drive.usercontent.google.com/download?id=1LoIp0iE3De1-XaNjbw4viYevN06nq2VK&export=download&confirm=t",
           "size": "—"
         }
       ]
@@ -39,26 +38,27 @@ window.DINO_DATA = {
       "enc": {
         "v": 1,
         "iter": 250000,
-        "salt": "NjHZgx+zk8q9DvS11k1yAg==",
-        "iv": "a3KxGfJszqrMez5n",
-        "ct": "0w5W8KC/pk4O0cdRbAsdoe4clitdS5ddYv0wOryzhfSt56SnRY+WGP93m8q1VbQS0GipMnwy96RXeBkXBXRE3n3wFOEJTSabOcRlfu9GlSwRCbvSRlGESAVsgDuNsxOcDgfzVfJRYgWK425JduJP0MIM+aSb3X2p1Yed5VIZ4UxDltmqrZ4oRyR3hkYjBruv3GxlBWmC7ZjNTToqeo+Q4YTQXKKWVgiGXomxOYcT6FogsO8EeXmjR+znGcjP9rDKi78RbtsxPRqL/g=="
+        "salt": "sHz/1wpZFRGP7yRjPBg58A==",
+        "iv": "44jjGKB4gIvProvF",
+        "ct": "F8uxXorM+71ZG6Okjh3l/l7UUicj3SrhwEH2mxzY7L4ADGqYtmultT2iIJ3Pup6KVmQkqEFKL5R9hMQ39HQn8S8tQa+Kf1sdXqxo/gO908M6lAizoBWLydD6iaknIgWvTqHF1IXgQIbWyN+M7XqnRfC4h591rnrzT1BySgoc3To/18QowFYrj7lrL3oeSsljuaud2rdjDzFYAXm1+WpZqIu7YEsexqXFpEnFOpW8Cjnciyu6aHSZzBYxXzmqzEnFEuCuK9h7aWdLTw=="
       }
     },
     {
-      "id": "sowhat-dino",
-      "name": "SoWhat-Dino",
-      "description": "바탕화면에 우리 어쩔공룡씨를 모시겠다고요? 저에게는 좋은 소식이지만, 어쩔공룡씨도 좋아할지는 모르겠네요...",
-      "version": "0.1.0",
+      "id": "restile",
+      "name": "Restile",
+      "description": "Restile은 앱 창을 모니터·존·위치에 고정하고, 가상 데스크톱을 넘나들어도 각 데스크톱의 배치를 그대로 유지해, 창이 흐트러지면 포커스를 뺏지 않고 조용히 제자리로 복원합니다.",
+      "version": "1.0.0",
       "platforms": [
         "win"
       ],
-      "image": "image/sowhat-dino.png",
-      "icon": "image/sowhat-dino-icon.png",
+      "image": "image/restile-mascot.png",
+      "icon": "image/restile-icon.ico",
+      "paid": true,
       "lock": "open",
       "files": [
         {
-          "label": "Windows 설치 (.msi)",
-          "url": "https://drive.usercontent.google.com/download?id=1LoIp0iE3De1-XaNjbw4viYevN06nq2VK&export=download&confirm=t",
+          "label": "Windows 설치 (.exe)",
+          "url": "https://drive.usercontent.google.com/download?id=1qn8W79yZvNelVYEc1270dIuZCEWmDika&export=download&confirm=t",
           "size": "—"
         }
       ]
