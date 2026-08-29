@@ -96,6 +96,37 @@ img { max-width: 100%; display: block; }
   filter: drop-shadow(0 4px 9px rgba(0, 0, 0, 0.55));
 }
 
+/* The dig. Each dinosaur surfaces as a bone-pale fossil pressed into the
+   rock, holds there a beat, then the colour floods back and it is an animal
+   again — the reconstruction a dinosaur actually goes through. app.js hands
+   every sticker its own delay, ordered by distance from the dig point, so
+   the wall opens outward from one spot. It runs once and stops: the finished
+   state is the plain rule above, which is also what a reader who has asked
+   for less motion gets. */
+.bomb-wall.is-digging img {
+  animation: dig 900ms cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+@keyframes dig {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--r)) scale(0.82);
+    filter: grayscale(1) sepia(0.45) brightness(1.65) contrast(0.5)
+            drop-shadow(0 4px 9px rgba(0, 0, 0, 0.55));
+  }
+  38% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--r)) scale(0.93);
+    filter: grayscale(1) sepia(0.45) brightness(1.65) contrast(0.5)
+            drop-shadow(0 4px 9px rgba(0, 0, 0, 0.55));
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--r)) scale(1);
+    filter: grayscale(0) sepia(0) brightness(1) contrast(1)
+            drop-shadow(0 4px 9px rgba(0, 0, 0, 0.55));
+  }
+}
+
 /* ---------- 1. hero — SOWHAT fills the screen, then DINO takes it ----------
    Two viewports tall with a sticky pin, so there is exactly one screen of
    scroll to spend: SOWHAT lands full-bleed and collapses upward while DINO
@@ -477,6 +508,7 @@ img { max-width: 100%; display: block; }
   .sprite, .marquee-row { animation: none; }
   /* no scrubbing: both words share the screen and the copy just sits there.
      app.js also skips splitting the text when this query matches. */
+  .bomb-wall.is-digging img { animation: none; }
   .hero { height: 100svh; }
   .type-line--a, .type-line--b { height: 50%; }
   .assemble { height: auto; }

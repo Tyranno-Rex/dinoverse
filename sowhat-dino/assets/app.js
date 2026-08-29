@@ -22,7 +22,7 @@
     node.style.backgroundImage = `url("image/sprite/${s.key}.webp")`;
   });
 
-  // ---------- 0. sticker bomb: every dinosaur we have, packed flat ----------
+  // ---------- 0. sticker bomb: every dinosaur we have, dug out one by one ----------
   // Seeded so the wall is the same picture on every visit — a fixed
   // composition rather than noise that reshuffles under the reader.
   const seeded = (s) => () => {
@@ -58,19 +58,33 @@
         }
         return arr;
       };
-      // Tiles are filled straight off this list, so its order is the wall's
-      // order. The green sowhat dino outnumbers the six coloured species, and
-      // one shuffled pile lets him clump; drawing from whichever pile is
-      // furthest behind its share spreads the colour evenly instead.
-      const colour = shuffle(herd.filter((f) => f.startsWith('family/')));
-      const green = shuffle(herd.filter((f) => !f.startsWith('family/')));
+      // Seven kinds, and the wall gives each the same number of slots. The
+      // green sowhat dino has 73 poses against nine per species, so drawing
+      // from one pile — however it is shuffled — hands him most of the
+      // screen. Round-robin across the kinds instead: green spends his share
+      // on 73 different poses, each species cycles its nine.
+      const kind = (f) => (f.startsWith('family/')
+        ? f.slice('family/'.length).replace(/-\d+\.webp$/, '')
+        : 'sowhat');
+      const kinds = new Map();
+      herd.forEach((f) => {
+        const k = kind(f);
+        if (!kinds.has(k)) kinds.set(k, []);
+        kinds.get(k).push(f);
+      });
+      const piles = [...kinds.values()].map(shuffle);
+      // Tiles are filled straight off this list, so its order is the wall's.
+      // Each pile is cycled by its own length, not by a shared index — walking
+      // one index across all seven would run the six short piles dry and hand
+      // the whole tail to green. Re-shuffling the turn order every round keeps
+      // the kinds from marching in a fixed sequence across the lattice.
+      const count = cols * rows;
       const bag = [];
-      for (let a = 0, b = 0; a < colour.length || b < green.length;) {
-        const takeColour = b >= green.length
-          || (a < colour.length && a / colour.length <= b / green.length);
-        bag.push(takeColour ? colour[a++] : green[b++]);
+      for (let i = 0; bag.length < count; i++) {
+        shuffle(piles.slice()).forEach((pile) => bag.push(pile[i % pile.length]));
       }
 
+      const tiles = [];
       let n = 0;
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
@@ -85,9 +99,25 @@
           img.style.setProperty('--w', `${((unit * (1.35 + rnd() * 0.65)) / vmin).toFixed(2)}vmin`);
           img.style.setProperty('--r', `${Math.round((rnd() - 0.5) * 48)}deg`);
           img.style.zIndex = String(1 + Math.floor(rnd() * 6));
+          tiles.push({ img, x, y });
           bombWall.appendChild(img);
         }
       }
+
+      // The dig: the wall opens outward from one spot, the way sand comes off
+      // a find, rather than in reading order. Distance is measured in pixels
+      // so the ring stays round on any aspect, and roughed up per tile so the
+      // edge of the dig is ragged instead of a clean circle.
+      const dig = { x: 0.42, y: 0.56 };
+      tiles.forEach((t) => {
+        const dx = (t.x - dig.x) * window.innerWidth;
+        const dy = (t.y - dig.y) * window.innerHeight;
+        t.d = Math.hypot(dx, dy) * (0.88 + rnd() * 0.24);
+      });
+      tiles.sort((a, b) => a.d - b.d);
+      const step = small ? 26 : 18;
+      tiles.forEach((t, i) => { t.img.style.animationDelay = `${i * step}ms`; });
+      bombWall.classList.add('is-digging');
     }
   }
 
