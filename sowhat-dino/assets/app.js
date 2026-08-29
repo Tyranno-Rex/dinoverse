@@ -11,6 +11,83 @@
 
   const el = (tag, cls, props) => Object.assign(document.createElement(tag), props || {}, cls ? { className: cls } : {});
 
+  // ---------- loader: SOWHAT, then one of each kind ----------
+  // The dinosaur stands in for the second half of the name, and every kind
+  // takes the slot once before the last one keeps it. The gap between swaps
+  // is not constant — it opens at half a second, tightens to a tenth in the
+  // middle and eases back out — which is what makes it read as a reel being
+  // flicked through rather than a slideshow on a timer.
+  const loader = $('#loader');
+  const slot = $('#loader-slot');
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // one representative pose per kind; the sowhat dino takes the last slot and
+  // keeps it, so the loader ends on the animal the page is actually about
+  const CAST = [
+    'family/ankylosaurus-1.webp',
+    'family/brachiosaurus-1.webp',
+    'family/parasaurolophus-1.webp',
+    'family/pteranodon-1.webp',
+    'family/stegosaurus-1.webp',
+    'family/triceratops-1.webp',
+    'herd/sowhat-1.webp',
+  ];
+
+  const seen = (() => {
+    try { return sessionStorage.getItem('sowhat:loader') === '1'; } catch { return false; }
+  })();
+
+  if (loader && slot && !still && !seen) {
+    try { sessionStorage.setItem('sowhat:loader', '1'); } catch { /* private mode */ }
+
+    const frames = CAST.map((f, i) => {
+      const img = el('img', null, { src: `image/${f}`, alt: '', decoding: 'async' });
+      if (i === 0) img.loading = 'eager';
+      slot.appendChild(img);
+      return img;
+    });
+
+    const counter = $('#loader-n');
+    const START = 66_000_000;                    // the asteroid, give or take
+    const ENTER = 900;                           // word up, slot open
+    const HOLD = 800;                            // the last one keeps the slot
+
+    // 500ms at the ends, 100ms in the middle — one arch across the cast
+    const gap = (i) => 100 + 400 * (1 - Math.sin((i / (frames.length - 1)) * Math.PI));
+    const marks = frames.reduce((acc, _, i) => {
+      acc.push((acc[i - 1] || ENTER) + (i ? gap(i - 1) : 0));
+      return acc;
+    }, []);
+    const end = marks[marks.length - 1] + HOLD;
+
+    requestAnimationFrame(() => loader.classList.add('is-on'));
+    frames.forEach((img, i) => {
+      setTimeout(() => {
+        if (i) frames[i - 1].classList.remove('is-up');
+        img.classList.add('is-up');
+      }, marks[i]);
+    });
+
+    // 66 million years down to now, landing exactly as the loader lifts
+    if (counter) {
+      const t0 = performance.now();
+      const count = () => {
+        const p = Math.min((performance.now() - t0) / end, 1);
+        const eased = p < 0.5 ? 2 * p * p : 1 - ((-2 * p + 2) ** 2) / 2;
+        counter.textContent = Math.round(START * (1 - eased)).toLocaleString('en-US');
+        if (p < 1) requestAnimationFrame(count);
+      };
+      count();
+    }
+
+    setTimeout(() => {
+      loader.classList.add('is-done');
+      setTimeout(() => loader.remove(), 800);
+    }, end);
+  } else if (loader) {
+    loader.remove();
+  }
+
   // ---------- sprite sheets ----------
   const sprites = Object.fromEntries(A.sprites.map((s) => [s.key, s]));
   document.querySelectorAll('[data-sprite]').forEach((node) => {
@@ -286,7 +363,6 @@
   // ============================================================
   const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
   const easeOut = (t) => 1 - Math.pow(1 - t, 3);
-  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const scrubs = [];
 
   // ---------- 1. hero: SOWHAT fills the screen, then DINO takes it ----------
