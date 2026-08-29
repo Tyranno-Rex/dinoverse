@@ -166,7 +166,7 @@ body {
 .panel-meta .tag { color: var(--blue); }
 .panel-name { font-size: clamp(32px, 5vw, 64px); color: var(--paper); margin-bottom: 18px; white-space: nowrap; }
 .panel-desc { font-family: var(--body); color: #b7b7ae; font-size: clamp(14px, 1.6vw, 18px); line-height: 1.6; margin: 0 0 30px; max-width: 42ch; }
-.panel-desc:empty::before { content: "— 설명 없음 —"; color: #5f5f58; }
+.panel-desc:empty::before { content: "— no description —"; color: #5f5f58; }
 /* "BETA VERSION" — small die-cut sticker in each app's info area */
 .beta-sticker {
   display: inline-block; transform: rotate(-3deg);
@@ -213,6 +213,8 @@ body {
 
 /* ---------- panel actions ---------- */
 .link-btn { background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; }
+/* an app with a page of its own offers it before it offers a download */
+.panel-site { display: block; margin-bottom: 12px; text-decoration: none; }
 .link-btn:hover { text-decoration: underline; }
 .panel .line-input { color: var(--paper); border-bottom-color: var(--paper); }
 .panel .line-input::placeholder { color: #7a7a72; }

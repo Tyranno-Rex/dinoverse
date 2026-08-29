@@ -85,7 +85,7 @@ function renderPanels(apps) {
   if (!apps.length) {
     const p = document.createElement('article');
     p.className = 'panel';
-    p.innerHTML = '<div class="panel-content"><div class="empty">아직 배포된 앱이 없습니다.</div></div>';
+    p.innerHTML = '<div class="panel-content"><div class="empty">Nothing released yet.</div></div>';
     track.appendChild(p);
   } else {
     const tpl = $('#panel-tpl');
@@ -113,6 +113,11 @@ function renderPanels(apps) {
         icon.alt = flatName(rawName) + ' icon';
       } else { icon.remove(); }
 
+      // apps with a page of their own link out to it; the rest drop the link
+      const site = $('.panel-site', node);
+      if (app.site) site.href = app.site;
+      else site.remove();
+
       const meta = $('.panel-meta', node);
       const bits = [];
       if (app.version) bits.push(`<span class="tag">v${escapeHtml(app.version)}</span>`);
@@ -137,9 +142,9 @@ function buildComingSoonPanel(n) {
   p.innerHTML =
     '<div class="panel-badge"><span class="panel-index">' + String(n).padStart(2, '0') + '</span></div>' +
     '<div class="panel-content">' +
-      '<div class="panel-meta"><span class="tag">COMING SOON</span><span>준비 중</span></div>' +
+      '<div class="panel-meta"><span class="tag">COMING SOON</span><span>In the works</span></div>' +
       '<h2 class="panel-name display">MORE<br>TO COME</h2>' +
-      '<p class="panel-desc soon-sub">다양한 것들이 기다리고 있어요.</p>' +
+      '<p class="panel-desc soon-sub">More is on the way.</p>' +
     '</div>';
   return p;
 }
@@ -196,7 +201,7 @@ function wirePanel(node, app) {
     });
   } else {
     // open app — files are plaintext
-    unlockBtn.textContent = '[ 다운로드 보기 ]';
+    unlockBtn.textContent = '[ SHOW DOWNLOADS ]';
     unlockBtn.addEventListener('click', () => {
       renderFiles(filesBox, { files: app.files || [] });
       unlockBtn.classList.add('hidden');
@@ -209,7 +214,7 @@ function renderFiles(box, payload) {
   box.classList.remove('hidden');
   box.innerHTML = '';
   const files = (payload && payload.files) || [];
-  if (!files.length) { box.innerHTML = '<div class="empty">다운로드 링크가 없습니다.</div>'; return; }
+  if (!files.length) { box.innerHTML = '<div class="empty">No download links.</div>'; return; }
   files.forEach((f) => {
     const a = document.createElement('a');
     a.className = 'file-link';

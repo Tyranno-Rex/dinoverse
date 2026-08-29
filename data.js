@@ -8,17 +8,18 @@ window.DINO_DATA = {
     {
       "id": "sowhat-dino",
       "name": "SoWhat-Dino",
-      "description": "바탕화면에 우리 어쩔공룡씨를 모시겠다고요? 저에게는 좋은 소식이지만, 어쩔공룡씨도 좋아할지는 모르겠네요...",
+      "description": "So you want to keep this dinosaur on your desktop? Good news for me. Whether he wants it is another matter...",
       "version": "0.1.0",
       "platforms": [
         "win"
       ],
       "image": "image/sowhat-dino.png",
       "icon": "image/sowhat-dino-icon.png",
+      "site": "sowhat-dino/",
       "lock": "open",
       "files": [
         {
-          "label": "Windows 설치 (.msi)",
+          "label": "Windows installer (.msi)",
           "url": "https://drive.usercontent.google.com/download?id=1LoIp0iE3De1-XaNjbw4viYevN06nq2VK&export=download&confirm=t",
           "size": "—"
         }
@@ -46,7 +47,7 @@ window.DINO_DATA = {
     {
       "id": "restile",
       "name": "Restile",
-      "description": "Restile은 앱 창을 모니터·존·위치에 고정하고, 가상 데스크톱을 넘나들어도 각 데스크톱의 배치를 그대로 유지해, 창이 흐트러지면 포커스를 뺏지 않고 조용히 제자리로 복원합니다.",
+      "description": "Restile pins app windows to a monitor, a zone and a position, keeps every virtual desktop's layout intact as you move between them, and quietly puts a window back when it drifts — without stealing focus.",
       "version": "1.0.0",
       "platforms": [
         "win"
@@ -57,7 +58,7 @@ window.DINO_DATA = {
       "lock": "open",
       "files": [
         {
-          "label": "Windows 설치 (.exe)",
+          "label": "Windows installer (.exe)",
           "url": "https://drive.usercontent.google.com/download?id=1qn8W79yZvNelVYEc1270dIuZCEWmDika&export=download&confirm=t",
           "size": "—"
         }

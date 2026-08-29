@@ -344,7 +344,7 @@ img { max-width: 100%; display: block; }
   to   { background-position-x: 100%; }
 }
 
-/* ---------- 2. 어쩔공룡 — the copy assembles from every direction ----------
+/* ---------- 2. the dino — the copy assembles from every direction ----------
    Every word starts pushed off-screen along one of eight vectors (up, down,
    left, right and the four diagonals) and scroll pulls it home. Directions
    step by (i * 3) % 8, which walks all eight without ever giving two

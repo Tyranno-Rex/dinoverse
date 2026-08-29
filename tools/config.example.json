@@ -1,5 +1,5 @@
 {
-  "_README": "Schema reference / template. Copy to tools/config.local.json (gitignored) and edit there. NEVER put real app codes in this committed file. Build with: node tools/generate.mjs  (reads config.local.json, writes data.js). Or edit visually with admin.local.html.",
+  "_README": "Schema reference / template. Copy to tools/config.local.json (gitignored) and edit there. NEVER put real app codes in this committed file. Optional "site" is a path to that app's own page, linked from its panel. Build with: node tools/generate.mjs  (reads config.local.json, writes data.js). Or edit visually with admin.local.html.",
   "config": {
     "title": "DINOVERSE",
     "heroSub": "DIVERSE TOOLS. NO EXTINCTION."
@@ -12,10 +12,11 @@
       "version": "1.0.0",
       "platforms": ["win"],
       "image": "image/example.png",
+      "site": "",
       "password": "",
       "publish": true,
       "files": [
-        { "label": "Windows 설치 (.exe)", "url": "https://drive.usercontent.google.com/download?id=FILE_ID&export=download&confirm=t", "size": "—" }
+        { "label": "Windows installer (.exe)", "url": "https://drive.usercontent.google.com/download?id=FILE_ID&export=download&confirm=t", "size": "—" }
       ],
       "notes": ""
     },
@@ -29,7 +30,7 @@
       "password": "PUT-A-LONG-RANDOM-CODE-HERE",
       "publish": true,
       "files": [
-        { "label": "Windows 설치 (.exe)", "url": "https://drive.usercontent.google.com/download?id=FILE_ID&export=download&confirm=t", "size": "—" }
+        { "label": "Windows installer (.exe)", "url": "https://drive.usercontent.google.com/download?id=FILE_ID&export=download&confirm=t", "size": "—" }
       ],
       "notes": ""
     }

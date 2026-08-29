@@ -326,42 +326,42 @@
   // catalogue; the three sprite sheets are the only ones that actually move,
   // so they run wide and get a speech bubble to earn the extra room.
   const SAYS = {
-    box: '권투를 합니다. 상대는 없습니다.',
-    clean: '치웁니다. 누가 어질렀는지는 묻지 마세요.',
-    cook: '뭔가 굽고 있습니다. 드시라는 뜻은 아닙니다.',
-    dance2: '음악이 없어도 춥니다.',
-    dance3: '아직도 춥니다.',
-    dance4: '이쯤 되면 취향입니다.',
-    drag: '끌려갑니다. 저항은 하지 않습니다.',
-    'eat-fish': '생선입니다. 어디서 났는지는 모릅니다.',
-    'eat-meat': '고기입니다. 이건 좀 신납니다.',
-    'eat-rice': '밥입니다. 하루의 대부분이 이겁니다.',
-    jump: '뜁니다. 목적은 없습니다.',
-    'keyboard-sitdown': '자판 위에 앉아 뭔가 칩니다. 읽지는 마세요.',
-    liedown: '누웠습니다. 부르지 마세요.',
-    paint: '칠합니다. 무엇을 칠하는지는 저도 모릅니다.',
-    peep: '창 뒤에서 봅니다. 눈은 마주치지 맙시다.',
-    phone: '통화 중입니다. 상대는 없습니다.',
-    'play-draw': '그립니다. 완성은 하지 않습니다.',
-    'play-game': '게임합니다. 집니다.',
-    'play-sing': '부릅니다. 가사는 지어냅니다.',
-    readbook: '읽습니다. 같은 쪽만 계속 읽습니다.',
-    'self-talk': '혼잣말합니다. 대답은 기대하지 않습니다.',
-    sitdown: '앉습니다. 그게 전부입니다.',
-    situp: '일어납니다. 다시 앉을 예정입니다.',
-    'stock-up': '차트가 올랐습니다. 제 돈은 아닙니다.',
-    stretching: '폅니다. 운동은 아닙니다.',
-    tease: '약을 올립니다. 당신을요.',
-    walk: '걷습니다. 창틀 위로도 걷습니다.',
-    watch_movie: '봅니다. 결말은 이미 압니다.',
-    water: '물을 줍니다. 화분은 당신 것입니다.',
-    work: '일합니다. 당신 일은 아닙니다.',
-    yoga: '요가합니다. 유연하지는 않습니다.',
+    box: 'Boxing. There is no opponent.',
+    clean: 'Sweeping up. Do not ask who made the mess.',
+    cook: 'Something is frying. It is not for you.',
+    dance2: 'Dancing. There is no music.',
+    dance3: 'Still dancing.',
+    dance4: 'At this point it is a preference.',
+    drag: 'Being dragged. Not resisting.',
+    'eat-fish': 'A fish. Provenance unknown.',
+    'eat-meat': 'Meat. This one is exciting.',
+    'eat-rice': 'Rice. Most of the day is this.',
+    jump: 'Jumping. For no stated reason.',
+    'keyboard-sitdown': 'Sitting on the keyboard, typing. Do not read it.',
+    liedown: 'Lying down. Do not call.',
+    paint: 'Painting. He does not know what either.',
+    peep: 'Watching from behind the window. Do not make eye contact.',
+    phone: 'On a call. Nobody is on the line.',
+    'play-draw': 'Drawing. Never finishing.',
+    'play-game': 'Playing. Losing.',
+    'play-sing': 'Singing. Making the words up.',
+    readbook: 'Reading. The same page, repeatedly.',
+    'self-talk': 'Talking to himself. Expecting no answer.',
+    sitdown: 'Sitting. That is the whole thing.',
+    situp: 'Standing up. Intends to sit again.',
+    'stock-up': 'The chart is up. It is not his money.',
+    stretching: 'Stretching. This is not exercise.',
+    tease: 'Winding somebody up. You.',
+    walk: 'Walking. Along the tops of your windows too.',
+    watch_movie: 'Watching. He already knows the ending.',
+    water: 'Watering the plant. The plant is yours.',
+    work: 'Working. Not on your work.',
+    yoga: 'Doing yoga. Not flexible.',
   };
   const STARS = {
-    sowhat: { label: 'SHRUGGING', say: '어쩌라고요.', cap: '기본 자세입니다. 대부분 이러고 있습니다.', dur: '2.4s' },
-    dance: { label: 'DANCING', say: '이건 춤입니다.', cap: '아무도 안 볼 때 제일 열심히 춥니다.', dur: '1.6s' },
-    guitar: { label: 'PLAYING', say: '한 곡만 압니다.', cap: '기타를 칩니다. 레퍼토리는 하나입니다.', dur: '2s' },
+    sowhat: { label: 'SHRUGGING', say: 'So what.', cap: 'The default pose. Mostly this.', dur: '2.4s' },
+    dance: { label: 'DANCING', say: 'This is dancing.', cap: 'Dances hardest when nobody is watching.', dur: '1.6s' },
+    guitar: { label: 'PLAYING', say: 'I know one song.', cap: 'Plays guitar. Repertoire of one.', dur: '2s' },
   };
 
   const page = $('#strip-page');
@@ -456,7 +456,7 @@
     });
   }
 
-  // ---------- 2. 어쩔공룡: copy flown in from all eight directions ----------
+  // ---------- 2. the dino: copy flown in from all eight directions ----------
   // up, down, left, right, then the four diagonals
   const DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, 1], [1, -1], [-1, 1]];
 
@@ -472,7 +472,11 @@
         : host.textContent.trim().split(/\s+/);
       host.textContent = '';
 
-      const words = parts.map((text, i) => {
+      let n = 0;
+      const words = parts.flatMap((text) => {
+        // a space is a break, not a thing that flies in
+        if (!text.trim()) { host.appendChild(document.createTextNode(' ')); return []; }
+        const i = n++;
         const w = el('span', 'word', { textContent: text });
         // i * 3 walks all eight vectors (3 and 8 are coprime), so consecutive
         // words never share an approach
@@ -483,7 +487,7 @@
         w.style.setProperty('--t', '1');
         host.appendChild(w);
         if (host.dataset.split !== 'char') host.appendChild(document.createTextNode(' '));
-        return w;
+        return [w];
       });
       return { words, from, to };
     });

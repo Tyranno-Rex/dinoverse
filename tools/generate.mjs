@@ -53,6 +53,7 @@ for (const a of published) {
   if (a.image) base.image = a.image; // public mascot art (decoration only)
   if (a.icon) base.icon = a.icon;    // public app icon (decoration only)
   if (a.paid) base.paid = true;      // label only: shows "PAID" instead of "FREE"
+  if (a.site) base.site = a.site;    // an app with a page of its own, linked from its panel
   if (a.password && a.password.length) {
     apps.push({ ...base, lock: 'own', enc: await encryptJSON({ files: a.files || [], notes: a.notes || '' }, a.password) });
   } else {
