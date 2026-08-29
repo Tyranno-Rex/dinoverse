@@ -37,15 +37,17 @@ const SPRITES = [
 ];
 
 // Every other action contributes one representative still to the motion marquee.
+// Labelled off the art, not the folder name: `box` is the dino in gloves
+// and a headguard, and `stock-up` is a rising market chart.
 const MOTION_LABELS = {
-  box: 'UNBOXING', clean: 'CLEANING', cook: 'COOKING', dance2: 'DANCING',
+  box: 'BOXING', clean: 'CLEANING', cook: 'COOKING', dance2: 'DANCING',
   dance3: 'DANCING', dance4: 'DANCING', drag: 'DRAGGED', 'eat-fish': 'EATING FISH',
   'eat-meat': 'EATING MEAT', 'eat-rice': 'EATING RICE', jump: 'JUMPING',
   'keyboard-sitdown': 'TYPING', liedown: 'LYING DOWN', paint: 'PAINTING',
   peep: 'PEEPING', phone: 'ON THE PHONE', 'play-draw': 'DRAWING',
   'play-game': 'GAMING', 'play-sing': 'SINGING', readbook: 'READING',
   'self-talk': 'TALKING TO SELF', sitdown: 'SITTING', situp: 'STANDING UP',
-  'stock-up': 'STOCKING UP', stretching: 'STRETCHING', tease: 'TEASING',
+  'stock-up': 'STOCKS UP', stretching: 'STRETCHING', tease: 'TEASING',
   walk: 'WALKING', watch_movie: 'WATCHING A MOVIE', water: 'WATERING',
   work: 'WORKING', yoga: 'DOING YOGA',
 };

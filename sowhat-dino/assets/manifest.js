@@ -23,7 +23,7 @@ window.SOWHAT_ASSETS = {
  "motion": [
   {
    "name": "box",
-   "label": "UNBOXING",
+   "label": "BOXING",
    "file": "box.webp"
   },
   {
@@ -138,7 +138,7 @@ window.SOWHAT_ASSETS = {
   },
   {
    "name": "stock-up",
-   "label": "STOCKING UP",
+   "label": "STOCKS UP",
    "file": "stock-up.webp"
   },
   {

@@ -49,11 +49,15 @@
 
     const counter = $('#loader-n');
     const START = 66_000_000;                    // the asteroid, give or take
-    const ENTER = 900;                           // word up, slot open
-    const HOLD = 800;                            // the last one keeps the slot
+    const ENTER = 1000;                          // word up, slot open
+    const HOLD = 1000;                           // the last one keeps the slot
 
-    // 500ms at the ends, 100ms in the middle — one arch across the cast
-    const gap = (i) => 100 + 400 * (1 - Math.sin((i / (frames.length - 1)) * Math.PI));
+    // An arch, not a metronome: slow at the ends, quickest in the middle. The
+    // floor is what matters — under about a quarter second a kind registers as
+    // a flicker rather than as an animal you got to look at.
+    const SLOW = 720;
+    const FAST = 260;
+    const gap = (i) => FAST + (SLOW - FAST) * (1 - Math.sin((i / (frames.length - 1)) * Math.PI));
     const marks = frames.reduce((acc, _, i) => {
       acc.push((acc[i - 1] || ENTER) + (i ? gap(i - 1) : 0));
       return acc;
@@ -89,15 +93,20 @@
   }
 
   // ---------- sprite sheets ----------
+  // Called again after the comic page is built: those panels do not exist yet
+  // when this first runs, and an unmounted sprite is a blank box.
   const sprites = Object.fromEntries(A.sprites.map((s) => [s.key, s]));
-  document.querySelectorAll('[data-sprite]').forEach((node) => {
-    const s = sprites[node.dataset.sprite];
-    if (!s) return;
-    node.style.setProperty('--n', s.frames);
-    node.style.setProperty('--ar', `${s.cellW} / ${s.cellH}`);
-    if (node.dataset.dur) node.style.setProperty('--dur', node.dataset.dur);
-    node.style.backgroundImage = `url("image/sprite/${s.key}.webp")`;
-  });
+  const mountSprites = (root) => {
+    root.querySelectorAll('[data-sprite]').forEach((node) => {
+      const s = sprites[node.dataset.sprite];
+      if (!s || node.style.backgroundImage) return;
+      node.style.setProperty('--n', s.frames);
+      node.style.setProperty('--ar', `${s.cellW} / ${s.cellH}`);
+      if (node.dataset.dur) node.style.setProperty('--dur', node.dataset.dur);
+      node.style.backgroundImage = `url("image/sprite/${s.key}.webp")`;
+    });
+  };
+  mountSprites(document);
 
   // ---------- 0. sticker bomb: every dinosaur we have, dug out one by one ----------
   // Seeded so the wall is the same picture on every visit — a fixed
@@ -312,29 +321,88 @@
     });
   }
 
-  // ---------- 3. motion marquee ----------
-  const marquee = $('#marquee');
-  if (marquee && A.motion.length) {
-    const ROWS = 3;
-    const rows = Array.from({ length: ROWS }, () => []);
-    A.motion.forEach((m, i) => rows[i % ROWS].push(m));
+  // ---------- 3. the comic page ----------
+  // One panel per pose, each with a line under it. The stills carry the
+  // catalogue; the three sprite sheets are the only ones that actually move,
+  // so they run wide and get a speech bubble to earn the extra room.
+  const SAYS = {
+    box: '권투를 합니다. 상대는 없습니다.',
+    clean: '치웁니다. 누가 어질렀는지는 묻지 마세요.',
+    cook: '뭔가 굽고 있습니다. 드시라는 뜻은 아닙니다.',
+    dance2: '음악이 없어도 춥니다.',
+    dance3: '아직도 춥니다.',
+    dance4: '이쯤 되면 취향입니다.',
+    drag: '끌려갑니다. 저항은 하지 않습니다.',
+    'eat-fish': '생선입니다. 어디서 났는지는 모릅니다.',
+    'eat-meat': '고기입니다. 이건 좀 신납니다.',
+    'eat-rice': '밥입니다. 하루의 대부분이 이겁니다.',
+    jump: '뜁니다. 목적은 없습니다.',
+    'keyboard-sitdown': '자판 위에 앉아 뭔가 칩니다. 읽지는 마세요.',
+    liedown: '누웠습니다. 부르지 마세요.',
+    paint: '칠합니다. 무엇을 칠하는지는 저도 모릅니다.',
+    peep: '창 뒤에서 봅니다. 눈은 마주치지 맙시다.',
+    phone: '통화 중입니다. 상대는 없습니다.',
+    'play-draw': '그립니다. 완성은 하지 않습니다.',
+    'play-game': '게임합니다. 집니다.',
+    'play-sing': '부릅니다. 가사는 지어냅니다.',
+    readbook: '읽습니다. 같은 쪽만 계속 읽습니다.',
+    'self-talk': '혼잣말합니다. 대답은 기대하지 않습니다.',
+    sitdown: '앉습니다. 그게 전부입니다.',
+    situp: '일어납니다. 다시 앉을 예정입니다.',
+    'stock-up': '차트가 올랐습니다. 제 돈은 아닙니다.',
+    stretching: '폅니다. 운동은 아닙니다.',
+    tease: '약을 올립니다. 당신을요.',
+    walk: '걷습니다. 창틀 위로도 걷습니다.',
+    watch_movie: '봅니다. 결말은 이미 압니다.',
+    water: '물을 줍니다. 화분은 당신 것입니다.',
+    work: '일합니다. 당신 일은 아닙니다.',
+    yoga: '요가합니다. 유연하지는 않습니다.',
+  };
+  const STARS = {
+    sowhat: { label: 'SHRUGGING', say: '어쩌라고요.', cap: '기본 자세입니다. 대부분 이러고 있습니다.', dur: '2.4s' },
+    dance: { label: 'DANCING', say: '이건 춤입니다.', cap: '아무도 안 볼 때 제일 열심히 춥니다.', dur: '1.6s' },
+    guitar: { label: 'PLAYING', say: '한 곡만 압니다.', cap: '기타를 칩니다. 레퍼토리는 하나입니다.', dur: '2s' },
+  };
 
-    rows.forEach((items, r) => {
-      const row = el('div', `marquee-row${r % 2 ? ' marquee-row--rev' : ''}`);
-      row.style.setProperty('--dur', `${34 + r * 9}s`);
-      // duplicated once so translateX(-50%) lands on an identical frame
-      for (let copy = 0; copy < 2; copy++) {
-        items.forEach((m) => {
-          const card = el('div', 'marquee-card');
-          card.appendChild(el('img', null, {
-            src: `image/motion/${m.file}`, alt: '', loading: 'lazy', decoding: 'async',
-          }));
-          card.appendChild(el('span', 'marquee-label', { textContent: m.label }));
-          row.appendChild(card);
-        });
-      }
-      marquee.appendChild(row);
+  const page = $('#strip-page');
+  if (page) {
+    const panel = (n, label, caption, art, wide) => {
+      const box = el('article', `panel${wide ? ' panel--wide' : ''}`);
+      box.appendChild(el('span', 'panel-tab', {
+        textContent: `${String(n).padStart(2, '0')} · ${label}`,
+      }));
+      const frame = el('div', 'panel-art');
+      frame.appendChild(art);
+      box.appendChild(frame);
+      box.appendChild(el('p', 'panel-cap', { textContent: caption }));
+      page.appendChild(box);
+      return box;
+    };
+
+    // the animated three, spaced through the page rather than bunched at the top
+    const starAt = { 0: 'sowhat', 12: 'dance', 24: 'guitar' };
+    let n = 0;
+
+    const layStar = (key) => {
+      const s = STARS[key];
+      const art = el('div', 'sprite', { });
+      art.dataset.sprite = key;
+      art.dataset.dur = s.dur;
+      art.setAttribute('aria-hidden', 'true');
+      const box = panel(++n, s.label, s.cap, art, true);
+      box.appendChild(el('p', 'panel-say', { textContent: s.say }));
+    };
+
+    A.motion.forEach((m, i) => {
+      if (starAt[i]) layStar(starAt[i]);
+      const img = el('img', null, {
+        src: `image/motion/${m.file}`, alt: '', loading: 'lazy', decoding: 'async',
+      });
+      // every fifth still runs wide too, so the page keeps a comic's rhythm
+      panel(++n, m.label, SAYS[m.name] || '', img, i % 7 === 5);
     });
+    if (starAt[A.motion.length]) layStar(starAt[A.motion.length]);
+    mountSprites(page);
   }
 
   // ---------- 4. deco wall ----------
