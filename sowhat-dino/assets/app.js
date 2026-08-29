@@ -41,9 +41,14 @@
     if (herd.length) {
       const rnd = seeded(20260829);
       const small = window.matchMedia('(max-width: 760px)').matches;
-      const cell = small ? 78 : 100;                 // lattice pitch, px
-      const cols = Math.ceil(window.innerWidth / cell) + 1;
-      const rows = Math.ceil(window.innerHeight / (cell * 0.82)) + 1;
+      // pitch spaces the lattice, unit sizes the stickers. Keeping them apart
+      // is what lets the wall thin out without the dinosaurs growing: widen
+      // the pitch and the count falls, the ink ground opens up between them,
+      // and every sticker stays the size it was.
+      const pitch = small ? 148 : 190;
+      const unit = small ? 78 : 100;
+      const cols = Math.ceil(window.innerWidth / pitch) + 1;
+      const rows = Math.ceil(window.innerHeight / (pitch * 0.82)) + 1;
       const vmin = Math.min(window.innerWidth, window.innerHeight) / 100;
 
       const shuffle = (arr) => {
@@ -72,13 +77,12 @@
           const img = el('img', null, {
             src: `image/${bag[n++ % bag.length]}`, alt: '', decoding: 'async',
           });
-          // odd rows step half a cell across — a brick bond, not a grid
+          // odd rows step half a pitch across — a brick bond, not a grid
           const x = (c + (r % 2 ? 0.5 : 0) + (rnd() - 0.5) * 0.5) / (cols - 1);
           const y = (r + (rnd() - 0.5) * 0.45) / (rows - 1);
           img.style.left = `${(x * 100).toFixed(2)}%`;
           img.style.top = `${(y * 100).toFixed(2)}%`;
-          // oversized against the pitch, so silhouettes interlock
-          img.style.setProperty('--w', `${((cell * (1.35 + rnd() * 0.65)) / vmin).toFixed(2)}vmin`);
+          img.style.setProperty('--w', `${((unit * (1.35 + rnd() * 0.65)) / vmin).toFixed(2)}vmin`);
           img.style.setProperty('--r', `${Math.round((rnd() - 0.5) * 48)}deg`);
           img.style.zIndex = String(1 + Math.floor(rnd() * 6));
           bombWall.appendChild(img);
