@@ -75,6 +75,27 @@ img { max-width: 100%; display: block; }
 .topbar-name { color: var(--paper); }
 .topbar-get { color: var(--yellow); }
 
+/* ---------- 0. sticker bomb — nothing but dinosaurs ----------
+   A brick lattice with enough jitter, overlap and rotation that the grid
+   underneath never shows. Deliberately static: the whole screen is one
+   packed picture, so nothing here moves. Ink ground because every sticker
+   carries a white outline, and it makes the cut to the blue hero land. */
+.bomb {
+  position: relative;
+  height: 100svh;
+  background: var(--ink);
+  overflow: hidden;
+}
+.bomb-wall { position: absolute; inset: 0; }
+.bomb-wall img {
+  position: absolute;
+  width: var(--w);
+  height: auto;
+  /* left/top place the centre, so edge tiles bleed off rather than tuck in */
+  transform: translate(-50%, -50%) rotate(var(--r));
+  filter: drop-shadow(0 4px 9px rgba(0, 0, 0, 0.55));
+}
+
 /* ---------- 1. hero — SOWHAT fills the screen, then DINO takes it ----------
    Two viewports tall with a sticky pin, so there is exactly one screen of
    scroll to spend: SOWHAT lands full-bleed and collapses upward while DINO

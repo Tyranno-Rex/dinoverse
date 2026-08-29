@@ -22,6 +22,71 @@
     node.style.backgroundImage = `url("image/sprite/${s.key}.webp")`;
   });
 
+  // ---------- 0. sticker bomb: every dinosaur we have, packed flat ----------
+  // Seeded so the wall is the same picture on every visit — a fixed
+  // composition rather than noise that reshuffles under the reader.
+  const seeded = (s) => () => {
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  const bombWall = $('#bomb-wall');
+  if (bombWall) {
+    // six species off the family sheets plus the sowhat dino sampled out of
+    // the game's own animation library — see tools/dino-stickers.mjs
+    const herd = window.SOWHAT_DINOS || [];
+
+    if (herd.length) {
+      const rnd = seeded(20260829);
+      const small = window.matchMedia('(max-width: 760px)').matches;
+      const cell = small ? 78 : 100;                 // lattice pitch, px
+      const cols = Math.ceil(window.innerWidth / cell) + 1;
+      const rows = Math.ceil(window.innerHeight / (cell * 0.82)) + 1;
+      const vmin = Math.min(window.innerWidth, window.innerHeight) / 100;
+
+      const shuffle = (arr) => {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(rnd() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      };
+      // Tiles are filled straight off this list, so its order is the wall's
+      // order. The green sowhat dino outnumbers the six coloured species, and
+      // one shuffled pile lets him clump; drawing from whichever pile is
+      // furthest behind its share spreads the colour evenly instead.
+      const colour = shuffle(herd.filter((f) => f.startsWith('family/')));
+      const green = shuffle(herd.filter((f) => !f.startsWith('family/')));
+      const bag = [];
+      for (let a = 0, b = 0; a < colour.length || b < green.length;) {
+        const takeColour = b >= green.length
+          || (a < colour.length && a / colour.length <= b / green.length);
+        bag.push(takeColour ? colour[a++] : green[b++]);
+      }
+
+      let n = 0;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const img = el('img', null, {
+            src: `image/${bag[n++ % bag.length]}`, alt: '', decoding: 'async',
+          });
+          // odd rows step half a cell across — a brick bond, not a grid
+          const x = (c + (r % 2 ? 0.5 : 0) + (rnd() - 0.5) * 0.5) / (cols - 1);
+          const y = (r + (rnd() - 0.5) * 0.45) / (rows - 1);
+          img.style.left = `${(x * 100).toFixed(2)}%`;
+          img.style.top = `${(y * 100).toFixed(2)}%`;
+          // oversized against the pitch, so silhouettes interlock
+          img.style.setProperty('--w', `${((cell * (1.35 + rnd() * 0.65)) / vmin).toFixed(2)}vmin`);
+          img.style.setProperty('--r', `${Math.round((rnd() - 0.5) * 48)}deg`);
+          img.style.zIndex = String(1 + Math.floor(rnd() * 6));
+          bombWall.appendChild(img);
+        }
+      }
+    }
+  }
+
   // ---------- 1. furniture pouring out of the box ----------
   // one flat pool so the rain mixes categories instead of clumping
   const allDeco = A.deco.flatMap((d) => d.items.map((f) => `image/deco/${d.cat}/${f}`));

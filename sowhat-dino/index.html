@@ -15,8 +15,16 @@
     <a class="topbar-get" href="#get">[ DOWNLOAD ]</a>
   </header>
 
-  <!-- ============ 1. HERO — SOWHAT stretches, then hands over to DINO ============ -->
-  <section class="hero">
+  <!-- ============ 0. STICKER BOMB — nothing but dinosaurs ============ -->
+  <section class="bomb">
+    <div class="bomb-wall" id="bomb-wall" aria-hidden="true"></div>
+    <a class="scroll-cue" href="#hero">
+      <span>SCROLL</span><span class="scroll-cue-arrow" aria-hidden="true">↓</span>
+    </a>
+  </section>
+
+  <!-- ============ 1. HERO — SOWHAT fills the screen, then DINO takes it ============ -->
+  <section class="hero" id="hero">
     <div class="hero-pin">
       <h1 class="sr-only">SOWHAT DINO</h1>
       <!-- furniture spilling out of the box; filled by app.js -->
@@ -102,6 +110,7 @@
   </footer>
 
   <script src="assets/manifest.js"></script>
+  <script src="assets/dinos.js"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>
