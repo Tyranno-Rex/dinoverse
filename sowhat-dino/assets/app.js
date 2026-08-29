@@ -115,39 +115,26 @@
   const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const scrubs = [];
 
-  // ---------- 1. hero: SOWHAT stretches, then trades places with DINO ----------
+  // ---------- 1. hero: SOWHAT fills the screen, then DINO takes it ----------
   const hero = $('.hero');
   const heroPin = $('.hero-pin');
   const typeLines = $('.type-lines');
   const lineA = $('.type-line--a');
   const lineB = $('.type-line--b');
-  const tagline = $('.type-tagline');
   const cue = $('.scroll-cue');
 
   if (!still && hero && heroPin && typeLines && lineA && lineB) {
     scrubs.push(() => {
-      // the pin is one viewport of the section's height; the rest is runway
+      // the pin is one viewport of the section's height; the rest is runway,
+      // and all of it goes to the swap — SOWHAT starts already full-bleed
       const travel = hero.offsetHeight - heroPin.offsetHeight;
       if (travel <= 0) return;
-      const half = travel / 2;
-      const scrolled = -hero.getBoundingClientRect().top;
-      const grow = clamp01(scrolled / half);           // screen 1: SOWHAT stretches
-      const swap = clamp01((scrolled - half) / half);  // screen 2: SOWHAT out, DINO in
-
+      const swap = clamp01(-hero.getBoundingClientRect().top / travel);
       const full = typeLines.clientHeight;
-      // the viewBox is 1000x140, so this is the word at its own proportions
-      const natural = (typeLines.clientWidth * 140) / 1000;
 
-      lineA.style.height = `${(natural + (full - natural) * grow) * (1 - swap)}px`;
+      lineA.style.height = `${full * (1 - swap)}px`;
       lineB.style.height = `${full * swap}px`;
-      // the tagline is part of the landing screen, ducks out while SOWHAT
-      // stretches over it, then comes back to sit on the seam during the swap
-      if (tagline) {
-        const rest = 1 - clamp01(grow * 1.5);
-        const seam = clamp01(swap / 0.08) * clamp01((1 - swap) / 0.12);
-        tagline.style.opacity = Math.max(rest, seam).toFixed(3);
-      }
-      if (cue) cue.style.opacity = (1 - clamp01(grow * 1.6)).toFixed(3);
+      if (cue) cue.style.opacity = (1 - clamp01(swap * 3)).toFixed(3);
     });
   }
 
