@@ -45,7 +45,7 @@
       // is what lets the wall thin out without the dinosaurs growing: widen
       // the pitch and the count falls, the ink ground opens up between them,
       // and every sticker stays the size it was.
-      const pitch = small ? 148 : 190;
+      const pitch = small ? 112 : 140;
       const unit = small ? 78 : 100;
       const cols = Math.ceil(window.innerWidth / pitch) + 1;
       const rows = Math.ceil(window.innerHeight / (pitch * 0.82)) + 1;
