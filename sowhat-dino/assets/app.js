@@ -104,20 +104,95 @@
         }
       }
 
-      // The dig: the wall opens outward from one spot, the way sand comes off
-      // a find, rather than in reading order. Distance is measured in pixels
-      // so the ring stays round on any aspect, and roughed up per tile so the
-      // edge of the dig is ragged instead of a clean circle.
-      const dig = { x: 0.42, y: 0.56 };
-      tiles.forEach((t) => {
-        const dx = (t.x - dig.x) * window.innerWidth;
-        const dy = (t.y - dig.y) * window.innerHeight;
-        t.d = Math.hypot(dx, dy) * (0.88 + rnd() * 0.24);
+      // ----- the dig -----
+      // Nothing is on screen until the reader brushes it off. The pointer is
+      // the tool: whatever falls inside its radius surfaces and stays up.
+      const section = $('.bomb');
+      const brush = $('#dig-brush');
+      const hint = $('#bomb-hint');
+      const R = Math.round(pitch * 0.8);
+      if (brush) brush.style.setProperty('--brush', `${R * 2}px`);
+
+      const buried = tiles.slice();
+      const surface = (t) => t.img.classList.add('is-dug');
+
+      // Reveal whatever the brush covers at this point. The wall is measured
+      // per call rather than cached: the section scrolls, so a stored rect
+      // goes stale the moment the reader moves the page.
+      const brushAt = (cx, cy) => {
+        const box = bombWall.getBoundingClientRect();
+        for (let i = buried.length - 1; i >= 0; i--) {
+          const t = buried[i];
+          const dx = box.left + t.x * box.width - cx;
+          const dy = box.top + t.y * box.height - cy;
+          if (dx * dx + dy * dy <= R * R) { surface(t); buried.splice(i, 1); }
+        }
+      };
+
+      // Whatever is left, opened outward from where the brush stopped. Used
+      // as a floor, not a feature: a reader who never moves the mouse, or one
+      // who has cleared most of it and would be hunting for stragglers,
+      // should not be left staring at bare rock.
+      let finishing = false;
+      const finish = (fromX, fromY) => {
+        if (finishing) return;
+        finishing = true;
+        const box = bombWall.getBoundingClientRect();
+        buried
+          .map((t) => {
+            const dx = box.left + t.x * box.width - fromX;
+            const dy = box.top + t.y * box.height - fromY;
+            return { t, d: Math.hypot(dx, dy) * (0.88 + rnd() * 0.24) };
+          })
+          .sort((a, b) => a.d - b.d)
+          .forEach(({ t }, i) => setTimeout(() => surface(t), i * 20));
+        buried.length = 0;
+      };
+
+      const coarse = window.matchMedia('(hover: none)').matches;
+      // nothing to brush with on a touch screen, so do not ask for a mouse
+      if (coarse && hint) hint.remove();
+      let idle = null;
+      const centre = () => {
+        const box = bombWall.getBoundingClientRect();
+        return [box.left + box.width * 0.42, box.top + box.height * 0.56];
+      };
+      // A pointer that has not arrived yet gets a countdown; once the reader
+      // is actually digging it is theirs, and only the straggler rule applies.
+      const armIdle = () => {
+        clearTimeout(idle);
+        idle = setTimeout(() => finish(...centre()), coarse ? 900 : 4500);
+      };
+      armIdle();
+
+      let last = null;
+      section.addEventListener('pointermove', (e) => {
+        clearTimeout(idle);
+        if (brush) {
+          brush.classList.add('is-on');
+          brush.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+        }
+        // step along the segment since the last event: a fast sweep would
+        // otherwise jump clean over a sticker without uncovering it
+        if (last) {
+          const dx = e.clientX - last[0];
+          const dy = e.clientY - last[1];
+          const steps = Math.min(30, Math.ceil(Math.hypot(dx, dy) / (R * 0.5)));
+          for (let i = 1; i < steps; i++) {
+            brushAt(last[0] + (dx * i) / steps, last[1] + (dy * i) / steps);
+          }
+        }
+        brushAt(e.clientX, e.clientY);
+        last = [e.clientX, e.clientY];
+
+        if (hint && tiles.length - buried.length > 3) hint.classList.add('is-gone');
+        if (buried.length && buried.length < tiles.length * 0.12) finish(e.clientX, e.clientY);
+      }, { passive: true });
+
+      section.addEventListener('pointerleave', () => {
+        if (brush) brush.classList.remove('is-on');
+        last = null;
       });
-      tiles.sort((a, b) => a.d - b.d);
-      const step = small ? 26 : 18;
-      tiles.forEach((t, i) => { t.img.style.animationDelay = `${i * step}ms`; });
-      bombWall.classList.add('is-digging');
     }
   }
 

@@ -50,7 +50,7 @@ img { max-width: 100%; display: block; }
   margin: 0;
 }
 .eyebrow, .section-sub, .topbar, .scroll-cue, .marquee-label,
-.motion-star-label, .deco-cat-label, .get-note, .footer {
+.motion-star-label, .deco-cat-label, .get-note, .footer, .bomb-hint {
   font-family: var(--mono);
   text-transform: uppercase;
   letter-spacing: 0.18em;
@@ -85,6 +85,7 @@ img { max-width: 100%; display: block; }
   height: 100svh;
   background: var(--ink);
   overflow: hidden;
+  cursor: crosshair;
 }
 .bomb-wall { position: absolute; inset: 0; }
 .bomb-wall img {
@@ -96,16 +97,47 @@ img { max-width: 100%; display: block; }
   filter: drop-shadow(0 4px 9px rgba(0, 0, 0, 0.55));
 }
 
-/* The dig. Each dinosaur surfaces as a bone-pale fossil pressed into the
-   rock, holds there a beat, then the colour floods back and it is an animal
-   again — the reconstruction a dinosaur actually goes through. app.js hands
-   every sticker its own delay, ordered by distance from the dig point, so
-   the wall opens outward from one spot. It runs once and stops: the finished
-   state is the plain rule above, which is also what a reader who has asked
-   for less motion gets. */
-.bomb-wall.is-digging img {
-  animation: dig 900ms cubic-bezier(0.22, 0.9, 0.3, 1) both;
+/* The dig. The rock starts bare — every sticker is buried until the reader's
+   own pointer passes over it, and app.js adds .is-dug to whatever the brush
+   touches. Each dinosaur then surfaces as a bone-pale fossil pressed into the
+   rock, holds there a beat, and the colour floods back: the reconstruction a
+   dinosaur actually goes through, and the reason this screen is black rock to
+   begin with. `both` leaves it standing in full colour afterwards. */
+.bomb-wall img { opacity: 0; }
+.bomb-wall img.is-dug {
+  animation: dig 780ms cubic-bezier(0.22, 0.9, 0.3, 1) both;
 }
+
+/* the brush: a ring under the cursor, so the reach of the tool is legible */
+.dig-brush {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 40;
+  width: var(--brush);
+  height: var(--brush);
+  margin: calc(var(--brush) / -2) 0 0 calc(var(--brush) / -2);
+  border: 2px dashed rgba(236, 234, 225, 0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.dig-brush.is-on { opacity: 1; }
+
+.bomb-hint {
+  position: absolute;
+  z-index: 30;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  color: var(--lime);
+  text-align: center;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.bomb-hint.is-gone { opacity: 0; }
 @keyframes dig {
   0% {
     opacity: 0;
@@ -508,7 +540,8 @@ img { max-width: 100%; display: block; }
   .sprite, .marquee-row { animation: none; }
   /* no scrubbing: both words share the screen and the copy just sits there.
      app.js also skips splitting the text when this query matches. */
-  .bomb-wall.is-digging img { animation: none; }
+  .bomb-wall img, .bomb-wall img.is-dug { opacity: 1; animation: none; }
+  .dig-brush, .bomb-hint { display: none; }
   .hero { height: 100svh; }
   .type-line--a, .type-line--b { height: 50%; }
   .assemble { height: auto; }
