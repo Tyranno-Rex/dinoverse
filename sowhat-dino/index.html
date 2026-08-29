@@ -15,26 +15,48 @@
     <a class="topbar-get" href="#get">[ DOWNLOAD ]</a>
   </header>
 
-  <!-- ============ 1. HERO — the box overflows ============ -->
+  <!-- ============ 1. HERO — SOWHAT stretches, then hands over to DINO ============ -->
   <section class="hero">
-    <img class="hero-art" src="image/hero/main-page.webp"
-         alt="SOWHAT DINO — 초록 상자에 눌러 담은 노란 풍선 글자" />
-    <!-- furniture spilling out of the box; filled by app.js -->
-    <div class="spill" id="spill" aria-hidden="true"></div>
-    <a class="scroll-cue" href="#intro">
-      <span>SCROLL</span><span class="scroll-cue-arrow" aria-hidden="true">↓</span>
-    </a>
+    <div class="hero-pin">
+      <h1 class="sr-only">SOWHAT DINO</h1>
+      <!-- furniture spilling out of the box; filled by app.js -->
+      <div class="spill" id="spill" aria-hidden="true"></div>
+
+      <div class="type-lines" aria-hidden="true">
+        <div class="type-line type-line--a">
+          <svg class="type-svg type-svg--a" viewBox="0 30 1000 140" preserveAspectRatio="none">
+            <text x="0" y="165" textLength="1000" lengthAdjust="spacingAndGlyphs">SOWHAT</text>
+          </svg>
+        </div>
+        <div class="type-line type-line--b">
+          <svg class="type-svg type-svg--b" viewBox="0 30 1000 140" preserveAspectRatio="none">
+            <text x="0" y="165" textLength="1000" lengthAdjust="spacingAndGlyphs">DINO</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="type-tagline" aria-hidden="true">
+        <p>바탕화면에 사는<br />어쩔 수 없는<br />공룡 한 마리</p>
+      </div>
+
+      <a class="scroll-cue" href="#intro">
+        <span>SCROLL</span><span class="scroll-cue-arrow" aria-hidden="true">↓</span>
+      </a>
+    </div>
   </section>
 
-  <!-- ============ 2. 어쩔공룡 ============ -->
-  <section class="intro" id="intro">
-    <div class="intro-inner">
-      <div class="sprite sprite--hero" data-sprite="sowhat" data-dur="2.4s" aria-hidden="true"></div>
-      <div class="intro-copy">
-        <p class="eyebrow">DESKTOP COMPANION · WINDOWS · v0.1.0</p>
-        <h2 class="display intro-title">어쩔<br />공룡</h2>
-        <p class="intro-lead">바탕화면에 우리 어쩔공룡씨를 모시겠다고요? 저에게는 좋은 소식이지만, 어쩔공룡씨도 좋아할지는 모르겠네요...</p>
-        <p class="intro-note">창 위를 걸어 다니고, 가구를 놓아 주면 알아서 쓰고, 부르지 않아도 뭔가를 합니다. 대부분은 어쩌라는 표정으로요.</p>
+  <!-- ============ 2. 어쩔공룡 — the copy flies in from every direction ============ -->
+  <section class="assemble" id="intro">
+    <div class="assemble-pin">
+      <div class="assemble-stage">
+        <div class="sprite sprite--hero assemble-pop" data-sprite="sowhat" data-dur="2.4s"
+             data-pop="0 0.14" aria-hidden="true"></div>
+        <div class="assemble-copy">
+          <p class="eyebrow assemble-fade" data-fade="0.05 0.15">DESKTOP COMPANION · WINDOWS · v0.1.0</p>
+          <h2 class="display assemble-title" data-assemble="0.08 0.44" data-split="char">어쩔공룡</h2>
+          <p class="assemble-lead" data-assemble="0.3 0.86">바탕화면에 우리 어쩔공룡씨를 모시겠다고요? 저에게는 좋은 소식이지만, 어쩔공룡씨도 좋아할지는 모르겠네요...</p>
+          <p class="assemble-note assemble-fade" data-fade="0.86 0.97">창 위를 걸어 다니고, 가구를 놓아 주면 알아서 쓰고, 부르지 않아도 뭔가를 합니다. 대부분은 어쩌라는 표정으로요.</p>
+        </div>
       </div>
     </div>
   </section>

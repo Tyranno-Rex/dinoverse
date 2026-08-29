@@ -1,5 +1,6 @@
 /* SOWHAT-DINO — builds the page from assets/manifest.js.
-   Nothing here is interactive; it is all composition + motion. */
+   Composition + motion only; the one bit of logic is the scroll scrub at the
+   bottom, which drives the hero type swap and the fly-in copy. */
 (() => {
   const A = window.SOWHAT_ASSETS;
   if (!A) return;
@@ -104,6 +105,128 @@
       block.appendChild(grid);
       wall.appendChild(block);
     });
+  }
+
+  // ============================================================
+  // scroll scrub — one rAF-throttled pass drives every scrubbed section
+  // ============================================================
+  const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const scrubs = [];
+
+  // ---------- 1. hero: SOWHAT stretches, then trades places with DINO ----------
+  const hero = $('.hero');
+  const heroPin = $('.hero-pin');
+  const typeLines = $('.type-lines');
+  const lineA = $('.type-line--a');
+  const lineB = $('.type-line--b');
+  const tagline = $('.type-tagline');
+  const cue = $('.scroll-cue');
+
+  if (!still && hero && heroPin && typeLines && lineA && lineB) {
+    scrubs.push(() => {
+      // the pin is one viewport of the section's height; the rest is runway
+      const travel = hero.offsetHeight - heroPin.offsetHeight;
+      if (travel <= 0) return;
+      const half = travel / 2;
+      const scrolled = -hero.getBoundingClientRect().top;
+      const grow = clamp01(scrolled / half);           // screen 1: SOWHAT stretches
+      const swap = clamp01((scrolled - half) / half);  // screen 2: SOWHAT out, DINO in
+
+      const full = typeLines.clientHeight;
+      // the viewBox is 1000x140, so this is the word at its own proportions
+      const natural = (typeLines.clientWidth * 140) / 1000;
+
+      lineA.style.height = `${(natural + (full - natural) * grow) * (1 - swap)}px`;
+      lineB.style.height = `${full * swap}px`;
+      // the tagline is part of the landing screen, ducks out while SOWHAT
+      // stretches over it, then comes back to sit on the seam during the swap
+      if (tagline) {
+        const rest = 1 - clamp01(grow * 1.5);
+        const seam = clamp01(swap / 0.08) * clamp01((1 - swap) / 0.12);
+        tagline.style.opacity = Math.max(rest, seam).toFixed(3);
+      }
+      if (cue) cue.style.opacity = (1 - clamp01(grow * 1.6)).toFixed(3);
+    });
+  }
+
+  // ---------- 2. 어쩔공룡: copy flown in from all eight directions ----------
+  // up, down, left, right, then the four diagonals
+  const DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, 1], [1, -1], [-1, 1]];
+
+  const assemble = $('.assemble');
+  const assemblePin = $('.assemble-pin');
+
+  if (!still && assemble && assemblePin) {
+    const groups = [...assemble.querySelectorAll('[data-assemble]')].map((host) => {
+      const [from, to] = host.dataset.assemble.split(' ').map(Number);
+      // hangul headlines have no spaces to split on, hence data-split="char"
+      const parts = host.dataset.split === 'char'
+        ? [...host.textContent.trim()]
+        : host.textContent.trim().split(/\s+/);
+      host.textContent = '';
+
+      const words = parts.map((text, i) => {
+        const w = el('span', 'word', { textContent: text });
+        // i * 3 walks all eight vectors (3 and 8 are coprime), so consecutive
+        // words never share an approach
+        const [dx, dy] = DIRS[(i * 3) % DIRS.length];
+        w.style.setProperty('--dx', `${dx * 85}vw`);
+        w.style.setProperty('--dy', `${dy * 85}vh`);
+        w.style.setProperty('--r', `${(i % 2 ? 1 : -1) * (10 + (i % 5) * 7)}deg`);
+        w.style.setProperty('--t', '1');
+        host.appendChild(w);
+        if (host.dataset.split !== 'char') host.appendChild(document.createTextNode(' '));
+        return w;
+      });
+      return { words, from, to };
+    });
+
+    const timed = (sel, attr) => [...assemble.querySelectorAll(sel)].map((node) => {
+      const [from, to] = node.dataset[attr].split(' ').map(Number);
+      node.style.setProperty('--o', '0');
+      return { node, from, to };
+    });
+    const fades = timed('[data-fade]', 'fade');
+    const pops = timed('[data-pop]', 'pop');
+
+    const window01 = (p, from, to) => clamp01((p - from) / (to - from || 1));
+
+    scrubs.push(() => {
+      const travel = assemble.offsetHeight - assemblePin.offsetHeight;
+      if (travel <= 0) return;
+      const p = clamp01(-assemble.getBoundingClientRect().top / travel);
+
+      groups.forEach(({ words, from, to }) => {
+        const local = window01(p, from, to);
+        // each word gets its own slice of the group's window, in reading order
+        const each = 0.55;
+        const step = words.length > 1 ? (1 - each) / (words.length - 1) : 0;
+        words.forEach((w, i) => {
+          const t = easeOut(clamp01((local - i * step) / each));
+          w.style.setProperty('--t', (1 - t).toFixed(4));
+        });
+      });
+
+      fades.forEach(({ node, from, to }) => {
+        node.style.setProperty('--o', window01(p, from, to).toFixed(3));
+      });
+      pops.forEach(({ node, from, to }) => {
+        const t = easeOut(window01(p, from, to));
+        node.style.setProperty('--o', t.toFixed(3));
+        node.style.setProperty('--s', (0.7 + 0.3 * t).toFixed(3));
+      });
+    });
+  }
+
+  if (scrubs.length) {
+    let queued = false;
+    const run = () => { queued = false; scrubs.forEach((fn) => fn()); };
+    const request = () => { if (!queued) { queued = true; requestAnimationFrame(run); } };
+    addEventListener('scroll', request, { passive: true });
+    addEventListener('resize', request);
+    run();
   }
 
   // ---------- counts ----------

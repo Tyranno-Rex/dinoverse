@@ -26,10 +26,20 @@ body {
   color: var(--ink);
   font-family: var(--kr), var(--display);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  /* clip, not hidden: `hidden` would make body a scroll container and break
+     the sticky pins in .hero and .assemble */
+  overflow-x: clip;
 }
 img { max-width: 100%; display: block; }
 ::selection { background: var(--yellow); color: var(--ink); }
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 
 .display {
   font-family: var(--display);
@@ -65,22 +75,67 @@ img { max-width: 100%; display: block; }
 .topbar-name { color: var(--paper); }
 .topbar-get { color: var(--yellow); }
 
-/* ---------- 1. hero ---------- */
+/* ---------- 1. hero — SOWHAT stretches, then hands over to DINO ----------
+   Three viewports tall with a sticky pin, so there are two full screens of
+   scroll to spend: the first stretches SOWHAT from its natural proportions
+   to full-bleed, the second collapses it upward while DINO grows from the
+   floor. Both words are SVG <text> with preserveAspectRatio="none" and
+   textLength, so they fill the width whatever their letter count and
+   stretch vertically to whatever height app.js hands the box. */
 .hero {
   position: relative;
-  min-height: 100svh;
-  display: grid;
-  place-items: center;
-  padding: 76px clamp(10px, 3vw, 48px) 0;
+  height: 300svh;
+  background: var(--blue);
+}
+.hero-pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
   overflow: hidden;
 }
-.hero-art {
-  position: relative;
+.type-lines {
+  position: absolute;
+  /* clear the fixed topbar so the stretched word never hides under it */
+  inset: 50px 0 0;
   z-index: 2;
-  width: 100%;
-  max-width: 1400px;
-  /* the reference art already carries its own blue bed — let it bleed */
-  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.35));
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+.type-line { width: 100%; flex-shrink: 0; overflow: hidden; }
+/* natural proportions until the first scroll hands over to app.js */
+.type-line--a { aspect-ratio: 1000 / 140; }
+.type-line--b { height: 0; }
+.type-svg { display: block; width: 100%; height: 100%; user-select: none; }
+.type-svg text {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 180px;
+  text-transform: uppercase;
+}
+.type-svg--a text { fill: var(--yellow); }
+.type-svg--b text { fill: var(--lime); }
+
+/* rides the seam between the two words while they trade places */
+.type-tagline {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.type-tagline p {
+  margin: 0;
+  padding: clamp(14px, 2vw, 22px) clamp(18px, 3vw, 30px);
+  background: var(--ink);
+  color: var(--lime);
+  font-size: clamp(15px, 2vw, 22px);
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+  border-radius: 4px;
 }
 
 /* furniture pouring out of the box, forever.
@@ -136,40 +191,64 @@ img { max-width: 100%; display: block; }
   to   { background-position-x: 100%; }
 }
 
-/* ---------- 2. intro ---------- */
-.intro {
+/* ---------- 2. 어쩔공룡 — the copy assembles from every direction ----------
+   Every word starts pushed off-screen along one of eight vectors (up, down,
+   left, right and the four diagonals) and scroll pulls it home. Directions
+   step by (i * 3) % 8, which walks all eight without ever giving two
+   neighbouring words the same approach. */
+.assemble {
   position: relative;
   z-index: 3;
+  height: 360svh;
   background: var(--yellow);
-  padding: clamp(60px, 10vw, 130px) clamp(18px, 5vw, 72px);
   border-top: 10px solid var(--ink);
 }
-.intro-inner {
-  max-width: 1180px;
-  margin: 0 auto;
+.assemble-pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
   display: grid;
-  grid-template-columns: minmax(190px, 300px) 1fr;
-  gap: clamp(28px, 5vw, 70px);
+  place-items: center;
+  /* clips the fly-in so words appear at the viewport edge, not the page's */
+  overflow: hidden;
+  padding: 70px clamp(18px, 5vw, 72px) 34px;
+}
+.assemble-stage {
+  width: min(1180px, 100%);
+  display: grid;
+  grid-template-columns: minmax(170px, 320px) 1fr;
+  gap: clamp(24px, 5vw, 64px);
   align-items: center;
 }
+.word {
+  display: inline-block;
+  /* --t is distance still to travel: 1 = off-screen, 0 = home */
+  transform:
+    translate(calc(var(--dx) * var(--t, 0)), calc(var(--dy) * var(--t, 0)))
+    rotate(calc(var(--r, 0deg) * var(--t, 0)));
+  will-change: transform;
+}
+.assemble-fade { opacity: var(--o, 1); }
+.assemble-pop { opacity: var(--o, 1); transform: scale(var(--s, 1)); }
+
 .sprite--hero { width: 100%; aspect-ratio: var(--ar); }
-.intro-title {
-  font-size: clamp(64px, 13vw, 170px);
-  margin: 10px 0 22px;
+.assemble-title {
+  font-size: clamp(58px, 11vw, 165px);
+  margin: 8px 0 22px;
   color: var(--green-deep);
   /* hangul needs more room than the latin display setting allows */
   line-height: 0.98;
   letter-spacing: -0.02em;
 }
-.intro-lead {
-  font-size: clamp(19px, 2.3vw, 28px);
+.assemble-lead {
+  font-size: clamp(18px, 2.3vw, 30px);
   line-height: 1.5;
   font-weight: 700;
-  margin: 0 0 18px;
+  margin: 0 0 16px;
   max-width: 22em;
 }
-.intro-note {
-  font-size: clamp(15px, 1.5vw, 18px);
+.assemble-note {
+  font-size: clamp(14px, 1.5vw, 18px);
   line-height: 1.7;
   margin: 0;
   max-width: 26em;
@@ -361,18 +440,32 @@ img { max-width: 100%; display: block; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 760px) {
-  .intro-inner, .get-box { grid-template-columns: 1fr; }
-  .sprite--hero, .sprite--get { width: min(230px, 60vw); }
+  .assemble-stage, .get-box { grid-template-columns: 1fr; }
+  .sprite--hero, .sprite--get { width: min(200px, 52vw); }
   .motion-star { position: static; margin: 30px auto 0; }
   .topbar { font-size: 10px; letter-spacing: 0.12em; }
   .deco-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); }
-  /* the art is very wide — let it run past the viewport so it still reads
-     (.hero clips, so this never adds page-level horizontal scroll) */
-  .hero-art { width: 132%; max-width: none; }
+  /* shorter runways: a phone scrolls the same journey in fewer pixels */
+  .hero { height: 260svh; }
+  .assemble { height: 300svh; }
+  .assemble-stage { gap: 18px; justify-items: center; text-align: center; }
+  .assemble-lead, .assemble-note { margin-inline: auto; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .spill, .scroll-cue-arrow { display: none; }
   .sprite, .marquee-row { animation: none; }
+  /* no scrubbing: both words share the screen and the copy just sits there.
+     app.js also skips splitting the text when this query matches. */
+  .hero { height: 100svh; }
+  .type-line--a, .type-line--b { height: 50%; aspect-ratio: auto; }
+  .type-tagline { opacity: 1; }
+  .assemble { height: auto; }
+  .assemble-pin {
+    position: static;
+    height: auto;
+    overflow: visible;
+    padding-block: clamp(60px, 10vw, 130px);
+  }
 }
