@@ -230,6 +230,101 @@
     return app;
   }
 
+  // ---------- 1a. where this started ----------
+  // The desktop calendar this app was built on, rebuilt in DOM rather than
+  // screenshotted — so it can come apart at its own seams, and so it can run
+  // on the SAME month as ours. The two are then the same subject drawn twice.
+  //
+  // Nothing here is exaggerated to make a point: an empty grid with one plain
+  // white note open on it is what the reference actually shows. The original
+  // product is not named. Where this started is the claim; whose it was is
+  // not the page's business.
+  const OLD_DOW = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  // ISO week number, off the week's Thursday — which alone fixes the week.
+  function isoWeek(date) {
+    const t = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
+    const jan1 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+    return Math.ceil(((t - jan1) / 86400000 + 1) / 7);
+  }
+
+  // Only fixed-date holidays, so the label is never a guess about the
+  // visitor's own calendar. Most months show none, which is correct.
+  const OLD_HOL = { '11-24': 'Christmas Eve', '11-25': 'Christmas', '11-31': "New Year's Eve", '0-1': 'New Year' };
+
+  function buildOldCalendar() {
+    const root = $('#oldcal');
+    const weeks = Math.ceil((M.first + M.days) / 7);
+    const long = new Date(M.y, M.m, M.today).toLocaleString('en-US', { weekday: 'long' });
+
+    let gutter = '';
+    let cells = '';
+    // the note hangs off the second row, so it can never fall out of frame
+    const noteRow = Math.min(1, weeks - 1);
+    const noteCol = 3;
+    for (let w = 0; w < weeks; w++) {
+      gutter += `<div class="oldcal-week">${isoWeek(new Date(M.y, M.m, w * 7 + 4 - M.first + 1))}</div>`;
+      for (let c = 0; c < 7; c++) {
+        const d = w * 7 + c - M.first + 1;
+        const other = d < 1 || d > M.days;
+        const date = new Date(M.y, M.m, d);
+        const hol = OLD_HOL[`${date.getMonth()}-${date.getDate()}`];
+        const note = w === noteRow && c === noteCol
+          ? `<div class="old-note" id="old-note">
+               <div class="old-note-bar">${M.month} ${d}, ${M.y}<span class="old-note-x">×</span></div>
+               <div class="old-note-body">To-do list ...<span class="old-caret"></span></div>
+               <div class="old-note-foot"><span>◍</span><span>◢</span></div>
+               <p class="old-callout">Plain text. That is the whole format.</p>
+             </div>`
+          : '';
+        cells += `<div class="old-cell${other ? ' is-other' : ''}${!other && d === M.today ? ' is-today' : ''}${note ? ' has-note' : ''}">` +
+          `${date.getDate()}${hol ? `<span class="old-hol">${hol}</span>` : ''}${note}</div>`;
+      }
+    }
+
+    root.innerHTML =
+      `<div class="oldcal-title">${M.month}, ${M.y}` +
+        `<span class="oldcal-title-long"> / Today is ${M.month} ${M.today}, ${M.y} ${long}</span>` +
+        '<span class="oldcal-btns"><span>☁</span><span>▤</span><span>←</span><span>→</span><span>❐</span><span>⌄</span></span>' +
+      '</div>' +
+      '<div class="oldcal-dow"><span></span>' +
+        OLD_DOW.map((d) => `<span><i>${d}</i><em>${d.slice(0, 3)}</em></span>`).join('') +
+      '</div>' +
+      `<div class="oldcal-body"><div class="oldcal-weeks">${gutter}</div>` +
+        `<div class="oldcal-grid">${cells}</div></div>`;
+  }
+
+  // Every piece that can fall. The grid lines are the cells' own borders, so
+  // when the cells go the grid goes with them — it comes apart where it was
+  // joined, not along invented cracks.
+  function collectShards() {
+    const root = $('#oldcal');
+    const bin = $('#bin');
+    const list = [...root.querySelectorAll('.old-cell, .oldcal-week, .oldcal-dow span, .oldcal-title'), $('#old-note')]
+      .filter(Boolean)
+      .map((el) => ({
+        el,
+        rot: (Math.random() * 2 - 1) * 110,
+        hop: 0.4 + Math.random() * 0.9,
+        // the note goes last: it is the thing the section is about
+        delay: el.id === 'old-note' ? 0.42 : Math.random() * 0.36,
+        dx: 0, dy: 0,
+      }));
+
+    const measure = () => {
+      const b = bin.getBoundingClientRect();
+      const bx = b.left + b.width / 2, by = b.top + b.height / 2;
+      list.forEach((s) => {
+        s.el.style.transform = 'none';
+        const r = s.el.getBoundingClientRect();
+        s.dx = bx - (r.left + r.width / 2);
+        s.dy = by - (r.top + r.height / 2);
+      });
+    };
+    return { list, measure };
+  }
+
   // ---------- 0. loader — this month draws itself, day by day ----------
   function runLoader() {
     const wrap = $('#loader');
@@ -389,7 +484,8 @@
 
     let open = null;
     const close = () => {
-      if (open) open.classList.remove('is-selected');
+      if (!open) return;                       // the scrub calls this on every frame
+      open.classList.remove('is-selected');
       open = null;
       panel.classList.remove('is-open');
       pin.classList.remove('is-panel-open');
@@ -437,14 +533,25 @@
     document.addEventListener('click', (e) => {
       if (open && !e.target.closest('#feat-panel, [data-feat]')) close();
     });
+    return { close };
   }
 
   // ---------- scroll scrub — one rAF-throttled pass drives every section ----------
-  function initScrub() {
+  function initScrub(tour) {
     const hero = $('#hero');
     const wall = $('#plane-wall');
     const cal = $('#plane-cal');
     const pin = $('.hero-pin');
+    const stage = $('#before-stage');
+    const frame = $('#oldcal-frame');
+    const copy = $('#before-copy');
+    const bin = $('#bin');
+    const binLid = $('.bin-lid');
+    const beatBreak = $('#beat-break');
+    const beatBuilt = $('#beat-built');
+    const read = $('#feat-read');
+    const cue = $('#cue-label');
+    const shards = collectShards();
     const claim = $('#claim');
     const claimLines = [...document.querySelectorAll('[data-claim]')];
     const frames = [...document.querySelectorAll('.audit-frame')];
@@ -471,13 +578,51 @@
       lastY = scrollY;
       vel += (Math.min(Math.abs(dy), 90) - vel) * 0.2;
 
-      // 1. hero — the calendar alone, drifting off the wallpaper behind it
+      // 1. hero — one pinned sequence in four beats:
+      //    BEFORE 0 → .24 · SHATTER .24 → .50 · REVEAL .50 → .64 · TOUR .64 → 1
       const p = prog(hero);
+      const seg = (a, b) => clamp01((p - a) / (b - a));
       wall.style.transform = `translate3d(0, ${p * -40}px, 0) scale(1.06)`;
-      cal.style.transform = `translate3d(0, ${p * -140}px, 0)`;
-      // the whole pin dims on the way out, so the panel and the readout leave
-      // with the calendar rather than outliving it
-      pin.style.opacity = String(clamp01(1 - (p - 0.55) / 0.3));
+
+      const qBreak = seg(0.24, 0.50);
+      const qUp = seg(0.50, 0.64);
+
+      copy.style.opacity = String(seg(0.03, 0.10) * (1 - seg(0.20, 0.26)));
+      frame.style.opacity = String(1 - seg(0.24, 0.34));
+      stage.style.opacity = String(1 - seg(0.50, 0.56));
+      bin.style.opacity = String(seg(0.16, 0.24) * (1 - seg(0.50, 0.56)));
+      bin.style.transform = `scale(${1 + 0.1 * Math.sin(qBreak * Math.PI)})`;
+      binLid.style.transform = `rotate(${-22 * qBreak}deg) translateY(${-2 * qBreak}px)`;
+
+      // Each piece hangs, then goes — its own delay, its own spin, all of them
+      // aimed at the bin. dx/dy were measured once, so this is transform only.
+      shards.list.forEach((s) => {
+        const t = clamp01((qBreak - s.delay) / (1 - s.delay));
+        const e = t * t;
+        const hop = -Math.sin(t * Math.PI) * 46 * s.hop;
+        s.el.style.transform = t
+          ? `translate3d(${s.dx * e}px, ${s.dy * e + hop}px, 0) rotate(${s.rot * e}deg) scale(${1 - 0.94 * e})`
+          : 'none';
+        s.el.style.opacity = String(1 - t * 0.85);
+      });
+
+      beatBreak.style.opacity = String(seg(0.27, 0.33) * (1 - seg(0.44, 0.50)));
+      beatBuilt.style.opacity = String(seg(0.55, 0.60) * (1 - seg(0.66, 0.72)));
+
+      // ours rises in its place, and only then becomes the menu
+      cal.style.opacity = String(qUp);
+      cal.style.transform =
+        `translate3d(0, ${(1 - qUp) * 46 + p * -70}px, 0) scale(${0.962 + qUp * 0.038})`;
+      pin.classList.toggle('is-tour', p > 0.63);
+      read.style.opacity = String(seg(0.64, 0.70) * (1 - seg(0.93, 1)));
+      if (p < 0.60) tour.close();
+
+      const label = p < 0.24 ? 'SCROLL TO BREAK IT' : 'SCROLL';
+      if (cue.textContent !== label) cue.textContent = label;
+
+      // the pin dims on the way out, so the panel and the readout leave with
+      // the calendar rather than outliving it
+      pin.style.opacity = String(clamp01(1 - (p - 0.93) / 0.07));
 
       // 2. the claim — lines arrive on their own windows; the split only
       //    shows while the page is actually moving, and settles to nothing.
@@ -510,10 +655,25 @@
       if (vel > 0.05) request();
     }
 
+    // While the cue reads as an instruction it must not do the opposite of
+    // what it says: clicking it advances THROUGH the sequence, and only once
+    // the tour is up does it go back to being the link past the section.
+    $('.scroll-cue').addEventListener('click', (e) => {
+      if (prog(hero) >= 0.63) return;
+      e.preventDefault();
+      const top = hero.offsetTop + (hero.offsetHeight - innerHeight) * 0.72;
+      scrollTo({ top, behavior: REDUCED() ? 'auto' : 'smooth' });
+    });
+
     const request = () => { if (!queued) { queued = true; requestAnimationFrame(run); } };
+    // Where each shard has to travel is measured once, at rest — never per
+    // frame. Layout can move under it twice: on resize, and when the web
+    // fonts land, so it is re-measured on both.
+    const remeasure = () => { shards.measure(); request(); };
     addEventListener('scroll', request, { passive: true });
-    addEventListener('resize', request);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(request);
+    addEventListener('resize', remeasure);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure);
+    requestAnimationFrame(remeasure);
     run();
   }
 
@@ -588,12 +748,13 @@
 
   // ---------- start ----------
   function init() {
+    buildOldCalendar();
     $('#plane-cal').appendChild(buildCalendar(false));
     $('#life-cal').appendChild(buildCalendar(true));
     buildAudit();
-    initFeatureTour();
+    const tour = initFeatureTour();
     runLoader();
-    initScrub();
+    initScrub(tour);
     initCursor();
     initGet();
 

@@ -10,7 +10,7 @@
   <title>BRACHY CALENDAR — DINOVERSE</title>
   <link rel="icon" href="../image/brachy-icon.png" />
   <link rel="preload" href="assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/style.css?v=3" />
+  <link rel="stylesheet" href="assets/style.css?v=4" />
 </head>
 <body>
   <!-- ============ LOADER — this actual month draws itself ============
@@ -35,14 +35,39 @@
 
   <h1 class="sr-only">Brachy Calendar — a desktop calendar that is your wallpaper</h1>
 
-  <!-- ============ 1. HERO — the calendar, and nothing else ============
-       No window prop, no wordmark, no tagline. The first screen is the
-       product at full size on its wallpaper, exactly as it sits on a desktop.
-       The only other things here are the tour's own label and the panel it
-       opens, because the calendar is also the menu. -->
+  <!-- ============ 1. HERO — one pinned sequence, two screens ============
+       FIRST the desktop calendar this app was built on, rebuilt in DOM on the
+       same month as ours. It comes apart at its own seams and goes into the
+       bin. THEN ours rises in its place, and the month becomes the menu:
+       every event on it is a feature you can click. -->
   <section class="hero" id="hero">
     <div class="hero-pin">
       <div class="plane plane--wall" id="plane-wall" aria-hidden="true"></div>
+
+      <!-- where this started -->
+      <div class="before" id="before" aria-hidden="true">
+        <div class="before-stage" id="before-stage">
+          <div class="oldcal" id="oldcal"></div>
+          <div class="oldcal-frame" id="oldcal-frame"></div>
+        </div>
+        <div class="bin" id="bin">
+          <svg viewBox="0 0 48 52" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" color="#cfd4d7">
+            <g class="bin-lid"><path d="M4 12h40M18 12V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5" /></g>
+            <path d="M8 12l2.6 34a3 3 0 0 0 3 2.8h20.8a3 3 0 0 0 3-2.8L40 12" />
+            <path d="M19 21v20M29 21v20" opacity=".55" />
+          </svg>
+        </div>
+        <div class="before-copy" id="before-copy">
+          <p class="eyebrow">WHERE THIS STARTED</p>
+          <h2 class="before-title">The same month,<br />drawn the old way.</h2>
+          <p class="before-lead">One note at a time, on a plain white card. Plain text — no
+            colour, no tag, no time. Every other day is an empty cell.</p>
+        </div>
+        <p class="before-beat" id="beat-break">SO WE BROKE IT.</p>
+        <p class="before-beat" id="beat-built">AND BUILT IT AGAIN.</p>
+      </div>
+
       <div class="plane plane--cal" id="plane-cal"></div>
 
       <!-- every event on the grid is a feature; this line names the one under
@@ -58,7 +83,7 @@
       </aside>
 
       <a class="scroll-cue" href="#claim">
-        <span>SCROLL</span><span class="scroll-cue-arrow" aria-hidden="true">↓</span>
+        <span id="cue-label">SCROLL</span><span class="scroll-cue-arrow" aria-hidden="true">↓</span>
       </a>
     </div>
   </section>
@@ -128,6 +153,6 @@
   <script src="../assets/vendor/lenis.min.js"></script>
   <script src="../assets/crypto.js"></script>
   <script src="../data.js"></script>
-  <script src="assets/app.js?v=3"></script>
+  <script src="assets/app.js?v=4"></script>
 </body>
 </html>
