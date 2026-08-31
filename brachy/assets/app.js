@@ -59,62 +59,112 @@
   // apps/brachy/src/utils/colors.ts — Apple system colours, and its getColorLight
   const light = (hex) => `rgba(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)}, 0.15)`;
 
-  // Every entry: what the day shows, and what that thing IS. The events on the
-  // grid are not filler — each one is a feature, and clicking it opens this
-  // text. Nothing here is claimed that FEATURE_SPEC.md does not describe.
+  // Every entry is a real feature, graded the way the product grades it.
+  // docs/spec/FEATURE_MATRIX.md (mesozoic) is the code-checked reference and
+  // `plan` is read straight off it — four of these are premium, and the panel
+  // says so. A month that shows paid features as if they were free is a month
+  // that misleads you before you have downloaded anything.
+  //
+  // Nothing here is claimed that the matrix does not describe, and where the
+  // matrix and this page disagreed, this page was wrong.
   const FEATURES = [
-    { events: [{ t: 'Weekly standup', time: '09:30', repeat: true }],
+    { plan: 'free',
+      events: [{ t: 'Weekly standup', time: '09:30', repeat: true }],
       name: 'Repeating events',
-      body: 'Daily, weekly, monthly or yearly. Pick the interval, then end it on a date or after a set number of times. The small loop in the cell is how a repeat announces itself.' },
-    { events: [{ t: 'Design review', time: '14:00', color: '#FF3B30' }],
+      body: 'Daily, weekly, monthly or yearly, on an interval — every second week, every third day. End it on a date or after a count. Edit one occurrence or that one and everything after it; the ones you cancelled stay cancelled.' },
+
+    { plan: 'premium',
+      events: [{ t: 'Design review', time: '14:00', color: '#FF3B30' }],
       name: 'Ten event colours',
-      body: 'The ten Apple system colours — and a colourblind-safe palette that remaps all ten to hues you can still tell apart. The pill takes the colour at 15%, the label takes it at full.' },
-    { events: [{ t: 'D-7 · Launch', color: '#FF2D55' }],
+      body: 'The ten Apple system colours. The pill takes the colour at 15%, the label at full. Turning on the colourblind palette remaps all ten to Wong’s universal set — safe for protanopia, deuteranopia and tritanopia — and that part is free.' },
+
+    { plan: 'free',
+      events: [{ t: 'Launch', dday: 'D-7', color: '#FF2D55' }],
       name: 'D-day countdown',
-      body: 'Mark an event as a D-day and the cell counts down to it. The side panel counts with it, so the number is never something you work out on your fingers.' },
-    { events: [{ t: 'Client call', time: '11:00', tags: ['#34C759', '#AF52DE'] }],
+      body: 'Mark an event as a D-day and it carries the number. The panel counts with the cell, so the days remaining are never something you work out on your fingers.' },
+
+    { plan: 'premium',
+      events: [{ t: 'Client call', time: '11:00', tags: ['#34C759', '#AF52DE'] }],
       name: 'Tags, and a filter that dims',
-      body: 'Any number of tags per event, each one a dot on the pill. Filter by one and the rest of the month dims rather than disappears — you read a project without losing the shape of the month.' },
-    { events: [{ t: 'Renew domain', done: true }],
+      body: 'Any number of tags per event, each a dot on the pill. The filter bar appears once a tag exists; filter by one and the rest of the month dims rather than disappears, so you read a project without losing the shape of the month.' },
+
+    { plan: 'free',
+      events: [{ t: 'Renew domain', done: true }],
       name: 'Completion',
-      body: 'Tick it off and it strikes through in place. On a repeating event completion is tracked per occurrence: last week being done does not mark this week done.' },
-    { sticker: '🎉', events: [{ t: 'Ship v1.2', time: '17:00', color: '#34C759' }],
+      body: 'Tick it off and it strikes through in place. On a repeating event completion is stored per occurrence, so last week being done does not mark this week done.' },
+
+    { plan: 'free', sticker: '🎉',
+      events: [{ t: 'Ship v1.2', time: '17:00', color: '#34C759' }],
       name: 'Mood stickers',
-      body: 'One sticker per day, from the cell’s right-click menu. The fastest way to make a month readable at a glance — a shape lands before a word does.' },
-    { overcommit: true, events: [{ t: 'All-hands', time: '10:00' }, { t: '+4 more', more: true }],
+      body: 'One sticker per day, from the cell’s right-click menu, and you can register your own images alongside the emoji. The fastest way to make a month readable — a shape lands before a word does.' },
+
+    { plan: 'free', overcommit: true, dayCount: 5,
+      events: [{ t: 'All-hands', time: '10:00' }, { t: '+4 more', more: true }],
       name: 'Overcommit warning',
-      body: 'When a day is carrying more than it should, the cell says so while the day is still ahead of you. You set the threshold.' },
-    { events: [{ t: 'Dentist', time: '15:00', color: '#5856D6' }],
-      name: 'Reminders',
-      body: 'From on the minute to a full day ahead, delivered as a real system notification — so it reaches you whether or not the calendar has focus.' },
-    { events: [{ t: 'Synced · Google', time: '08:00', color: '#8E8E93' }],
-      name: 'Google Calendar, both ways',
-      body: 'Authorisation is OAuth PKCE and the tokens are sealed by the operating system’s own credential store. They are never written into a file of ours.' },
-    { events: [{ t: 'Pomodoro ×4', color: '#FF9500' }],
+      body: 'When a day is carrying more than it should, the cell says so while the day is still ahead of you. The threshold is yours, and it can be a number of events or a number of hours.' },
+
+    { plan: 'free',
+      events: [{ t: 'Dentist', time: '15:00', color: '#5856D6', remind: '15 min before' }],
+      name: 'Reminders, and snooze',
+      body: 'Five, ten, fifteen or thirty minutes, an hour, or a day ahead — several at once on the same event. It arrives as a real system notification, snoozes for ten minutes, and if the event has a meeting link the notification opens it.' },
+
+    { plan: 'premium',
+      events: [{ t: 'Synced · Google', time: '08:00', color: '#8E8E93' }],
+      name: 'Google Calendar, CalDAV, iCal feeds',
+      body: 'Google and CalDAV sync both ways; an .ics feed subscribes read-only. Syncing runs thirty seconds after launch and every fifteen minutes after that. Authorisation is OAuth PKCE and the credentials live in the operating system’s keychain — never in a file of ours.' },
+
+    { plan: 'free',
+      events: [{ t: 'Pomodoro ×4', color: '#FF9500' }],
       name: 'Pomodoro timer',
-      body: 'A focus timer that logs its finished sessions against the day it ran on. The month ends up holding a record of the work, not only the plan.' },
-    { events: [{ t: 'Memo · passport', color: '#FFCC00' }],
+      body: 'Start it from the event it belongs to. Finished sessions are logged against the day they ran on, so the month ends up holding a record of the work and not only the plan.' },
+
+    { plan: 'free',
+      events: [{ t: 'Memo · passport', color: '#FFCC00' }],
       name: 'Memo windows',
-      body: 'Free-standing notes on the desktop, outside the grid. Pin one and it stays above every other window until you unpin it.' },
-    { events: [{ t: 'Deep work · 2h', time: '09:00', color: '#5AC8FA' }],
-      name: 'Time blocking',
-      body: 'Drop a block on a day and those hours are spoken for. Blocks stack, and the day shows you what is left rather than what you promised.' },
-    { weather: true, events: [{ t: 'Picnic', time: '12:00', color: '#34C759' }],
+      body: 'Free-standing notes in their own desktop window, outside the grid. Pin one and it stays above every other window until you unpin it.' },
+
+    { plan: 'free',
+      events: [{ t: 'Focus · 2h', time: '09:00', color: '#5AC8FA' }],
+      name: 'Focus-time suggestions',
+      body: 'It reads the day you already have, finds the gaps inside your working hours that are long enough to be worth anything, and offers them. Take one and it becomes an event. It suggests; it never books over you.' },
+
+    { plan: 'premium', weather: true,
+      events: [{ t: 'Picnic', time: '12:00', color: '#34C759' }],
       name: 'Weather in the day',
-      body: 'The forecast sits in the day header. An outdoor plan tells you what it is walking into before you commit to it.' },
-    { events: [{ t: 'Backup written', done: true }],
+      body: 'The forecast sits in the day header, so an outdoor plan tells you what it is walking into. Your coordinates are rounded to two decimal places and sent straight to Open-Meteo — the request never passes through our server.' },
+
+    { plan: 'free',
+      events: [{ t: 'Backup written', done: true }],
       name: 'Backup, import, export',
-      body: 'A backup is written on launch and again on quit. Import and export are plain .ics — nothing you put in here is trapped in here.' },
+      body: 'A backup is written on launch and again on quit, the last five are kept, and the operating system encrypts them. Import and export are JSON or plain .ics, and a month prints to PDF. Nothing you put in here is trapped in here.' },
+
+    { plan: 'free',
+      events: [{ t: 'Planner · 8 blocks', time: '08:00', color: '#007AFF' }],
+      name: 'The daily planner',
+      body: 'Press P and the day opens hour by hour. Add straight into an hour, tick things off there, and what you planned and what you kept sit in the same column.' },
+
+    { plan: 'free',
+      events: [{ t: 'Lunch w/ sam fri 1pm', time: '13:00' }],
+      name: 'QuickAdd, on the device',
+      body: 'Press Q and write the sentence — "lunch w/ sam fri 1pm" — and it becomes that event. The parser is regular expressions running on your machine. There is no server call and no model behind it.' },
+
+    { plan: 'free',
+      events: [{ t: 'Interview', time: '16:00', buffer: '10 min either side', color: '#AF52DE' }],
+      name: 'Conflicts and buffer time',
+      body: 'Two events on the same hour are flagged as they are made. Give an event five to thirty minutes of buffer before or after and the time it really costs you is the time the day accounts for.' },
   ];
-  // apps/brachy/src/utils/colors.ts — the ten Apple system colours it ships
-  const PALETTE = ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#5AC8FA',
-                   '#0A84FF', '#5856D6', '#AF52DE', '#FF2D55', '#8E8E93'];
 
   const SPAN = {
+    plan: 'free',
     title: 'Sprint 12 · multi-day',
     name: 'Multi-day events',
     body: 'An event running across days is drawn once, as a single bar over the week — not as seven copies of itself. Every cell it crosses reserves the height, so the bar never lands on a word.',
   };
+
+  // apps/brachy/src/utils/colors.ts — the ten Apple system colours it ships
+  const PALETTE = ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#5AC8FA',
+                   '#0A84FF', '#5856D6', '#AF52DE', '#FF2D55', '#8E8E93'];
+
 
   const shuffle = (a) => {
     for (let i = a.length - 1; i > 0; i--) {
@@ -194,7 +244,8 @@
         const spanned = !small && w === DEAL.span.week &&
           c >= DEAL.span.col && c < DEAL.span.col + DEAL.span.len;
 
-        cells += `<div class="${cls.join(' ')}"${f ? ` data-feat="${FEATURES.indexOf(f)}" data-when="${dateLabel(d)}"` : ''}>` +
+        cells += `<div class="${cls.join(' ')}"` +
+          `${f ? ` data-feat="${FEATURES.indexOf(f)}" data-when="${dateLabel(d)}" data-day="${d}"` : ''}>` +
           '<div class="day-cell-content"><div class="day-cell-header">' +
             `<span class="day-number${!other && d === M.today ? ' today-badge' : ''}">${shown}</span>` +
             (f && f.overcommit ? `<span class="day-overcommit-badge">${ICON.warn}</span>` : '') +
@@ -753,6 +804,54 @@
     box.appendChild(self);
   }
 
+  // ---------- the app's SchedulePanel, rendered for one day ----------
+  // Same markup as apps/brachy/src/components/SchedulePanel: the day grouped
+  // with its count, then each event as a schedule-item — checkbox, colour dot,
+  // tag dots, D-day badge, and a meta row of whatever the event actually has.
+  // Nothing is drawn for a field the event does not carry.
+  const DOW_LONG = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  function scheduleItem(e) {
+    const meta =
+      (e.time ? `<div class="schedule-item-time"><span>\u25f7</span><span>${e.time}</span></div>` : '') +
+      (e.period ? `<div class="schedule-item-period"><span>\u2194</span><span>${e.period}</span></div>` : '') +
+      (e.repeat ? '<div class="schedule-item-repeat"><span>\u21bb</span><span>Repeat</span></div>' : '') +
+      (e.remind ? `<div class="schedule-item-time"><span>\u25d4</span><span>${e.remind}</span></div>` : '') +
+      (e.buffer ? `<div class="schedule-item-time"><span>\u25f7</span><span>${e.buffer}</span></div>` : '');
+    return '<div class="schedule-item">' +
+      `<span class="schedule-item-checkbox${e.done ? ' checked' : ''}">\u2713</span>` +
+      '<div class="schedule-item-content"><div class="schedule-item-title-row">' +
+        (e.color ? `<span class="schedule-item-color-dot" style="background:${e.color}"></span>` : '') +
+        (e.tags ? `<span class="schedule-item-tag-dots">${e.tags.map((c) =>
+          `<span class="schedule-item-tag-dot" style="background:${c}"></span>`).join('')}</span>` : '') +
+        `<p class="schedule-item-title${e.done ? ' completed' : ''}">${e.t}</p>` +
+        (e.dday ? `<span class="schedule-item-dday">${e.dday}</span>` : '') +
+      '</div>' +
+      (meta ? `<div class="schedule-item-meta">${meta}</div>` : '') +
+      '</div></div>';
+  }
+
+  // The day header the panel opens with. A spanning bar belongs to a run of
+  // days rather than one, so it says so instead of naming a weekday.
+  function scheduleDay(el, events, count) {
+    const d = el.dataset.day;
+    const label = d
+      ? DOW_LONG[new Date(M.y, M.m, +d).getDay()].toUpperCase()
+      : 'PERIOD';
+    const today = +d === M.today;
+    return `<div class="schedule-day-group${today ? ' today' : ''}">` +
+      `<div class="schedule-day-header${today ? ' today' : ''}">` +
+        '<div class="schedule-day-header-left">' +
+          '<span class="schedule-day-chevron">\u203a</span>' +
+          `<span class="schedule-day-label${today ? ' today' : ''}">${label}</span>` +
+          `<span class="schedule-day-date">${el.dataset.when}</span>` +
+        '</div>' +
+        `<span class="schedule-day-count">${count || events.length}</span>` +
+      '</div>' +
+      `<div class="schedule-day-events">${events.map(scheduleItem).join('')}</div>` +
+    '</div>';
+  }
+
   // On a phone the panel is a sheet lying over the lower weeks, and the readout
   // lives down there too. Hand the pin the sheet's measured height so the line
   // can sit above it instead of behind it.
@@ -802,6 +901,15 @@
       open = el;
       el.classList.add('is-selected');
       $('#feat-panel-when').textContent = el.dataset.when;
+      // the day drawn the way the app's own panel draws it
+      $('#feat-panel-list').innerHTML = scheduleDay(el, f === SPAN
+        ? [{ t: SPAN.title, period: el.dataset.when }]
+        // the app's overflow line is not an event, so it is not an item — but
+        // the day is still carrying what it says it is carrying
+        : f.events.filter((e) => !e.more), f.dayCount);
+      const plan = $('#feat-panel-plan');
+      plan.textContent = f.plan === 'premium' ? 'PREMIUM' : 'FREE';
+      plan.className = `feat-plan is-${f.plan}`;
       $('#feat-panel-title').textContent = f.name;
       $('#feat-panel-body').textContent = f.body;
       $('#feat-panel-n').textContent =
@@ -877,7 +985,8 @@
     const feat = FEATURES[+cell.dataset.hold];
     const ev = feat.events[0];
 
-    $('#compose-colours').innerHTML = PALETTE.map((c) =>
+    const drop = $('#compose-colours');
+    drop.innerHTML = PALETTE.map((c) =>
       `<span class="compose-swatch" style="background:${c};color:${c}"></span>`).join('');
     const swatches = [...panel.querySelectorAll('.compose-swatch')];
     const chosen = Math.max(0, PALETTE.indexOf(ev.color));
@@ -944,9 +1053,11 @@
       const say = (t) => { read.innerHTML = t; };
       $('#compose-when').textContent = cell.dataset.when;
       $('#compose-text').textContent = '';
-      $('#compose-time').textContent = '\u2014\u2014:\u2014\u2014';
+      $('#compose-time').textContent = '--:--';
       $('#compose-time').classList.add('is-empty');
       swatches.forEach((sw) => sw.classList.remove('is-on'));
+      drop.classList.remove('is-open');
+      $('#ib-colour').querySelector('.icon-btn').classList.remove('active');
 
       say('THE SAME APPOINTMENT — <b>HERE</b>');
       pointAt(cell, 0.5, 0.4);
@@ -981,10 +1092,19 @@
       $('#compose-time').classList.remove('is-empty');
       await wait(700);
 
-      // colour
+      // colour — the app files it in the second icon group, behind a PRO badge,
+      // and the page does not quietly demonstrate a paid field as a free one
+      say('THE FIELDS AFTER THE DIVIDER ARE <b>PAID</b>. THE PANEL SAYS SO.');
+      const cBtn = $('#ib-colour');
+      pointAt(cBtn, 0.5, 0.32);
+      await wait(640);
+      click();
+      cBtn.querySelector('.icon-btn').classList.add('active');
+      drop.classList.add('is-open');
+      await wait(560);
       say('TEN COLOURS — <b>ONE CLICK</b>, NOT A CONVENTION YOU HAVE TO REMEMBER.');
       pointAt(swatches[chosen]);
-      await wait(560);
+      await wait(520);
       click();
       swatches[chosen].classList.add('is-on');
       $('#compose-text').style.color = ev.color;
@@ -997,6 +1117,7 @@
       click();
       save.classList.add('is-press');
       setTimeout(() => save.classList.remove('is-press'), 150);
+      drop.classList.remove('is-open');
       await wait(220);
       shutPanel();
       await wait(300);

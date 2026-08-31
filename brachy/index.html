@@ -10,7 +10,7 @@
   <title>BRACHY CALENDAR — DINOVERSE</title>
   <link rel="icon" href="../image/brachy-icon.png" />
   <link rel="preload" href="assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/style.css?v=7" />
+  <link rel="stylesheet" href="assets/style.css?v=8" />
 </head>
 <body>
   <!-- ============ LOADER — this actual month draws itself ============
@@ -98,34 +98,86 @@
            the cursor, and the panel below explains the one you click -->
       <p class="feat-read" id="feat-read"></p>
 
+      <!-- The panel a day opens is the app's own SchedulePanel, down to the
+           class names: a header, the day grouped with its count, and the event
+           as a schedule-item — checkbox, colour dot, tag dots, D-day badge, and
+           a meta row. The page's own words come after it, under a rule. -->
       <aside class="feat-panel" id="feat-panel" aria-hidden="true" aria-live="polite">
-        <button class="feat-panel-close" id="feat-close" type="button" tabindex="-1" aria-label="close">×</button>
-        <p class="feat-panel-when" id="feat-panel-when"></p>
-        <h2 class="feat-panel-title" id="feat-panel-title"></h2>
-        <p class="feat-panel-body" id="feat-panel-body"></p>
-        <p class="feat-panel-foot">FEATURE <span id="feat-panel-n"></span></p>
+        <div class="app dark blue" id="feat-panel-app">
+          <div class="schedule-header">
+            <div class="schedule-header-content">
+              <h2 class="schedule-title">Schedule</h2>
+              <p class="schedule-date" id="feat-panel-when"></p>
+            </div>
+            <button class="schedule-close" id="feat-close" type="button" tabindex="-1" aria-label="close">×</button>
+          </div>
+          <div class="schedule-list" id="feat-panel-list"></div>
+        </div>
+        <div class="feat-note">
+          <p class="feat-plan" id="feat-panel-plan"></p>
+          <h3 class="feat-note-title" id="feat-panel-title"></h3>
+          <p class="feat-note-body" id="feat-panel-body"></p>
+          <p class="feat-note-foot">FEATURE <span id="feat-panel-n"></span></p>
+        </div>
       </aside>
 
       <!-- the composer: Brachy opens a panel on the day you double-click, and
            what goes in it is fields. The tour demo fills this in before it
            hands the month over to the reader. -->
+      <!-- The composer is the app's EventPopup. Its icon row is split into two
+           groups by the app itself — the free fields, a divider, then the ones
+           that carry a PRO badge. That division is the product's, not ours, so
+           the page shows it rather than describing it. -->
       <aside class="compose" id="compose" aria-hidden="true">
-        <p class="compose-when" id="compose-when"></p>
-        <h2 class="compose-head">NEW EVENT</h2>
-        <div class="compose-field">
-          <span class="compose-label">TITLE</span>
-          <span class="compose-val" id="compose-title"><i id="compose-text"></i><span class="compose-caret"></span></span>
+        <div class="app dark blue event-modal-popup">
+          <div class="popup-header">
+            <span class="popup-title">New event</span>
+            <span class="popup-close">×</span>
+          </div>
+          <div class="popup-content">
+            <div class="popup-field">
+              <span class="popup-label" id="compose-when">Date</span>
+              <span class="popup-input" id="compose-title"><i id="compose-text"></i><span class="compose-caret"></span></span>
+            </div>
+            <div class="popup-field">
+              <span class="popup-label">Time</span>
+              <span class="popup-input is-empty" id="compose-time">--:--</span>
+            </div>
+
+            <div class="icon-row">
+              <div class="icon-group">
+                <span class="icon-btn-wrapper"><span class="icon-btn">↻</span><span class="icon-btn-label">Repeat</span></span>
+                <span class="icon-btn-wrapper"><span class="icon-btn">◔</span><span class="icon-btn-label">Remind</span></span>
+                <span class="icon-btn-wrapper"><span class="icon-btn">◷</span><span class="icon-btn-label">Buffer</span></span>
+                <span class="icon-btn-wrapper"><span class="icon-btn">D</span><span class="icon-btn-label">D-Day</span></span>
+              </div>
+              <span class="icon-row-divider"></span>
+              <div class="icon-group">
+                <span class="icon-btn-wrapper premium" id="ib-colour">
+                  <span class="icon-btn">◉<span class="icon-btn-pro-badge">PRO</span></span>
+                  <span class="icon-btn-label">Colour</span>
+                </span>
+                <span class="icon-btn-wrapper premium">
+                  <span class="icon-btn">#<span class="icon-btn-pro-badge">PRO</span></span>
+                  <span class="icon-btn-label">Tag</span>
+                </span>
+                <span class="icon-btn-wrapper premium">
+                  <span class="icon-btn">▤<span class="icon-btn-pro-badge">PRO</span></span>
+                  <span class="icon-btn-label">Template</span>
+                </span>
+                <span class="icon-btn-wrapper premium">
+                  <span class="icon-btn">G<span class="icon-btn-pro-badge">PRO</span></span>
+                  <span class="icon-btn-label">Google</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="colour-drop" id="compose-colours"></div>
+          </div>
+          <div class="popup-footer">
+            <span class="popup-save" id="compose-save">Save</span>
+          </div>
         </div>
-        <div class="compose-field">
-          <span class="compose-label">TIME</span>
-          <span class="compose-val is-empty" id="compose-time">——:——</span>
-        </div>
-        <div class="compose-field">
-          <span class="compose-label">COLOUR</span>
-          <span class="compose-swatches" id="compose-colours"></span>
-        </div>
-        <p class="compose-foot">TAG · REPEAT · REMINDER · D-DAY — SAME PANEL, SAME PLACE.</p>
-        <button class="compose-save" id="compose-save" type="button" tabindex="-1">SAVE</button>
       </aside>
 
       <span class="demo-ptr" id="use-ptr" aria-hidden="true">
@@ -206,6 +258,6 @@
   <script src="../assets/vendor/lenis.min.js"></script>
   <script src="../assets/crypto.js"></script>
   <script src="../data.js"></script>
-  <script src="assets/app.js?v=7"></script>
+  <script src="assets/app.js?v=8"></script>
 </body>
 </html>
