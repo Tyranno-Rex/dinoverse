@@ -293,22 +293,69 @@ img { max-width: 100%; display: block; }
 .day-event-more { font-size: 0.72em; font-weight: 500; letter-spacing: 0.1px; color: var(--text-muted); padding: 2px 6px; }
 
 /* ---------- the feature tour ----------
-   Every pill above is a real feature of the app, dropped on a random day of
-   this month. Point at one and the line under the grid says what it is. */
-.day-cell[data-feat] { cursor: help; }
-.day-cell[data-feat]:hover { background: var(--bg-cell-hover); }
+   Every pill on the grid is a real feature of the app, dropped on a random day
+   of this month. Point at one and the line under the grid names it; click it
+   and the panel explains it — the same gesture the app itself uses to open a
+   day. */
+.day-cell[data-feat], .spanning-bar[data-feat] { cursor: pointer; }
+.day-cell[data-feat]:hover, .day-cell[data-feat]:focus-visible { background: var(--bg-cell-hover); }
 .day-cell[data-feat]:hover .day-event-title { background: var(--accent-color); color: #fff; }
 .day-cell[data-feat]:hover .day-event-title.has-color { background: var(--event-color); color: #fff; }
+.day-cell[data-feat]:focus-visible, .spanning-bar[data-feat]:focus-visible {
+  outline: 2px solid var(--accent-lit); outline-offset: -2px;
+}
+/* the open one stays lit while its panel is up */
+.day-cell.is-selected { background: var(--bg-cell-hover); box-shadow: inset 0 0 0 1.5px var(--accent-color); }
+.spanning-bar.is-selected { box-shadow: 0 0 0 1.5px var(--accent-lit); }
 
 .feat-read {
   position: absolute; z-index: 5;
-  right: clamp(16px, 5vw, 64px); bottom: 8vh;
-  margin: 0; max-width: 42ch; text-align: right; line-height: 1.7;
+  left: 0; right: 0; bottom: 7.5vh;
+  margin: 0; padding: 0 clamp(16px, 5vw, 64px);
+  text-align: center; line-height: 1.7;
   font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
   text-transform: uppercase; color: var(--steel);
   transition: opacity 0.25s;
 }
 .feat-read b { color: var(--chalk); font-weight: 500; }
+
+/* ---------- the feature panel ----------
+   Brachy opens a side panel when you click a day. So does this page — and
+   what it puts in the panel is the feature that day is standing for. */
+.feat-panel {
+  position: absolute; z-index: 8;
+  top: 0; right: 0; width: var(--panel-w); height: 100%;
+  /* clears the fixed topbar, which runs over the panel's own top-right corner */
+  padding: clamp(72px, 11vh, 104px) clamp(20px, 2.4vw, 34px) clamp(28px, 5vh, 56px);
+  display: flex; flex-direction: column; gap: 14px;
+  background: rgba(14, 16, 18, 0.94);
+  border-left: 1px solid var(--line);
+  backdrop-filter: blur(14px);
+  transform: translateX(100%);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.42s cubic-bezier(0.2, 0, 0, 1), opacity 0.3s, visibility 0.42s;
+}
+.feat-panel.is-open { transform: none; opacity: 1; visibility: visible; }
+.feat-panel-close {
+  position: absolute; top: 62px; right: 22px;
+  background: none; border: none; color: var(--steel);
+  font: inherit; font-size: 22px; line-height: 1; cursor: pointer; padding: 4px;
+}
+.feat-panel-close:hover { color: var(--chalk); }
+.feat-panel-when {
+  margin: 0; font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--accent-lit);
+}
+.feat-panel-title {
+  margin: 0; font-size: clamp(24px, 2.3vw, 34px); line-height: 1.1;
+  letter-spacing: -0.02em; color: var(--chalk); font-weight: 500;
+}
+.feat-panel-body { margin: 0; font-size: var(--t-body); line-height: 1.6; color: var(--steel); }
+.feat-panel-foot {
+  margin: auto 0 0; font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--steel-dim);
+}
 
 /* the life section runs the same calendar at desktop-widget scale */
 .calendar--sm { font-size: 11px; }
@@ -322,6 +369,7 @@ img { max-width: 100%; display: block; }
 /* ---------- 1. hero ---------- */
 .hero { height: 230vh; position: relative; }
 .hero-pin {
+  --panel-w: min(380px, 34vw);
   position: sticky; top: 0; height: 100vh;
   overflow: hidden;
   display: grid; place-items: center;
@@ -339,58 +387,15 @@ img { max-width: 100%; display: block; }
    viewport, and the wordmark behind it shows through the cells. */
 .plane--cal {
   z-index: 2; inset: 0;
-  padding: clamp(40px, 6vh, 80px) clamp(12px, 3vw, 44px) 21vh;
+  padding: clamp(40px, 6vh, 80px) clamp(12px, 3vw, 44px) 14vh;
+  transition: padding 0.42s cubic-bezier(0.2, 0, 0, 1);
 }
 .plane--cal > .app { height: 100%; }
-.plane--win {
-  z-index: 3;
-  width: min(23vw, 310px); height: min(14vw, 185px);
-  right: 3.5vw; bottom: 27vh;
-  background: rgba(16, 18, 20, 0.86);
-  border: 1px solid var(--line);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
-}
-.win-chrome {
-  display: flex; gap: 7px; padding: 12px;
-  border-bottom: 1px solid var(--line);
-}
-.win-chrome span {
-  width: 9px; height: 9px; border-radius: 50%; background: var(--steel-dim);
-}
-
-/* the name is a window onto the wallpaper */
-.hero-type {
-  position: absolute; z-index: 1; inset: 0;
-  display: grid; place-items: center;
-  pointer-events: none;
-}
-.hero-word {
-  font-family: var(--display);
-  font-weight: 900;
-  font-stretch: 118%;              /* a real width axis, not stretched glyphs */
-  font-size: clamp(52px, 13.2vw, 240px);
-  letter-spacing: -0.05em;
-  line-height: 0.8;
-  /* The letterforms are a window onto the wallpaper layer: same paint as
-     .plane--wall, pinned to the viewport so the two line up rather than each
-     starting from its own box. Lifted a little so the word reads as lit. */
-  background:
-    radial-gradient(120% 90% at 30% 20%, #35485c 0%, #16202a 55%, #0e1418 100%),
-    linear-gradient(200deg, rgba(64, 156, 255, 0.6), transparent 60%);
-  background-attachment: fixed;
-  background-size: 100vw 100vh;
-  background-position: center;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  /* a hairline keeps the word readable where the fill goes dark */
-  -webkit-text-stroke: 2px rgba(232, 233, 234, 0.72);
-}
-.hero-tag {
-  position: absolute; z-index: 5; left: clamp(16px, 5vw, 64px); bottom: 8vh;
-  margin: 0; max-width: 22ch;
-  font-size: var(--t-body); line-height: 1.35; color: var(--chalk);
+/* The panel does not sit on top of the month — the month makes room for it,
+   which is what the app's own side panel does. Otherwise the last column of
+   days would be unclickable for as long as the panel is open. */
+.hero-pin.is-panel-open .plane--cal {
+  padding-right: calc(var(--panel-w) + clamp(12px, 3vw, 44px));
 }
 .scroll-cue {
   position: absolute; z-index: 5; bottom: 2.5vh; left: 50%; transform: translateX(-50%);
@@ -541,6 +546,7 @@ img { max-width: 100%; display: block; }
   .scroll-cue-arrow { animation: none; }
   .claim-line { opacity: 1; transform: none; }
   .audit-frame { filter: none !important; }
+  .feat-panel { transition: opacity 0.2s, visibility 0.2s; }
 }
 
 /* ---------- narrow screens ---------- */
@@ -549,6 +555,24 @@ img { max-width: 100%; display: block; }
   .hero { height: 240vh; }
   .claim { height: 200vh; }
   .life { height: 200vh; }
-  .plane--win { display: none; }
-  .hero-tag { bottom: 20vh; }
+  /* On a phone the pill's label IS the feature's name, so it gets the whole
+     cell: seven columns leave no room for a clock as well. */
+  .plane--cal { padding-left: 4px; padding-right: 4px; }
+  .day-cell { padding: 5px 3px; }
+  .day-event-time { display: none; }
+  .day-event-title { padding: 2px 4px; }
+  /* the panel becomes a sheet: a 34vw column is unreadable on a phone. It
+     overlays rather than pushes — squeezing the month into the top 38% of a
+     phone screen would be worse than covering it. */
+  .hero-pin.is-panel-open .plane--cal { padding-right: clamp(12px, 3vw, 44px); }
+  .feat-panel {
+    top: auto; bottom: 0; width: 100%; height: auto; max-height: 62%;
+    border-left: none; border-top: 1px solid var(--line);
+    transform: translateY(100%);
+    overflow-y: auto;
+    padding: 22px 20px 26px;      /* no topbar to clear down here */
+  }
+  .feat-panel-close { top: 10px; right: 12px; }
+  .feat-panel-when { padding-right: 44px; }   /* the close sits on this line */
+  .feat-panel-foot { margin-top: 8px; }
 }

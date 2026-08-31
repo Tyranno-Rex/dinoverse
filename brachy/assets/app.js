@@ -54,37 +54,58 @@
   // apps/brachy/src/utils/colors.ts — Apple system colours, and its getColorLight
   const light = (hex) => `rgba(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)}, 0.15)`;
 
+  // Every entry: what the day shows, and what that thing IS. The events on the
+  // grid are not filler — each one is a feature, and clicking it opens this
+  // text. Nothing here is claimed that FEATURE_SPEC.md does not describe.
   const FEATURES = [
     { events: [{ t: 'Weekly standup', time: '09:30', repeat: true }],
-      read: 'REPEATING EVENTS — DAILY, WEEKLY, MONTHLY, YEARLY. END ON A DATE OR AFTER N TIMES.' },
+      name: 'Repeating events',
+      body: 'Daily, weekly, monthly or yearly. Pick the interval, then end it on a date or after a set number of times. The small loop in the cell is how a repeat announces itself.' },
     { events: [{ t: 'Design review', time: '14:00', color: '#FF3B30' }],
-      read: 'TEN APPLE SYSTEM COLOURS — AND A COLOURBLIND-SAFE PALETTE FOR ALL TEN.' },
+      name: 'Ten event colours',
+      body: 'The ten Apple system colours — and a colourblind-safe palette that remaps all ten to hues you can still tell apart. The pill takes the colour at 15%, the label takes it at full.' },
     { events: [{ t: 'D-7 · Launch', color: '#FF2D55' }],
-      read: 'D-DAY EVENTS. THE CELL AND THE SIDE PANEL BOTH COUNT DOWN.' },
+      name: 'D-day countdown',
+      body: 'Mark an event as a D-day and the cell counts down to it. The side panel counts with it, so the number is never something you work out on your fingers.' },
     { events: [{ t: 'Client call', time: '11:00', tags: ['#34C759', '#AF52DE'] }],
-      read: 'TAGS, WITH A FILTER BAR THAT DIMS THE REST OF THE MONTH.' },
+      name: 'Tags, and a filter that dims',
+      body: 'Any number of tags per event, each one a dot on the pill. Filter by one and the rest of the month dims rather than disappears — you read a project without losing the shape of the month.' },
     { events: [{ t: 'Renew domain', done: true }],
-      read: 'TICK IT OFF. A REPEATING EVENT TRACKS COMPLETION PER OCCURRENCE.' },
+      name: 'Completion',
+      body: 'Tick it off and it strikes through in place. On a repeating event completion is tracked per occurrence: last week being done does not mark this week done.' },
     { sticker: '🎉', events: [{ t: 'Ship v1.2', time: '17:00', color: '#34C759' }],
-      read: 'MOOD STICKERS — ONE PER DAY, RIGHT-CLICK ANY CELL. OR DECORATE FREELY.' },
+      name: 'Mood stickers',
+      body: 'One sticker per day, from the cell’s right-click menu. The fastest way to make a month readable at a glance — a shape lands before a word does.' },
     { overcommit: true, events: [{ t: 'All-hands', time: '10:00' }, { t: '+4 more', more: true }],
-      read: 'OVERCOMMIT WARNING — THE DAY TELLS YOU IT IS TOO FULL BEFORE YOU FIND OUT.' },
+      name: 'Overcommit warning',
+      body: 'When a day is carrying more than it should, the cell says so while the day is still ahead of you. You set the threshold.' },
     { events: [{ t: 'Dentist', time: '15:00', color: '#5856D6' }],
-      read: 'REMINDERS FROM ON THE MINUTE TO A DAY AHEAD, AS A SYSTEM NOTIFICATION.' },
+      name: 'Reminders',
+      body: 'From on the minute to a full day ahead, delivered as a real system notification — so it reaches you whether or not the calendar has focus.' },
     { events: [{ t: 'Synced · Google', time: '08:00', color: '#8E8E93' }],
-      read: 'GOOGLE CALENDAR, BOTH WAYS. OAUTH PKCE, TOKENS SEALED BY THE OS.' },
+      name: 'Google Calendar, both ways',
+      body: 'Authorisation is OAuth PKCE and the tokens are sealed by the operating system’s own credential store. They are never written into a file of ours.' },
     { events: [{ t: 'Pomodoro ×4', color: '#FF9500' }],
-      read: 'A POMODORO TIMER THAT LOGS ITS SESSIONS AGAINST THE DAY.' },
+      name: 'Pomodoro timer',
+      body: 'A focus timer that logs its finished sessions against the day it ran on. The month ends up holding a record of the work, not only the plan.' },
     { events: [{ t: 'Memo · passport', color: '#FFCC00' }],
-      read: 'MEMO WINDOWS. PIN ONE AND IT STAYS ABOVE EVERYTHING ELSE.' },
+      name: 'Memo windows',
+      body: 'Free-standing notes on the desktop, outside the grid. Pin one and it stays above every other window until you unpin it.' },
     { events: [{ t: 'Deep work · 2h', time: '09:00', color: '#5AC8FA' }],
-      read: 'TIME BLOCKING — DRAG A BLOCK ONTO A DAY AND THE HOURS ARE SPOKEN FOR.' },
+      name: 'Time blocking',
+      body: 'Drop a block on a day and those hours are spoken for. Blocks stack, and the day shows you what is left rather than what you promised.' },
     { weather: true, events: [{ t: 'Picnic', time: '12:00', color: '#34C759' }],
-      read: 'WEATHER IN THE DAY HEADER, SO AN OUTDOOR PLAN KNOWS BEFORE YOU DO.' },
+      name: 'Weather in the day',
+      body: 'The forecast sits in the day header. An outdoor plan tells you what it is walking into before you commit to it.' },
     { events: [{ t: 'Backup written', done: true }],
-      read: 'AUTOMATIC BACKUP ON LAUNCH AND ON QUIT. EXPORT AND IMPORT ARE .ICS.' },
+      name: 'Backup, import, export',
+      body: 'A backup is written on launch and again on quit. Import and export are plain .ics — nothing you put in here is trapped in here.' },
   ];
-  const SPAN = { title: 'Sprint 12 · multi-day', read: 'MULTI-DAY EVENTS SPAN THE WEEK AS ONE BAR, NOT AS SEVEN COPIES.' };
+  const SPAN = {
+    title: 'Sprint 12 · multi-day',
+    name: 'Multi-day events',
+    body: 'An event running across days is drawn once, as a single bar over the week — not as seven copies of itself. Every cell it crosses reserves the height, so the bar never lands on a word.',
+  };
 
   const shuffle = (a) => {
     for (let i = a.length - 1; i > 0; i--) {
@@ -120,6 +141,11 @@
   // in desktop mode (dark · blue · bg-only-opacity), filled with this month.
   const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const SPAN_H = 18, SPAN_GAP = 2, SPAN_TOP = 36;   // CalendarGrid.tsx
+
+  // A day number of this month, named. Out-of-range numbers roll into the
+  // neighbouring month on their own, which is exactly what the grid does.
+  const dateLabel = (d) =>
+    new Date(M.y, M.m, d).toLocaleString('en-US', { month: 'long', day: 'numeric' });
 
   function eventHTML(e) {
     // the app's overflow line is not an event; it does not get an event's pill
@@ -159,7 +185,7 @@
         const spanned = !small && w === DEAL.span.week &&
           c >= DEAL.span.col && c < DEAL.span.col + DEAL.span.len;
 
-        cells += `<div class="${cls.join(' ')}"${f ? ` data-feat="1" data-read="${f.read}"` : ''}>` +
+        cells += `<div class="${cls.join(' ')}"${f ? ` data-feat="${FEATURES.indexOf(f)}" data-when="${dateLabel(d)}"` : ''}>` +
           '<div class="day-cell-content"><div class="day-cell-header">' +
             `<span class="day-number${!other && d === M.today ? ' today-badge' : ''}">${shown}</span>` +
             (f && f.overcommit ? `<span class="day-overcommit-badge">${ICON.warn}</span>` : '') +
@@ -176,7 +202,9 @@
       let bar = '';
       if (!small && w === DEAL.span.week) {
         const { col, len } = DEAL.span;
-        bar = `<div class="spanning-bar start end" data-feat="1" data-read="${SPAN.read}" ` +
+        const d0 = w * 7 + col - M.first + 1;
+        bar = `<div class="spanning-bar start end" data-feat="span" ` +
+          `data-when="${dateLabel(d0)} – ${dateLabel(d0 + len - 1)}" ` +
           `style="left:calc(${(col / 7) * 100}% + 4px);width:calc(${(len / 7) * 100}% - 8px);top:${SPAN_TOP}px;height:${SPAN_H}px">` +
           `<span class="spanning-bar-title">${SPAN.title}</span></div>`;
       }
@@ -335,19 +363,80 @@
     box.appendChild(self);
   }
 
-  // ---------- the feature tour readout ----------
-  // The days are the menu; this line is the label. Point at a day that carries
-  // a feature and it says which one.
+  // ---------- the feature tour ----------
+  // Every event written on this month IS a feature. Hovering a day names it;
+  // clicking it opens the explanation in a panel on the right — which is also
+  // what clicking a day does inside the app, so the gesture is the product's.
   function initFeatureTour() {
-    const out = $('#feat-read');
     const cal = $('#plane-cal');
-    const base = `POINT AT A DAY — <b>${FEATURES.length + 1}</b> FEATURES ARE LIVING IN THIS MONTH`;
+    const out = $('#feat-read');
+    const panel = $('#feat-panel');
+    const pin = $('.hero-pin');
+    const closeBtn = $('#feat-close');
+    const total = FEATURES.length + 1;
+    const base = `CLICK A DAY — <b>${total}</b> FEATURES ARE LIVING IN THIS MONTH`;
     out.innerHTML = base;
+
+    const featOf = (el) => (el.dataset.feat === 'span' ? SPAN : FEATURES[+el.dataset.feat]);
+
+    // Only the hero's calendar is the menu. The audit clones and the desktop
+    // widget carry the same markup but must stay out of the tab order.
+    cal.querySelectorAll('[data-feat]').forEach((el) => {
+      el.tabIndex = 0;
+      el.setAttribute('role', 'button');
+      el.setAttribute('aria-label', `Feature — ${featOf(el).name}`);
+    });
+
+    let open = null;
+    const close = () => {
+      if (open) open.classList.remove('is-selected');
+      open = null;
+      panel.classList.remove('is-open');
+      pin.classList.remove('is-panel-open');
+      panel.setAttribute('aria-hidden', 'true');
+      closeBtn.tabIndex = -1;
+      out.innerHTML = base;
+    };
+    const show = (el) => {
+      const f = featOf(el);
+      if (!f) return;
+      if (open) open.classList.remove('is-selected');
+      open = el;
+      el.classList.add('is-selected');
+      $('#feat-panel-when').textContent = el.dataset.when;
+      $('#feat-panel-title').textContent = f.name;
+      $('#feat-panel-body').textContent = f.body;
+      $('#feat-panel-n').textContent =
+        `${f === SPAN ? total : FEATURES.indexOf(f) + 1} / ${total}`;
+      panel.classList.add('is-open');
+      pin.classList.add('is-panel-open');
+      panel.setAttribute('aria-hidden', 'false');
+      closeBtn.tabIndex = 0;
+    };
+
     cal.addEventListener('pointerover', (e) => {
-      const hit = e.target.closest('[data-read]');
-      out.innerHTML = hit ? hit.dataset.read : base;
+      const hit = e.target.closest('[data-feat]');
+      out.innerHTML = hit ? `${featOf(hit).name.toUpperCase()} — <b>CLICK</b> TO OPEN` : base;
     });
     cal.addEventListener('pointerleave', () => { out.innerHTML = base; });
+    cal.addEventListener('click', (e) => {
+      const hit = e.target.closest('[data-feat]');
+      if (hit) show(hit);
+    });
+    cal.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const hit = e.target.closest('[data-feat]');
+      if (!hit) return;
+      e.preventDefault();
+      show(hit);
+    });
+    closeBtn.addEventListener('click', close);
+    addEventListener('keydown', (e) => { if (e.key === 'Escape' && open) close(); });
+    // A tap anywhere else shuts it. On a phone the panel is a sheet lying over
+    // the lower weeks, so without this a covered day could not be reached.
+    document.addEventListener('click', (e) => {
+      if (open && !e.target.closest('#feat-panel, [data-feat]')) close();
+    });
   }
 
   // ---------- scroll scrub — one rAF-throttled pass drives every section ----------
@@ -355,9 +444,7 @@
     const hero = $('#hero');
     const wall = $('#plane-wall');
     const cal = $('#plane-cal');
-    const win = $('#plane-win');
-    const type = $('#hero-type');
-    const tag = $('#hero-tag');
+    const pin = $('.hero-pin');
     const claim = $('#claim');
     const claimLines = [...document.querySelectorAll('[data-claim]')];
     const frames = [...document.querySelectorAll('.audit-frame')];
@@ -384,15 +471,13 @@
       lastY = scrollY;
       vel += (Math.min(Math.abs(dy), 90) - vel) * 0.2;
 
-      // 1. hero — three planes at three depths, the name pulling away
+      // 1. hero — the calendar alone, drifting off the wallpaper behind it
       const p = prog(hero);
       wall.style.transform = `translate3d(0, ${p * -40}px, 0) scale(1.06)`;
       cal.style.transform = `translate3d(0, ${p * -140}px, 0)`;
-      win.style.transform = `translate3d(0, ${p * -260}px, 0)`;
-      const t = clamp01(p / 0.55);
-      type.style.transform = `scale(${1 + t * 0.5})`;
-      type.style.opacity = String(1 - t);
-      tag.style.opacity = String(clamp01(1 - (p - 0.22) / 0.18));
+      // the whole pin dims on the way out, so the panel and the readout leave
+      // with the calendar rather than outliving it
+      pin.style.opacity = String(clamp01(1 - (p - 0.55) / 0.3));
 
       // 2. the claim — lines arrive on their own windows; the split only
       //    shows while the page is actually moving, and settles to nothing.
