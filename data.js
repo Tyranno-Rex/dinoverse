@@ -2,7 +2,7 @@
 window.DINO_DATA = {
   "config": {
     "title": "DINOVERSE",
-    "heroSub": "DIVERSE TOOLS. NO EXTINCTION."
+    "heroSub": "DIVERSE THINGS. NO EXTINCTION."
   },
   "apps": [
     {
@@ -28,13 +28,14 @@ window.DINO_DATA = {
     {
       "id": "brachy",
       "name": "Brachy\nCalendar",
-      "description": "",
+      "description": "A desktop calendar that is your wallpaper — built to the standard of a luxury good, down to the last pixel.",
       "version": "0.2.0",
       "platforms": [
         "win"
       ],
       "image": "image/brachy-mascot.png",
       "icon": "image/brachy-icon.png",
+      "site": "brachy/",
       "lock": "own",
       "enc": {
         "v": 1,
