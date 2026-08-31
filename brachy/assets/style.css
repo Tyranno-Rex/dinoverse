@@ -323,7 +323,7 @@ img { max-width: 100%; display: block; }
 /* ---------- the feature panel ----------
    Brachy opens a side panel when you click a day. So does this page — and
    what it puts in the panel is the feature that day is standing for. */
-.feat-panel {
+.feat-panel, .compose {
   position: absolute; z-index: 8;
   top: 0; right: 0; width: var(--panel-w); height: 100%;
   /* clears the fixed topbar, which runs over the panel's own top-right corner */
@@ -337,7 +337,71 @@ img { max-width: 100%; display: block; }
   visibility: hidden;
   transition: transform 0.42s cubic-bezier(0.2, 0, 0, 1), opacity 0.3s, visibility 0.42s;
 }
-.feat-panel.is-open { transform: none; opacity: 1; visibility: visible; }
+.feat-panel.is-open, .compose.is-open { transform: none; opacity: 1; visibility: visible; }
+
+/* ---------- the composer ----------
+   The counterpart to the plain white card on the first screen: the same
+   appointment, entered as fields. Only fields the app actually has. */
+/* the fields carry their own spacing, so the shared panel's gap is not wanted */
+.compose { gap: 4px; }
+.compose-when {
+  margin: 0; font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--accent-lit);
+}
+.compose-head {
+  margin: 0 0 6px; font-size: clamp(20px, 1.9vw, 27px); line-height: 1.1;
+  letter-spacing: -0.02em; color: var(--chalk); font-weight: 500;
+}
+.compose-field {
+  display: grid; grid-template-columns: 58px 1fr; gap: 12px; align-items: center;
+  padding: 11px 0; border-top: 1px solid var(--line);
+}
+.compose-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: var(--steel-dim);
+}
+.compose-val { font-size: 15px; color: var(--chalk); min-height: 1.3em; }
+.compose-val.is-empty { color: var(--steel-dim); letter-spacing: 0.06em; }
+/* the title takes the colour the moment the colour becomes a field */
+.compose-val i { font-style: normal; transition: color 0.3s; }
+.compose-caret {
+  display: none; width: 1px; height: 1em; margin-left: 1px;
+  background: var(--chalk); vertical-align: -2px;
+}
+.compose.is-typing .compose-caret { display: inline-block; animation: oldblink 1.06s step-end infinite; }
+.compose-swatches { display: flex; gap: 7px; flex-wrap: wrap; }
+.compose-swatch {
+  width: 15px; height: 15px; border-radius: 50%; opacity: 0.5;
+  transition: opacity 0.25s, box-shadow 0.25s, transform 0.25s;
+}
+.compose-swatch.is-on {
+  opacity: 1; transform: scale(1.15);
+  box-shadow: 0 0 0 2px var(--bg-elev, #0e1012), 0 0 0 3.5px currentColor;
+}
+.compose-foot {
+  margin: 14px 0 0; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--steel); line-height: 1.7;
+}
+.compose-save {
+  margin: auto 0 0; padding: 11px 0;
+  background: var(--accent); border: none; color: #fff;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+  cursor: default; transition: filter 0.2s, transform 0.12s;
+}
+.compose-save.is-press { transform: scale(0.97); filter: brightness(1.25); }
+
+/* the event landing on the day it was written for */
+@keyframes land { from { opacity: 0; transform: translateY(-11px) scale(0.86); } }
+.day-cell.is-written .day-events-detail {
+  animation: land 0.46s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+@keyframes writtenlit { 50% { background: var(--accent-light); } }
+.day-cell.is-written { animation: writtenlit 1s ease-out; }
+
+/* the demo's hand on the tour side sits over the panel it is filling in */
+#use-ptr { z-index: 9; }
+/* while the page is showing itself being used, the reader's own hover must
+   not fight the readout — the first real click hands the month over */
+.hero-pin.is-using .plane--cal { pointer-events: none; }
 .feat-panel-close {
   position: absolute; top: 62px; right: 22px;
   background: none; border: none; color: var(--steel);
@@ -390,7 +454,9 @@ img { max-width: 100%; display: block; }
    viewport, and the wordmark behind it shows through the cells. */
 .plane--cal {
   z-index: 2; inset: 0;
-  padding: clamp(40px, 6vh, 80px) clamp(12px, 3vw, 44px) 14vh;
+  /* the top inset has to clear the fixed topbar, which is 56px tall and sat
+     across the calendar's own header for the whole tour */
+  padding: clamp(56px, 7vh, 88px) clamp(12px, 3vw, 44px) 14vh;
   transition: padding 0.42s cubic-bezier(0.2, 0, 0, 1);
   /* it does not exist until the old one has gone; the scrub raises it */
   opacity: 0; pointer-events: none;
@@ -423,7 +489,9 @@ img { max-width: 100%; display: block; }
 .before { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .before-stage {
   position: absolute;
-  inset: clamp(40px, 6vh, 80px) clamp(12px, 3vw, 44px) 14vh;
+  /* the same frame as .plane--cal, to the pixel: the two calendars are the
+     same subject drawn twice, so they have to occupy the same rectangle */
+  inset: clamp(56px, 7vh, 88px) clamp(12px, 3vw, 44px) 14vh;
 }
 .oldcal {
   position: absolute; inset: 0;
@@ -799,6 +867,9 @@ img { max-width: 100%; display: block; }
   .old-note.is-typing .old-caret { animation: none; opacity: 1; }
   .old-note, .newway, .newway .day-event-row, .demo-ptr { transition: none; }
   .old-jot, .demo-tally .k { animation: none; }
+  .compose { transition: opacity 0.2s, visibility 0.2s; }
+  .compose.is-typing .compose-caret { animation: none; }
+  .day-cell.is-written .day-events-detail, .day-cell.is-written { animation: none; }
   .demo-link path { transition: none; stroke-dashoffset: 0; }
 }
 
@@ -818,14 +889,22 @@ img { max-width: 100%; display: block; }
      overlays rather than pushes — squeezing the month into the top 38% of a
      phone screen would be worse than covering it. */
   .hero-pin.is-panel-open .plane--cal { padding-right: clamp(12px, 3vw, 44px); }
-  .feat-panel {
+  .feat-panel, .compose {
     top: auto; bottom: 0; width: 100%; height: auto; max-height: 62%;
+    /* down here the sheet lies over a full month rather than beside it, and
+       at 0.94 the grid and the readout ghost straight through it */
+    background: rgba(14, 16, 18, 0.985);
     border-left: none; border-top: 1px solid var(--line);
     transform: translateY(100%);
     overflow-y: auto;
     padding: 22px 20px 26px;      /* no topbar to clear down here */
   }
   .feat-panel-close { top: 10px; right: 12px; }
+  .compose-head { font-size: 19px; }
+  .compose-field { padding: 8px 0; grid-template-columns: 50px 1fr; }
+  .compose-val { font-size: 14px; }
+  .compose-foot { margin-top: 10px; font-size: 9px; }
+  .compose-save { padding: 9px 0; }
   .feat-panel-when { padding-right: 44px; }   /* the close sits on this line */
 
   /* the old calendar was drawn for a desktop; at 390px it has to give up the
@@ -867,4 +946,8 @@ img { max-width: 100%; display: block; }
   .on-wide { display: none; }
   .bin { width: 52px; }
   .feat-panel-foot { margin-top: 8px; }
+  /* the readout lives in the lower third, which is exactly where the sheet
+     lands; --sheet-h is the open sheet's measured height, so the line sits on
+     top of it rather than behind it */
+  .hero-pin.is-panel-open .feat-read { bottom: calc(var(--sheet-h, 46vh) + 12px); }
 }

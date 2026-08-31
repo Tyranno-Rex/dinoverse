@@ -10,7 +10,7 @@
   <title>BRACHY CALENDAR — DINOVERSE</title>
   <link rel="icon" href="../image/brachy-icon.png" />
   <link rel="preload" href="assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/style.css?v=6" />
+  <link rel="stylesheet" href="assets/style.css?v=7" />
 </head>
 <body>
   <!-- ============ LOADER — this actual month draws itself ============
@@ -106,6 +106,35 @@
         <p class="feat-panel-foot">FEATURE <span id="feat-panel-n"></span></p>
       </aside>
 
+      <!-- the composer: Brachy opens a panel on the day you double-click, and
+           what goes in it is fields. The tour demo fills this in before it
+           hands the month over to the reader. -->
+      <aside class="compose" id="compose" aria-hidden="true">
+        <p class="compose-when" id="compose-when"></p>
+        <h2 class="compose-head">NEW EVENT</h2>
+        <div class="compose-field">
+          <span class="compose-label">TITLE</span>
+          <span class="compose-val" id="compose-title"><i id="compose-text"></i><span class="compose-caret"></span></span>
+        </div>
+        <div class="compose-field">
+          <span class="compose-label">TIME</span>
+          <span class="compose-val is-empty" id="compose-time">——:——</span>
+        </div>
+        <div class="compose-field">
+          <span class="compose-label">COLOUR</span>
+          <span class="compose-swatches" id="compose-colours"></span>
+        </div>
+        <p class="compose-foot">TAG · REPEAT · REMINDER · D-DAY — SAME PANEL, SAME PLACE.</p>
+        <button class="compose-save" id="compose-save" type="button" tabindex="-1">SAVE</button>
+      </aside>
+
+      <span class="demo-ptr" id="use-ptr" aria-hidden="true">
+        <svg width="17" height="20" viewBox="0 0 17 20" fill="#fff" stroke="#0b0e11"
+             stroke-width="1.1" stroke-linejoin="round">
+          <path d="M1 1 1 15.4 5 11.6 7.8 17.8 10.6 16.5 7.9 10.5 12.9 10.2Z" />
+        </svg>
+      </span>
+
       <a class="scroll-cue" href="#claim">
         <span id="cue-label">SCROLL</span><span class="scroll-cue-arrow" aria-hidden="true">↓</span>
       </a>
@@ -177,6 +206,6 @@
   <script src="../assets/vendor/lenis.min.js"></script>
   <script src="../assets/crypto.js"></script>
   <script src="../data.js"></script>
-  <script src="assets/app.js?v=6"></script>
+  <script src="assets/app.js?v=7"></script>
 </body>
 </html>

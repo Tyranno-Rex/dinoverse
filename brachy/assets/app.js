@@ -106,6 +106,10 @@
       name: 'Backup, import, export',
       body: 'A backup is written on launch and again on quit. Import and export are plain .ics — nothing you put in here is trapped in here.' },
   ];
+  // apps/brachy/src/utils/colors.ts — the ten Apple system colours it ships
+  const PALETTE = ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#5AC8FA',
+                   '#0A84FF', '#5856D6', '#AF52DE', '#FF2D55', '#8E8E93'];
+
   const SPAN = {
     title: 'Sprint 12 · multi-day',
     name: 'Multi-day events',
@@ -749,6 +753,12 @@
     box.appendChild(self);
   }
 
+  // On a phone the panel is a sheet lying over the lower weeks, and the readout
+  // lives down there too. Hand the pin the sheet's measured height so the line
+  // can sit above it instead of behind it.
+  const measureSheet = (panel) => requestAnimationFrame(() =>
+    $('.hero-pin').style.setProperty('--sheet-h', `${panel.offsetHeight}px`));
+
   // ---------- the feature tour ----------
   // Every event written on this month IS a feature. Hovering a day names it;
   // clicking it opens the explanation in a panel on the right — which is also
@@ -767,11 +777,12 @@
 
     // Only the hero's calendar is the menu. The audit clones and the desktop
     // widget carry the same markup but must stay out of the tab order.
-    cal.querySelectorAll('[data-feat]').forEach((el) => {
+    const register = (el) => {
       el.tabIndex = 0;
       el.setAttribute('role', 'button');
       el.setAttribute('aria-label', `Feature — ${featOf(el).name}`);
-    });
+    };
+    cal.querySelectorAll('[data-feat]').forEach(register);
 
     let open = null;
     const close = () => {
@@ -799,6 +810,7 @@
       pin.classList.add('is-panel-open');
       panel.setAttribute('aria-hidden', 'false');
       closeBtn.tabIndex = 0;
+      measureSheet(panel);
     };
 
     cal.addEventListener('pointerover', (e) => {
@@ -824,11 +836,210 @@
     document.addEventListener('click', (e) => {
       if (open && !e.target.closest('#feat-panel, [data-feat]')) close();
     });
-    return { close };
+    // show and register are for the demo below, which writes one feature onto
+    // the month and then opens it the way a reader would
+    return { close, show, register, resetRead: () => { out.innerHTML = base; } };
+  }
+
+  // ---------- 2b. the page shows itself being used ----------
+  // The month is not handed over with an instruction. One of the fifteen
+  // features is held back out of the grid, and when the reader arrives the
+  // page writes it in: double-click a day, one panel, title and time and
+  // colour as fields, save. Then it opens what it just wrote — which is the
+  // same gesture the reader is about to be given — and gets out of the way.
+  //
+  // Everything here is the app's: the panel is where the app puts its panel,
+  // the swatches are the ten colours it ships, and the event that lands is a
+  // FEATURES entry drawn by the same eventHTML as every other day.
+
+  // Take the held feature off the grid. Until the demo writes it the day is
+  // empty, which is also the truth about the calendar this one replaced.
+  function holdBack(cal) {
+    const i = FEATURES.findIndex((f) => f.name === 'Ten event colours');
+    const cell = cal.querySelector(`.day-cell[data-feat="${i}"]`);
+    if (!cell) return null;
+    cell.dataset.hold = String(i);
+    delete cell.dataset.feat;
+    const evs = cell.querySelector('.day-events-detail');
+    if (evs) evs.remove();
+    return cell;
+  }
+
+  function initUseDemo(tour, cell) {
+    const pin = $('.hero-pin');
+    const cal = $('#plane-cal');
+    const panel = $('#compose');
+    const ptr = $('#use-ptr');
+    const read = $('#feat-read');
+    const api = { started: false, done: false };
+    if (!cell) { api.start = () => {}; api.settle = () => {}; return api; }
+
+    const feat = FEATURES[+cell.dataset.hold];
+    const ev = feat.events[0];
+
+    $('#compose-colours').innerHTML = PALETTE.map((c) =>
+      `<span class="compose-swatch" style="background:${c};color:${c}"></span>`).join('');
+    const swatches = [...panel.querySelectorAll('.compose-swatch')];
+    const chosen = Math.max(0, PALETTE.indexOf(ev.color));
+
+    let stopped = false;
+    const HALT = {};
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms))
+      .then(() => { if (stopped) throw HALT; });
+
+    const pointAt = (el, fx = 0.5, fy = 0.5) => {
+      const p = pin.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      ptr.style.left = `${r.left - p.left + r.width * fx}px`;
+      ptr.style.top = `${r.top - p.top + r.height * fy}px`;
+    };
+    const click = () => {
+      ptr.classList.remove('is-click');
+      void ptr.offsetWidth;
+      ptr.classList.add('is-click', 'is-press');
+      setTimeout(() => ptr.classList.remove('is-press'), 130);
+    };
+
+    // the event lands on the day it was written for, and only then is it a
+    // feature the reader can open
+    const written = () => {
+      if (cell.dataset.feat) return;
+      const box = document.createElement('div');
+      box.className = 'day-events-detail';
+      box.innerHTML = feat.events.map(eventHTML).join('');
+      cell.querySelector('.day-cell-content').appendChild(box);
+      cell.dataset.feat = cell.dataset.hold;
+      cell.classList.add('is-written');
+      tour.register(cell);
+    };
+
+    const openPanel = () => {
+      panel.classList.add('is-open');
+      pin.classList.add('is-panel-open');
+      panel.setAttribute('aria-hidden', 'false');
+      measureSheet(panel);
+    };
+    const shutPanel = () => {
+      panel.classList.remove('is-open', 'is-typing');
+      pin.classList.remove('is-panel-open');
+      panel.setAttribute('aria-hidden', 'true');
+    };
+
+    const settle = () => {
+      // Nothing to settle before it has begun. The scrub runs a frame at load,
+      // where p is 0, and without this that first frame would retire the demo
+      // before the reader ever reached it.
+      if (!api.started || api.done) return;
+      api.done = true;
+      stopped = true;
+      ptr.classList.remove('is-on', 'is-click', 'is-press');
+      pin.classList.remove('is-using');
+      shutPanel();
+      written();
+      tour.resetRead();
+    };
+    api.settle = settle;
+
+    async function play() {
+      const say = (t) => { read.innerHTML = t; };
+      $('#compose-when').textContent = cell.dataset.when;
+      $('#compose-text').textContent = '';
+      $('#compose-time').textContent = '\u2014\u2014:\u2014\u2014';
+      $('#compose-time').classList.add('is-empty');
+      swatches.forEach((sw) => sw.classList.remove('is-on'));
+
+      say('THE SAME APPOINTMENT — <b>HERE</b>');
+      pointAt(cell, 0.5, 0.4);
+      ptr.classList.add('is-on');
+      await wait(760);
+      click();
+      await wait(170);
+      click();
+      await wait(300);
+      openPanel();
+      say('DOUBLE-CLICK A DAY. <b>ONE</b> PANEL OPENS.');
+      await wait(620);
+
+      // title
+      pointAt($('#compose-title'), 0.1, 0.5);
+      panel.classList.add('is-typing');
+      await wait(340);
+      for (let i = 1; i <= ev.t.length; i++) {
+        $('#compose-text').textContent = ev.t.slice(0, i);
+        await wait(ev.t[i - 1] === ' ' ? 90 : 48);
+      }
+      panel.classList.remove('is-typing');
+      await wait(420);
+
+      // time
+      say('THE TIME IS A <b>FIELD</b>, NOT A WORD IN THE TITLE.');
+      pointAt($('#compose-time'), 0.12, 0.5);
+      await wait(500);
+      click();
+      await wait(180);
+      $('#compose-time').textContent = ev.time;
+      $('#compose-time').classList.remove('is-empty');
+      await wait(700);
+
+      // colour
+      say('TEN COLOURS — <b>ONE CLICK</b>, NOT A CONVENTION YOU HAVE TO REMEMBER.');
+      pointAt(swatches[chosen]);
+      await wait(560);
+      click();
+      swatches[chosen].classList.add('is-on');
+      $('#compose-text').style.color = ev.color;
+      await wait(900);
+
+      // save
+      const save = $('#compose-save');
+      pointAt(save);
+      await wait(520);
+      click();
+      save.classList.add('is-press');
+      setTimeout(() => save.classList.remove('is-press'), 150);
+      await wait(220);
+      shutPanel();
+      await wait(300);
+      written();
+      say('ONE PANEL. <b>ONCE.</b>');
+      await wait(1500);
+
+      // and the same click reads it back
+      say('AND EVERY EVENT ON THIS MONTH IS ONE OF THESE.');
+      pointAt(cell, 0.5, 0.4);
+      await wait(620);
+      click();
+      await wait(200);
+      tour.show(cell);
+      await wait(2400);
+      tour.close();
+      ptr.classList.remove('is-on');
+      pin.classList.remove('is-using');
+      await wait(600);
+      settle();
+    }
+
+    api.start = () => {
+      if (api.started) return;
+      api.started = true;
+      if (REDUCED()) { settle(); return; }
+      pin.classList.add('is-using');
+      play().catch((e) => { if (e !== HALT) throw e; });
+    };
+
+    // The reader's own hand always wins: a real click hands the month over,
+    // wherever the demo had got to. A click and not a pointerdown, because on
+    // a phone a pointerdown is how you scroll — arriving is not interrupting.
+    pin.addEventListener('click', () => { if (api.started) settle(); });
+    addEventListener('keydown', (e) => {
+      if (api.started && ['Tab', 'Enter', ' ', 'Escape'].includes(e.key)) settle();
+    });
+
+    return api;
   }
 
   // ---------- scroll scrub — one rAF-throttled pass drives every section ----------
-  function initScrub(tour, demo) {
+  function initScrub(tour, demo, use) {
     const hero = $('#hero');
     const wall = $('#plane-wall');
     const cal = $('#plane-cal');
@@ -918,9 +1129,16 @@
 
       // ours rises in its place, and only then becomes the menu
       cal.style.opacity = String(qUp);
+      // It rises into place and then holds. There was a drift of -70px across
+      // the hero on top of this, which pulled the month up under the topbar for
+      // the whole tour — and a thing you are being asked to click should not be
+      // sliding while you aim at it.
       cal.style.transform =
-        `translate3d(0, ${(1 - qUp) * 46 + p * -70}px, 0) scale(${0.962 + qUp * 0.038})`;
+        `translate3d(0, ${(1 - qUp) * 46}px, 0) scale(${0.962 + qUp * 0.038})`;
       pin.classList.toggle('is-tour', p > 0.63);
+      // the month shows itself being used before it is handed over
+      if (p > 0.66) use.start();
+      if (p < 0.60 || p > 0.95) use.settle();
       read.style.opacity = String(seg(0.64, 0.70) * (1 - seg(0.93, 1)));
       if (p < 0.60) tour.close();
 
@@ -1061,13 +1279,16 @@
   function init() {
     scrollTo(0, 0);
     buildOldCalendar();
-    $('#plane-cal').appendChild(buildCalendar(false));
+    const heroCal = buildCalendar(false);
+    $('#plane-cal').appendChild(heroCal);
+    const held = holdBack(heroCal);
     $('#life-cal').appendChild(buildCalendar(true));
     buildAudit();
     const tour = initFeatureTour();
     const demo = initOldDemo();
+    const use = initUseDemo(tour, held);
     runLoader(demo.start);
-    initScrub(tour, demo);
+    initScrub(tour, demo, use);
     initCursor();
     initGet();
 
