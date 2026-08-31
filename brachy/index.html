@@ -10,7 +10,7 @@
   <title>BRACHY CALENDAR — DINOVERSE</title>
   <link rel="icon" href="../image/brachy-icon.png" />
   <link rel="preload" href="assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/style.css?v=5" />
+  <link rel="stylesheet" href="assets/style.css?v=6" />
 </head>
 <body>
   <!-- ============ LOADER — this actual month draws itself ============
@@ -58,6 +58,9 @@
             <div class="old-note-body"><span id="old-note-text"></span><span class="old-caret"></span></div>
             <div class="old-note-foot"><span>◍</span><span>◢</span></div>
           </div>
+
+          <!-- drawn from each plain-text line to the pill that replaced it -->
+          <svg class="demo-link" id="demo-link" aria-hidden="true"></svg>
 
           <!-- the same three appointments, ours -->
           <div class="newway" id="newway"></div>
@@ -174,6 +177,6 @@
   <script src="../assets/vendor/lenis.min.js"></script>
   <script src="../assets/crypto.js"></script>
   <script src="../data.js"></script>
-  <script src="assets/app.js?v=5"></script>
+  <script src="assets/app.js?v=6"></script>
 </body>
 </html>

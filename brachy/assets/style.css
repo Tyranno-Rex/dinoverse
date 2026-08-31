@@ -493,11 +493,20 @@ img { max-width: 100%; display: block; }
   border: 1px solid #9aa2a8; box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
   font-family: Tahoma, "Segoe UI", sans-serif; font-size: 11px;
   transform-origin: 16px 0;
-  transform: scale(0.92); opacity: 0;
-  transition: opacity 0.18s, transform 0.24s cubic-bezier(0.2, 0, 0, 1);
+  transform: scale(0.9); opacity: 0;
+  /* a window that lands rather than eases in: the overshoot is what makes the
+     double-click read as a double-click */
+  transition: opacity 0.16s, transform 0.3s cubic-bezier(0.34, 1.5, 0.64, 1);
   will-change: transform, opacity;
 }
 .old-note.is-open { transform: none; opacity: 1; }
+/* Saving does not make the window vanish and a grey line appear somewhere
+   else. The window collapses INTO the day it was written on, and the line is
+   what is left of it — the causality is the animation. */
+.old-note.is-collapsing {
+  transform-origin: 50% 50%;
+  transition: transform 0.42s cubic-bezier(0.5, 0, 0.85, 0.4), opacity 0.42s ease-in;
+}
 .old-note-bar {
   position: relative; padding: 3px 0; text-align: center;
   background: linear-gradient(#f4f4f4, #e2e2e2); border-bottom: 1px solid #c4c4c4;
@@ -520,15 +529,29 @@ img { max-width: 100%; display: block; }
 .old-jot {
   display: block; margin-top: 3px; font-size: 10px; line-height: 1.25;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  transition: color 0.35s;
+  animation: jotin 0.34s cubic-bezier(0.2, 0, 0, 1);
 }
+@keyframes jotin { from { opacity: 0; transform: scale(1.35); } }
+/* lit while the line to its replacement is being drawn */
+.old-jot.is-linked { color: var(--accent-lit); }
 
 /* the hand doing the work — every click it costs is shown */
 .demo-ptr {
   position: absolute; z-index: 7; left: 0; top: 0; opacity: 0;
-  transition: transform 0.55s cubic-bezier(0.4, 0, 0.1, 1), opacity 0.3s;
+  /* x and y are eased differently on purpose: the two together bend the travel
+     into an arc. A hand crossing a screen does not go in a straight line. */
+  transition: left 0.6s cubic-bezier(0.25, 0, 0, 1),
+              top 0.6s cubic-bezier(0.75, 0, 0.35, 1),
+              opacity 0.3s;
 }
 .demo-ptr.is-on { opacity: 1; }
-.demo-ptr svg { display: block; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7)); }
+.demo-ptr svg {
+  display: block; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7));
+  transform-origin: 1px 1px;
+  transition: transform 0.11s cubic-bezier(0.2, 0, 0, 1);
+}
+.demo-ptr.is-press svg { transform: scale(0.78); }
 .demo-ptr::after {
   content: ""; position: absolute; left: -13px; top: -13px; width: 28px; height: 28px;
   border: 1.5px solid rgba(255, 255, 255, 0.95); border-radius: 50%; opacity: 0;
@@ -548,6 +571,22 @@ img { max-width: 100%; display: block; }
 }
 .demo-tally b { color: var(--steel-dim); font-weight: 400; }
 .demo-tally .is-ours { color: var(--accent-lit); }
+/* the count is rewritten on every keystroke, so a fresh element replays this
+   each time: the number visibly costs something */
+.demo-tally .k {
+  display: inline-block; color: var(--chalk);
+  animation: tick 0.19s cubic-bezier(0.2, 0, 0, 1);
+}
+@keyframes tick { from { transform: translateY(-2px) scale(1.18); color: #fff; } }
+
+/* from each plain-text line to the pill that replaced it */
+.demo-link { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: visible; }
+.demo-link path {
+  fill: none; stroke: var(--accent-lit); stroke-width: 1; opacity: 0.7;
+  stroke-dasharray: var(--len); stroke-dashoffset: var(--len);
+  transition: stroke-dashoffset 0.52s cubic-bezier(0.2, 0, 0, 1);
+}
+.demo-link path.is-in { stroke-dashoffset: 0; }
 
 /* the same three, ours — the app's own pill markup, so this is a comparison
    between two real renderings and not between two drawings */
@@ -759,6 +798,8 @@ img { max-width: 100%; display: block; }
      nothing should be caught mid-transition on the way to it */
   .old-note.is-typing .old-caret { animation: none; opacity: 1; }
   .old-note, .newway, .newway .day-event-row, .demo-ptr { transition: none; }
+  .old-jot, .demo-tally .k { animation: none; }
+  .demo-link path { transition: none; stroke-dashoffset: 0; }
 }
 
 /* ---------- narrow screens ---------- */

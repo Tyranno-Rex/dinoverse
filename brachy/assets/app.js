@@ -17,6 +17,11 @@
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
   const REDUCED = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // A reload has to start where the page starts. The first screen plays itself
+  // and settles the moment the reader leaves it, so a browser restoring the
+  // last scroll position drops you into a sequence that is already over.
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
   const pad2 = (n) => String(n).padStart(2, '0');
 
@@ -375,7 +380,7 @@
     const tally = () => {
       tallyEl.innerHTML =
         `<b>OLD</b><span>${windows} WINDOW${windows === 1 ? '' : 'S'} · ` +
-          `${keys} KEYSTROKES · 0 FIELDS</span>` +
+          `<span class="k">${keys}</span> KEYSTROKES · 0 FIELDS</span>` +
         `<b>OURS</b><span class="is-ours">${ours
           ? '1 PANEL · COLOUR · TIME · TAG · REPEAT · REMINDER'
           : '—'}</span>`;
@@ -392,17 +397,38 @@
       note.style.left = `${Math.max(0, Math.min(c.left - s.left - 2, s.width - w - 2))}px`;
       note.style.top = `${Math.max(0, y)}px`;
     };
+    // left/top rather than a transform, so the two axes can carry different
+    // easings and the travel comes out as an arc (see .demo-ptr)
     const pointAt = (el, fx = 0.5, fy = 0.5) => {
       const s = stage.getBoundingClientRect();
       const r = el.getBoundingClientRect();
-      ptr.style.transform = `translate3d(${r.left - s.left + r.width * fx}px, ` +
-        `${r.top - s.top + r.height * fy}px, 0)`;
+      ptr.style.left = `${r.left - s.left + r.width * fx}px`;
+      ptr.style.top = `${r.top - s.top + r.height * fy}px`;
     };
     const click = () => {
       ptr.classList.remove('is-click');
       void ptr.offsetWidth;                    // restart the ring
-      ptr.classList.add('is-click');
+      ptr.classList.add('is-click', 'is-press');
+      setTimeout(() => ptr.classList.remove('is-press'), 130);
     };
+    // Saving does not delete a window and create a line somewhere else. The
+    // window goes into the day, and the line is what is left of it — so the
+    // card is aimed at the cell and shrunk to nothing on the way there.
+    const collapseInto = (cell) => {
+      const n = note.getBoundingClientRect();
+      const c = cell.getBoundingClientRect();
+      note.classList.add('is-collapsing');
+      note.style.transform =
+        `translate(${c.left + 12 - (n.left + n.width / 2)}px, ` +
+        `${c.top + 16 - (n.top + n.height / 2)}px) scale(0.04)`;
+      note.style.opacity = '0';
+    };
+    const resetNote = () => {
+      note.classList.remove('is-collapsing', 'is-open');
+      note.style.transform = '';
+      note.style.opacity = '';
+    };
+
     // what a saved note leaves on the day: the text, and nothing else
     const jot = (cell, text) => {
       if (cell.querySelector('.old-jot')) return;
@@ -419,7 +445,57 @@
       '</div>' +
       '<p class="newway-foot">ONE PANEL · FIVE FIELDS · NO RETYPING</p>';
 
+    // A line from the grey line on the day to the pill standing in for it. It
+    // stops at the card's edge rather than at the pill, because it runs under
+    // the card. Measured when it is drawn; a resize after that leaves it
+    // stale, and the shatter clears it a moment later either way.
+    const link = $('#demo-link');
+    const NS = 'http://www.w3.org/2000/svg';
+    const linkTo = (i) => {
+      const src = PICK[i].querySelector('.old-jot');
+      const pill = nw.querySelectorAll('.day-event-row')[i];
+      if (!src || !pill) return;
+      const s = stage.getBoundingClientRect();
+      // the end of the words, not the end of the cell they sit in: the jot is
+      // a block and fills its day, so its box says nothing about the text
+      const range = document.createRange();
+      range.selectNodeContents(src);
+      const a = range.getBoundingClientRect();
+      const card = nw.getBoundingClientRect();
+      const b = pill.getBoundingClientRect();
+
+      // The card is beside the day on a wide screen and above it on a narrow
+      // one, so the line leaves and arrives on whichever axis separates them.
+      let x1, y1, x2, y2, c1, c2;
+      if (card.bottom < a.top || card.top > a.bottom) {
+        const up = card.bottom < a.top;
+        x1 = a.left + a.width / 2 - s.left;
+        y1 = (up ? a.top - 2 : a.bottom + 2) - s.top;
+        x2 = b.left + b.width / 2 - s.left;
+        y2 = (up ? card.bottom + 5 : card.top - 5) - s.top;
+        const my = (y1 + y2) / 2;
+        c1 = `${x1} ${my}`;
+        c2 = `${x2} ${my}`;
+      } else {
+        const right = card.left > a.right;
+        x1 = (right ? a.right + 3 : a.left - 3) - s.left;
+        y1 = a.top + a.height / 2 - s.top;
+        x2 = (right ? card.left - 5 : card.right + 5) - s.left;
+        y2 = b.top + b.height / 2 - s.top;
+        const mx = (x1 + x2) / 2;
+        c1 = `${mx} ${y1}`;
+        c2 = `${mx} ${y2}`;
+      }
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('d', `M${x1} ${y1} C${c1}, ${c2}, ${x2} ${y2}`);
+      link.appendChild(path);
+      path.style.setProperty('--len', path.getTotalLength());
+      src.classList.add('is-linked');
+      requestAnimationFrame(() => path.classList.add('is-in'));
+    };
+
     const actTwo = () => {
+      ptr.classList.remove('is-on');      // the old way's hand is done here
       $('#before-eyebrow').textContent = 'AND THE SAME THREE, OURS';
       $('#before-title').innerHTML = 'One panel.<br />Once.';
       // the second sentence is dropped on a phone: down there the plate has to
@@ -450,7 +526,9 @@
       tally();
       noteDate.textContent = `${M.month} ${PICK[2].dataset.d}, ${M.y}`;
       noteText.textContent = SCRIPT[2].text;
-      note.classList.remove('is-typing');
+      note.classList.remove('is-typing', 'is-collapsing');
+      note.style.transform = '';
+      note.style.opacity = '';
       place(PICK[2]);
       note.classList.add('is-open');
       note.style.transition = 'none';    // from here its transform is the scrub's
@@ -500,16 +578,23 @@
           pointAt(noteX);
           await wait(440);
           click();
-          note.classList.remove('is-open');
-          await wait(420);
+          collapseInto(cell);
+          await wait(460);
+          resetNote();
+          await wait(300);
         }
       }
 
       actTwo();
-      await wait(240);
-      for (const row of nw.querySelectorAll('.day-event-row')) {
-        row.classList.add('is-in');
-        await wait(170);
+      await wait(320);
+      // each old line is answered one at a time: the line is drawn, then the
+      // thing on the other end of it arrives
+      const rows = [...nw.querySelectorAll('.day-event-row')];
+      for (let i = 0; i < rows.length; i++) {
+        linkTo(i);
+        await wait(230);
+        rows[i].classList.add('is-in');
+        await wait(280);
       }
       await wait(1100);
       settle();
@@ -521,6 +606,7 @@
         actTwo();
         nw.querySelectorAll('.day-event-row').forEach((r) => r.classList.add('is-in'));
         settle();
+        SCRIPT.forEach((_, i) => linkTo(i));
         return;
       }
       play().catch((e) => { if (e !== HALT) throw e; });
@@ -757,6 +843,7 @@
     const beatBuilt = $('#beat-built');
     const read = $('#feat-read');
     const cue = $('#cue-label');
+    const link = $('#demo-link');
     const shards = collectShards();
     const claim = $('#claim');
     const claimLines = [...document.querySelectorAll('[data-claim]')];
@@ -800,8 +887,14 @@
       copy.style.opacity = String(1 - seg(0.20, 0.26));
       // ours leaves with the copy; the shatter is not the place to already be
       // holding a piece of the answer
-      if (p > 0.12) nw.style.opacity = String(1 - seg(0.12, 0.24));
-      else if (nw.style.opacity) nw.style.opacity = '';
+      if (p > 0.12) {
+        const k = String(1 - seg(0.12, 0.24));
+        nw.style.opacity = k;
+        link.style.opacity = k;
+      } else if (nw.style.opacity) {
+        nw.style.opacity = '';
+        link.style.opacity = '';
+      }
       frame.style.opacity = String(1 - seg(0.24, 0.34));
       stage.style.opacity = String(1 - seg(0.50, 0.56));
       bin.style.opacity = String(seg(0.16, 0.24) * (1 - seg(0.50, 0.56)));
@@ -966,6 +1059,7 @@
 
   // ---------- start ----------
   function init() {
+    scrollTo(0, 0);
     buildOldCalendar();
     $('#plane-cal').appendChild(buildCalendar(false));
     $('#life-cal').appendChild(buildCalendar(true));
