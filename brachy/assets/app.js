@@ -260,9 +260,6 @@
 
     let gutter = '';
     let cells = '';
-    // the note hangs off the second row, so it can never fall out of frame
-    const noteRow = Math.min(1, weeks - 1);
-    const noteCol = 3;
     for (let w = 0; w < weeks; w++) {
       gutter += `<div class="oldcal-week">${isoWeek(new Date(M.y, M.m, w * 7 + 4 - M.first + 1))}</div>`;
       for (let c = 0; c < 7; c++) {
@@ -270,16 +267,10 @@
         const other = d < 1 || d > M.days;
         const date = new Date(M.y, M.m, d);
         const hol = OLD_HOL[`${date.getMonth()}-${date.getDate()}`];
-        const note = w === noteRow && c === noteCol
-          ? `<div class="old-note" id="old-note">
-               <div class="old-note-bar">${M.month} ${d}, ${M.y}<span class="old-note-x">×</span></div>
-               <div class="old-note-body">To-do list ...<span class="old-caret"></span></div>
-               <div class="old-note-foot"><span>◍</span><span>◢</span></div>
-               <p class="old-callout">Plain text. That is the whole format.</p>
-             </div>`
-          : '';
-        cells += `<div class="old-cell${other ? ' is-other' : ''}${!other && d === M.today ? ' is-today' : ''}${note ? ' has-note' : ''}">` +
-          `${date.getDate()}${hol ? `<span class="old-hol">${hol}</span>` : ''}${note}</div>`;
+        // data-d marks the days of this month — the ones the demo writes on
+        cells += `<div class="old-cell${other ? ' is-other' : ''}${!other && d === M.today ? ' is-today' : ''}"` +
+          `${other ? '' : ` data-d="${d}"`}>` +
+          `${date.getDate()}${hol ? `<span class="old-hol">${hol}</span>` : ''}</div>`;
       }
     }
 
@@ -325,8 +316,221 @@
     return { list, measure };
   }
 
+  // ---------- 1b. three appointments, written twice ----------
+  // This plays where the page opens, with no scroll asked for: the same three
+  // appointments entered the way the old calendar makes you — one
+  // double-click, one window and one line of plain text per day — and then
+  // the same three, ours, in one panel.
+  //
+  // The pills at the end are FEATURES' own entries put through the app's own
+  // eventHTML, so the right-hand side is the product rather than a picture of
+  // it. The left side types the same information in the only format that grid
+  // can hold. Nothing is invented to make the point, and what the old way
+  // costs is counted rather than asserted — windows opened, keys pressed.
+  function initOldDemo() {
+    const stage = $('#before-stage');
+    const note = $('#old-note');
+    const noteText = $('#old-note-text');
+    const noteDate = $('#old-note-date');
+    const noteX = note.querySelector('.old-note-x');
+    const ptr = $('#demo-ptr');
+    const step = $('#demo-step');
+    const tallyEl = $('#demo-tally');
+    const nw = $('#newway');
+
+    const SCRIPT = [
+      { text: 'Design review 2pm',
+        loses: 'The 2pm is a word, not a time. Nothing will ring.' },
+      { text: 'Client call - jamie',
+        loses: 'No tag and no colour, so the project has to go inside the sentence.' },
+      { text: 'Standup 9:30 every mon',
+        loses: 'No repeat. You will type this again next Monday, and the one after that.' },
+    ];
+    // the three the app draws for those same three appointments
+    const OURS = ['Ten event colours', 'Tags, and a filter that dims', 'Repeating events']
+      .map((n) => FEATURES.find((f) => f.name === n))
+      .filter(Boolean)
+      .map((f) => f.events[0]);
+
+    // The middle columns, the second and third weeks. The card hangs off the
+    // day it was opened on, so where it can be opened is decided by where it
+    // will then be standing: clear of the copy plate on the left, clear of
+    // ours on the right, and inside the frame. Those two rows are in this
+    // month whatever weekday it starts on, so there is always somewhere to
+    // write.
+    const cells = [...$('#oldcal').querySelectorAll('.old-cell')];
+    const room = cells.filter((el, i) => {
+      const row = Math.floor(i / 7), col = i % 7;
+      return col >= 3 && col <= 4 && row >= 1 && row <= 2 && el.dataset.d;
+    });
+    const PICK = [0.16, 0.5, 0.84].map((f) => room[Math.round((room.length - 1) * f)]);
+
+    const api = { done: false, onSettle: null, isDone: () => api.done };
+    let stopped = false;
+    const HALT = {};
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms))
+      .then(() => { if (stopped) throw HALT; });
+
+    let windows = 0, keys = 0, ours = false;
+    const tally = () => {
+      tallyEl.innerHTML =
+        `<b>OLD</b><span>${windows} WINDOW${windows === 1 ? '' : 'S'} · ` +
+          `${keys} KEYSTROKES · 0 FIELDS</span>` +
+        `<b>OURS</b><span class="is-ours">${ours
+          ? '1 PANEL · COLOUR · TIME · TAG · REPEAT · REMINDER'
+          : '—'}</span>`;
+    };
+
+    // the card hangs off its day, and flips above it rather than run off the
+    // bottom of the stage
+    const place = (cell) => {
+      const s = stage.getBoundingClientRect();
+      const c = cell.getBoundingClientRect();
+      const w = note.offsetWidth, h = note.offsetHeight;
+      const below = c.bottom - s.top;
+      const y = below + h > s.height ? c.top - s.top - h : below;
+      note.style.left = `${Math.max(0, Math.min(c.left - s.left - 2, s.width - w - 2))}px`;
+      note.style.top = `${Math.max(0, y)}px`;
+    };
+    const pointAt = (el, fx = 0.5, fy = 0.5) => {
+      const s = stage.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      ptr.style.transform = `translate3d(${r.left - s.left + r.width * fx}px, ` +
+        `${r.top - s.top + r.height * fy}px, 0)`;
+    };
+    const click = () => {
+      ptr.classList.remove('is-click');
+      void ptr.offsetWidth;                    // restart the ring
+      ptr.classList.add('is-click');
+    };
+    // what a saved note leaves on the day: the text, and nothing else
+    const jot = (cell, text) => {
+      if (cell.querySelector('.old-jot')) return;
+      const el = document.createElement('span');
+      el.className = 'old-jot';
+      el.textContent = text;
+      cell.appendChild(el);
+    };
+
+    const oursHTML = () =>
+      '<p class="newway-head">THE SAME THREE, HERE</p>' +
+      '<div class="app dark blue bg-only-opacity">' +
+        `<div class="day-events-detail">${OURS.map(eventHTML).join('')}</div>` +
+      '</div>' +
+      '<p class="newway-foot">ONE PANEL · FIVE FIELDS · NO RETYPING</p>';
+
+    const actTwo = () => {
+      $('#before-eyebrow').textContent = 'AND THE SAME THREE, OURS';
+      $('#before-title').innerHTML = 'One panel.<br />Once.';
+      // the second sentence is dropped on a phone: down there the plate has to
+      // stay short enough that the card standing open on the grid clears it
+      step.innerHTML = 'Colour, time, tag, repeat, reminder — fields, not words. ' +
+        '<span class="on-wide">Nothing about an appointment has to be spelled ' +
+        'into its own name.</span>';
+      ours = true;
+      tally();
+      nw.innerHTML = oursHTML();
+      nw.classList.add('is-open');
+    };
+
+    // The end state, reachable from anywhere: whether the demo finished or the
+    // reader scrolled straight through it, the stage is left in one settled
+    // shape — three days written on, the last card still open. That shape is
+    // what the shatter takes apart, and the shard travel is measured off it.
+    const settle = () => {
+      if (api.done) return;
+      api.done = true;
+      stopped = true;
+      ptr.classList.remove('is-on', 'is-click');
+      SCRIPT.forEach((sc, i) => jot(PICK[i], sc.text));
+      // the count has to describe what is on the grid, not how far the demo
+      // happened to get before the reader scrolled out of it
+      windows = SCRIPT.length;
+      keys = SCRIPT.reduce((n, sc) => n + sc.text.length, 0);
+      tally();
+      noteDate.textContent = `${M.month} ${PICK[2].dataset.d}, ${M.y}`;
+      noteText.textContent = SCRIPT[2].text;
+      note.classList.remove('is-typing');
+      place(PICK[2]);
+      note.classList.add('is-open');
+      note.style.transition = 'none';    // from here its transform is the scrub's
+      if (api.onSettle) api.onSettle();
+    };
+    api.settle = settle;
+
+    const type = async (text) => {
+      for (let i = 1; i <= text.length; i++) {
+        noteText.textContent = text.slice(0, i);
+        keys++;
+        tally();
+        await wait(text[i - 1] === ' ' ? 92 : 50);
+      }
+    };
+
+    async function play() {
+      await wait(560);
+      for (let i = 0; i < SCRIPT.length; i++) {
+        const cell = PICK[i];
+        step.textContent = i === 0
+          ? 'Double-click the day. A window opens — one window, one day.'
+          : 'Next day. Next window. Nothing carries over.';
+        pointAt(cell, 0.5, 0.35);
+        ptr.classList.add('is-on');
+        await wait(640);
+        click();
+        await wait(170);
+        click();                              // it is a double-click
+        await wait(230);
+        windows++;
+        tally();
+        noteDate.textContent = `${M.month} ${cell.dataset.d}, ${M.y}`;
+        noteText.textContent = '';
+        place(cell);
+        note.classList.add('is-open', 'is-typing');
+        await wait(320);
+        pointAt(note, 0.16, 0.42);
+        await type(SCRIPT[i].text);
+        note.classList.remove('is-typing');
+        step.textContent = SCRIPT[i].loses;
+        await wait(1500);
+        jot(cell, SCRIPT[i].text);
+        // the last one is left standing open on its day — it is the thing this
+        // whole screen is about, and the shatter drops it last
+        if (i < SCRIPT.length - 1) {
+          pointAt(noteX);
+          await wait(440);
+          click();
+          note.classList.remove('is-open');
+          await wait(420);
+        }
+      }
+
+      actTwo();
+      await wait(240);
+      for (const row of nw.querySelectorAll('.day-event-row')) {
+        row.classList.add('is-in');
+        await wait(170);
+      }
+      await wait(1100);
+      settle();
+    }
+
+    api.start = () => {
+      if (REDUCED()) {
+        // nothing plays: the end state is drawn at once
+        actTwo();
+        nw.querySelectorAll('.day-event-row').forEach((r) => r.classList.add('is-in'));
+        settle();
+        return;
+      }
+      play().catch((e) => { if (e !== HALT) throw e; });
+    };
+    tally();
+    return api;
+  }
+
   // ---------- 0. loader — this month draws itself, day by day ----------
-  function runLoader() {
+  function runLoader(onDone) {
     const wrap = $('#loader');
     const grid = $('#loader-grid');
     const nEl = $('#loader-n');
@@ -345,7 +549,8 @@
       cells.push(el);
     }
 
-    const finish = () => wrap.classList.add('is-done');
+    // the demo owns the screen from here; it is what the reader sees first
+    const finish = () => { wrap.classList.add('is-done'); onDone(); };
     if (REDUCED()) { nEl.textContent = pad2(M.today); finish(); return; }
 
     // Pace it so the loader reads the same on the 1st as on the 31st: the
@@ -537,7 +742,7 @@
   }
 
   // ---------- scroll scrub — one rAF-throttled pass drives every section ----------
-  function initScrub(tour) {
+  function initScrub(tour, demo) {
     const hero = $('#hero');
     const wall = $('#plane-wall');
     const cal = $('#plane-cal');
@@ -547,6 +752,7 @@
     const copy = $('#before-copy');
     const bin = $('#bin');
     const binLid = $('.bin-lid');
+    const nw = $('#newway');
     const beatBreak = $('#beat-break');
     const beatBuilt = $('#beat-built');
     const read = $('#feat-read');
@@ -587,7 +793,15 @@
       const qBreak = seg(0.24, 0.50);
       const qUp = seg(0.50, 0.64);
 
-      copy.style.opacity = String(seg(0.03, 0.10) * (1 - seg(0.20, 0.26)));
+      // The demo plays at p = 0, so its narration is up from the first frame
+      // rather than fading in on a scroll that has not happened yet. Leaving
+      // the screen is what ends it.
+      if (p > 0.10) demo.settle();
+      copy.style.opacity = String(1 - seg(0.20, 0.26));
+      // ours leaves with the copy; the shatter is not the place to already be
+      // holding a piece of the answer
+      if (p > 0.12) nw.style.opacity = String(1 - seg(0.12, 0.24));
+      else if (nw.style.opacity) nw.style.opacity = '';
       frame.style.opacity = String(1 - seg(0.24, 0.34));
       stage.style.opacity = String(1 - seg(0.50, 0.56));
       bin.style.opacity = String(seg(0.16, 0.24) * (1 - seg(0.50, 0.56)));
@@ -617,7 +831,8 @@
       read.style.opacity = String(seg(0.64, 0.70) * (1 - seg(0.93, 1)));
       if (p < 0.60) tour.close();
 
-      const label = p < 0.24 ? 'SCROLL TO BREAK IT' : 'SCROLL';
+      const label = !demo.isDone() ? 'SCROLL WHEN READY'
+        : p < 0.24 ? 'SCROLL TO BREAK IT' : 'SCROLL';
       if (cue.textContent !== label) cue.textContent = label;
 
       // the pin dims on the way out, so the panel and the readout leave with
@@ -670,6 +885,9 @@
     // frame. Layout can move under it twice: on resize, and when the web
     // fonts land, so it is re-measured on both.
     const remeasure = () => { shards.measure(); request(); };
+    // The demo moves the card around the grid, so where the shards travel from
+    // is only true once it has settled.
+    demo.onSettle = remeasure;
     addEventListener('scroll', request, { passive: true });
     addEventListener('resize', remeasure);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure);
@@ -753,8 +971,9 @@
     $('#life-cal').appendChild(buildCalendar(true));
     buildAudit();
     const tour = initFeatureTour();
-    runLoader();
-    initScrub(tour);
+    const demo = initOldDemo();
+    runLoader(demo.start);
+    initScrub(tour, demo);
     initCursor();
     initGet();
 

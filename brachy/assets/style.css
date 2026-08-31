@@ -461,7 +461,10 @@ img { max-width: 100%; display: block; }
   display: grid; place-items: center; font-size: 11px; opacity: 0.8;
   border-right: 1px solid rgba(255, 255, 255, 0.4);
 }
-.oldcal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+/* minmax(0, ...), not 1fr: a 1fr track takes its minimum from its content, so
+   a day carrying a long note would widen its own column and push the week out
+   of line. The note is meant to be clipped by the day, not to move it. */
+.oldcal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .old-cell {
   position: relative;
   border-right: 1px solid rgba(255, 255, 255, 0.4);
@@ -471,46 +474,109 @@ img { max-width: 100%; display: block; }
   will-change: transform, opacity;
 }
 .old-cell.is-other { opacity: 0.5; }
-/* later cells are siblings at the same level, so the note's cell has to be
-   lifted or the day underneath paints straight through the card */
-.old-cell.has-note { z-index: 5; }
 .old-cell.is-today { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.95); }
 .old-hol { color: #ff6a6a; margin-left: 7px; }
 
-/* the note: one day at a time, plain text, on a plain white card */
+/* ============================================================
+   1b. THE DEMO — three appointments, written twice, without a scroll.
+
+   The old way is one double-click, one window and one line of plain text per
+   day. Ours is one panel. Both sides render for real: the card below is the
+   reference's window, the pills on the right are the app's own event markup.
+   ============================================================ */
+
+/* the card: it walks from day to day, so it is positioned on the stage and
+   must paint over every cell, not only the one it was opened on */
 .old-note {
-  position: absolute; z-index: 4; top: 100%; left: -2px; width: 152px;
+  position: absolute; z-index: 6; left: 0; top: 0; width: 152px;
   background: #fff; color: #000;
   border: 1px solid #9aa2a8; box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
   font-family: Tahoma, "Segoe UI", sans-serif; font-size: 11px;
+  transform-origin: 16px 0;
+  transform: scale(0.92); opacity: 0;
+  transition: opacity 0.18s, transform 0.24s cubic-bezier(0.2, 0, 0, 1);
   will-change: transform, opacity;
 }
+.old-note.is-open { transform: none; opacity: 1; }
 .old-note-bar {
   position: relative; padding: 3px 0; text-align: center;
   background: linear-gradient(#f4f4f4, #e2e2e2); border-bottom: 1px solid #c4c4c4;
 }
 .old-note-x { position: absolute; right: 6px; top: 2px; color: #555; }
-.old-note-body { min-height: 122px; padding: 5px 7px; }
+.old-note-body { min-height: 122px; padding: 5px 7px; word-break: break-word; }
 .old-caret {
   display: inline-block; width: 1px; height: 11px; margin-left: 1px;
-  background: #000; vertical-align: -1px;
-  animation: oldblink 1.06s step-end infinite;
+  background: #000; vertical-align: -1px; opacity: 0;
 }
+/* it blinks only while something is actually being typed into it */
+.old-note.is-typing .old-caret { animation: oldblink 1.06s step-end infinite; }
 @keyframes oldblink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
 .old-note-foot {
   display: flex; justify-content: space-between; align-items: center;
   padding: 3px 6px; border-top: 1px solid #ececec; color: #9a9a9a; font-size: 10px;
 }
 
-/* the one thing worth pointing at */
-.old-callout {
-  position: absolute; top: 26px; left: calc(100% + 26px); width: 19ch;
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
-  text-transform: uppercase; color: var(--chalk); line-height: 1.7;
+/* what a saved note leaves on the day: the text, and nothing else */
+.old-jot {
+  display: block; margin-top: 3px; font-size: 10px; line-height: 1.25;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.old-callout::before {
-  content: ""; position: absolute; right: 100%; top: 8px; width: 22px;
-  border-top: 1px solid rgba(232, 233, 234, 0.6);
+
+/* the hand doing the work — every click it costs is shown */
+.demo-ptr {
+  position: absolute; z-index: 7; left: 0; top: 0; opacity: 0;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.1, 1), opacity 0.3s;
+}
+.demo-ptr.is-on { opacity: 1; }
+.demo-ptr svg { display: block; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7)); }
+.demo-ptr::after {
+  content: ""; position: absolute; left: -13px; top: -13px; width: 28px; height: 28px;
+  border: 1.5px solid rgba(255, 255, 255, 0.95); border-radius: 50%; opacity: 0;
+}
+.demo-ptr.is-click::after { animation: democlick 0.42s ease-out; }
+@keyframes democlick {
+  from { opacity: 0.95; transform: scale(0.3); }
+  to { opacity: 0; transform: scale(1.3); }
+}
+
+/* the running cost, counted rather than claimed */
+.demo-tally {
+  display: grid; grid-template-columns: auto 1fr; gap: 5px 14px;
+  margin-top: 3px; padding-top: 13px; border-top: 1px solid var(--line);
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--steel); line-height: 1.5;
+}
+.demo-tally b { color: var(--steel-dim); font-weight: 400; }
+.demo-tally .is-ours { color: var(--accent-lit); }
+
+/* the same three, ours — the app's own pill markup, so this is a comparison
+   between two real renderings and not between two drawings */
+.newway {
+  position: absolute; z-index: 6;
+  right: 3.5%; top: 50%; width: min(320px, 31%);
+  padding: 15px 17px 17px;
+  background: rgba(14, 16, 18, 0.94);
+  border: 1px solid var(--line); border-left: 2px solid var(--accent);
+  backdrop-filter: blur(14px);
+  transform: translate(16px, -50%); opacity: 0;
+  transition: opacity 0.4s, transform 0.5s cubic-bezier(0.2, 0, 0, 1);
+}
+.newway.is-open { transform: translate(0, -50%); opacity: 1; }
+.newway-head {
+  margin: 0 0 13px; font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-lit);
+}
+.newway .app { height: auto; }
+.newway .day-events-detail { gap: 9px; margin: 0; font-size: 15px; }
+.newway .day-event-row {
+  opacity: 0; transform: translateY(7px);
+  transition: opacity 0.3s, transform 0.36s cubic-bezier(0.2, 0, 0, 1);
+}
+.newway .day-event-row.is-in { opacity: 1; transform: none; }
+.newway-foot {
+  margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line);
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--steel); line-height: 1.6;
 }
 
 /* the bin the whole thing goes into */
@@ -689,7 +755,10 @@ img { max-width: 100%; display: block; }
   .claim-line { opacity: 1; transform: none; }
   .audit-frame { filter: none !important; }
   .feat-panel { transition: opacity 0.2s, visibility 0.2s; }
-  .old-caret { animation: none; }
+  /* the demo does not play here: the script draws its end state at once, so
+     nothing should be caught mid-transition on the way to it */
+  .old-note.is-typing .old-caret { animation: none; opacity: 1; }
+  .old-note, .newway, .newway .day-event-row, .demo-ptr { transition: none; }
 }
 
 /* ---------- narrow screens ---------- */
@@ -731,11 +800,30 @@ img { max-width: 100%; display: block; }
   .oldcal-week { font-size: 9px; }
   .old-cell { padding: 3px 4px; font-size: 10px; }
   .old-note { width: 124px; font-size: 10px; }
-  .old-note-body { min-height: 88px; }
-  /* no room to the right of it — the callout goes under the card */
-  .old-callout { top: calc(100% + 8px); left: 0; width: 20ch; font-size: 9px; }
-  .old-callout::before { display: none; }
-  .before-copy { bottom: 13vh; padding: 18px 20px 20px; }
+  .old-note-body { min-height: 76px; }
+  .old-jot { font-size: 8px; margin-top: 2px; }
+  /* ours sits at the top of the stage here, not on the right: the plate is
+     already holding the bottom, and a card between them would cover the grid
+     the whole comparison is about */
+  .newway {
+    left: 6px; right: 6px; top: 6px; width: auto; padding: 11px 13px 13px;
+    transform: translateY(-12px);
+  }
+  .newway.is-open { transform: none; }
+  .newway-head { margin-bottom: 9px; font-size: 9px; }
+  .newway .day-events-detail { gap: 6px; font-size: 13px; }
+  /* the month grid drops the time down here to keep its pills legible — but
+     the time being a field rather than a word is half of what this card is
+     saying, so it keeps it */
+  .newway .day-event-time { display: block; }
+  .newway-foot { margin-top: 10px; padding-top: 9px; font-size: 9px; }
+  .demo-tally { gap: 4px 10px; padding-top: 10px; font-size: 9px; }
+  /* the plate sits lower here, so the card standing open on the third week
+     has somewhere to be */
+  .before-copy { bottom: 8vh; padding: 16px 18px 18px; gap: 9px; }
+  .before-title { font-size: 23px; }
+  .before-lead { font-size: 13px; }
+  .on-wide { display: none; }
   .bin { width: 52px; }
   .feat-panel-foot { margin-top: 8px; }
 }

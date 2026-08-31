@@ -10,7 +10,7 @@
   <title>BRACHY CALENDAR — DINOVERSE</title>
   <link rel="icon" href="../image/brachy-icon.png" />
   <link rel="preload" href="assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/style.css?v=4" />
+  <link rel="stylesheet" href="assets/style.css?v=5" />
 </head>
 <body>
   <!-- ============ LOADER — this actual month draws itself ============
@@ -49,6 +49,25 @@
         <div class="before-stage" id="before-stage">
           <div class="oldcal" id="oldcal"></div>
           <div class="oldcal-frame" id="oldcal-frame"></div>
+
+          <!-- the window the old way opens: one day, one card, plain text.
+               It is a child of the stage, not of a cell, because the demo
+               walks it from day to day. -->
+          <div class="old-note" id="old-note">
+            <div class="old-note-bar"><span id="old-note-date">—</span><span class="old-note-x">×</span></div>
+            <div class="old-note-body"><span id="old-note-text"></span><span class="old-caret"></span></div>
+            <div class="old-note-foot"><span>◍</span><span>◢</span></div>
+          </div>
+
+          <!-- the same three appointments, ours -->
+          <div class="newway" id="newway"></div>
+
+          <span class="demo-ptr" id="demo-ptr">
+            <svg width="17" height="20" viewBox="0 0 17 20" fill="#fff" stroke="#0b0e11"
+                 stroke-width="1.1" stroke-linejoin="round">
+              <path d="M1 1 1 15.4 5 11.6 7.8 17.8 10.6 16.5 7.9 10.5 12.9 10.2Z" />
+            </svg>
+          </span>
         </div>
         <div class="bin" id="bin">
           <svg viewBox="0 0 48 52" fill="none" stroke="currentColor" stroke-width="2"
@@ -58,11 +77,13 @@
             <path d="M19 21v20M29 21v20" opacity=".55" />
           </svg>
         </div>
+        <!-- the demo narrates itself here: the plate's lines and the tally
+             below are written by the script as it runs -->
         <div class="before-copy" id="before-copy">
-          <p class="eyebrow">WHERE THIS STARTED</p>
-          <h2 class="before-title">The same month,<br />drawn the old way.</h2>
-          <p class="before-lead">One note at a time, on a plain white card. Plain text — no
-            colour, no tag, no time. Every other day is an empty cell.</p>
+          <p class="eyebrow" id="before-eyebrow">WHERE THIS STARTED</p>
+          <h2 class="before-title" id="before-title">The same month,<br />drawn the old way.</h2>
+          <p class="before-lead" id="demo-step">Three appointments. Watch what it takes.</p>
+          <div class="demo-tally" id="demo-tally"></div>
         </div>
         <p class="before-beat" id="beat-break">SO WE BROKE IT.</p>
         <p class="before-beat" id="beat-built">AND BUILT IT AGAIN.</p>
@@ -153,6 +174,6 @@
   <script src="../assets/vendor/lenis.min.js"></script>
   <script src="../assets/crypto.js"></script>
   <script src="../data.js"></script>
-  <script src="assets/app.js?v=4"></script>
+  <script src="assets/app.js?v=5"></script>
 </body>
 </html>
