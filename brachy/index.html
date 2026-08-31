@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <!-- GitHub Pages serves assets with cache-control: max-age=600, so a deploy
+       is invisible for ten minutes unless the URL changes. Bump ?v= below
+       whenever anything under assets/ changes. -->
+  <title>BRACHY CALENDAR — DINOVERSE</title>
+  <link rel="icon" href="../image/brachy-icon.png" />
+  <link rel="preload" href="assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="assets/style.css?v=1" />
+</head>
+<body>
+  <!-- ============ LOADER — this actual month draws itself ============
+       Not a generic progress bar: the grid is the real current month, the
+       cells land one day at a time, and the number is the date, not a
+       percentage. It stops on today. -->
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader-inner">
+      <p class="loader-month" id="loader-month">MONTH</p>
+      <div class="loader-grid" id="loader-grid"></div>
+      <p class="loader-count"><span id="loader-n">01</span></p>
+    </div>
+  </div>
+
+  <div class="cursor" id="cursor" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="topbar-back" href="../">← DINOVERSE</a>
+    <span class="topbar-name">BRACHY CALENDAR</span>
+    <a class="topbar-get" href="#get">[ GET ]</a>
+  </header>
+
+  <h1 class="sr-only">Brachy Calendar — a desktop calendar that is your wallpaper</h1>
+
+  <!-- ============ 1. HERO — the wallpaper is seen through the name ============ -->
+  <section class="hero" id="hero">
+    <div class="hero-pin">
+      <!-- three separated planes: wallpaper / calendar / a window in front -->
+      <div class="plane plane--wall" id="plane-wall" aria-hidden="true"></div>
+      <div class="plane plane--cal" id="plane-cal">
+        <div class="cal" id="hero-cal"></div>
+      </div>
+      <div class="plane plane--win" id="plane-win" aria-hidden="true">
+        <div class="win-chrome"><span></span><span></span><span></span></div>
+      </div>
+
+      <!-- the name is a window: the wallpaper shows through the letterforms -->
+      <div class="hero-type" id="hero-type" aria-hidden="true">
+        <span class="hero-word">BRACHY</span>
+      </div>
+
+      <p class="hero-tag" id="hero-tag">Your wallpaper.<br />Your calendar.<br />The same thing.</p>
+
+      <a class="scroll-cue" href="#claim">
+        <span>SCROLL</span><span class="scroll-cue-arrow" aria-hidden="true">↓</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============ 2. THE CLAIM ============ -->
+  <section class="claim" id="claim">
+    <div class="claim-pin">
+      <h2 class="display claim-lines">
+        <span class="claim-line" data-claim="0.00 0.24">A CALENDAR</span>
+        <span class="claim-line" data-claim="0.14 0.40">MADE LIKE</span>
+        <span class="claim-line" data-claim="0.28 0.56">A LUXURY GOOD<img class="stamp" src="../image/brachy-mascot.png" alt="" /></span>
+      </h2>
+    </div>
+  </section>
+
+  <!-- ============ 3. THE DETAIL AUDIT — the page's own grid, magnified ============
+       Every crop below is a live, scaled clone of the calendar this page
+       renders, so each caption states something you can verify on screen.
+       When app screenshots land these crops swap to the app itself; the
+       captions are then re-measured from it. See docs/…-brachy-site-design.md §7. -->
+  <section class="audit" id="audit">
+    <header class="audit-head">
+      <p class="eyebrow">THE DETAIL AUDIT</p>
+      <h2 class="display section-title">EVERY<br />LAST<br />PIXEL</h2>
+    </header>
+    <div class="audit-steps" id="audit-steps"></div>
+  </section>
+
+  <!-- ============ 4. LIFE ON THE DESKTOP ============ -->
+  <section class="life" id="life">
+    <div class="life-pin">
+      <div class="life-stage" id="life-stage">
+        <div class="life-shot life-shot--a" id="life-a" aria-hidden="true"></div>
+        <div class="life-shot life-shot--b" id="life-b" aria-hidden="true"></div>
+        <div class="life-cal" id="life-cal"></div>
+      </div>
+      <div class="life-copy">
+        <p class="eyebrow">ANY WALLPAPER</p>
+        <p class="life-lead">It is not a window sitting on your desktop. It is the desktop —
+          behind everything, in front of nothing, always already there.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5. GET — the page ends quiet ============ -->
+  <section class="get" id="get">
+    <div class="get-inner">
+      <img class="get-stamp" src="../image/brachy-mascot.png" alt="" />
+      <h2 class="display get-title">BRACHY<br />CALENDAR</h2>
+      <p class="get-meta" id="get-meta">VERSION — · WINDOWS</p>
+      <div class="get-action">
+        <button class="unlock-btn link-btn" id="unlock-btn">[ UNLOCK WITH APP CODE ]</button>
+        <form class="line-form hidden" id="pw-form" autocomplete="off">
+          <input type="password" class="line-input" id="pw-input" placeholder="APP CODE" autocomplete="off" />
+          <button type="submit" class="arrow-btn" aria-label="enter">→</button>
+        </form>
+        <p class="err" id="pw-err"></p>
+        <div class="files hidden" id="files"></div>
+      </div>
+    </div>
+    <footer class="footer">
+      <span>SURVIVING DINOS STUDIO</span>
+      <a href="../">DINOVERSE ↗</a>
+    </footer>
+  </section>
+
+  <script src="../assets/vendor/lenis.min.js"></script>
+  <script src="../assets/crypto.js"></script>
+  <script src="../data.js"></script>
+  <script src="assets/app.js?v=1"></script>
+</body>
+</html>
