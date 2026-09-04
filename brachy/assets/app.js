@@ -1,23 +1,25 @@
 // BRACHY CALENDAR — page logic.
 //
-// Two screens, and the second one is the argument.
+// Two screens, and neither of them is a picture.
 //
-//   1. HERO   — the desktop calendar this app was built on, rebuilt in DOM on
-//               the visitor's real month. It writes three appointments the only
-//               way it can, comes apart at its own seams, and ours rises in its
-//               place, full screen, the way it sits on a desktop.
-//   2. VERSUS — the same seven parts of each, held against each other. Typeface,
-//               header, weekday row, date, appointment, run of days, the window
-//               you write in.
+//   1. HERO — the desktop calendar this app was built on, rebuilt in DOM on the
+//             visitor's real month. It writes three appointments the only way it
+//             can, comes apart at its own seams, and ours rises in its place,
+//             full screen, the way it sits on a desktop.
+//   2. TOUR — ours, being used. A pointer walks to a day and clicks it, writes
+//             an event in, drags it, ticks it off, turns the month. Scroll picks
+//             the step; arriving at one plays it.
 //
-// Nothing here is a drawing of either product. The right-hand side is Brachy's
-// own markup (CalendarGrid.tsx, DayCell.tsx, EventPopup.tsx) under Brachy's own
-// stylesheet, in desktop mode; the left is the reference rebuilt from its own
-// measurements. Every spec line in section 2 is read off the screen with
-// getComputedStyle, so no caption can drift from what is in the frame above it.
+// Nothing here is a drawing of either product: the calendar, the side panel and
+// the composer are Brachy's own markup (CalendarGrid.tsx, DayCell.tsx,
+// SchedulePanel.tsx, EventPopup.tsx) under Brachy's own stylesheet, in desktop
+// mode. The reference is rebuilt from its own measurements. The tour is not a
+// video either — the DOM really changes, which is why every step also knows how
+// to put itself back when the reader scrolls up.
 //
 // The page runs on the visitor's real date throughout — the loader draws this
-// actual month and stops on today, and section 2 closes by saying so.
+// actual month and stops on today, and the tour's last step turns the page to a
+// month that has no ring in it because today is not there.
 //
 // Stage one is CSS only. The two WebGL moments (hero sheen, wallpaper
 // displacement dissolve) wait on real app screenshots — see
@@ -180,10 +182,27 @@
   const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const SPAN_H = 18, SPAN_GAP = 2, SPAN_TOP = 36;   // CalendarGrid.tsx
 
-  // A day number of this month, named. Out-of-range numbers roll into the
+  // A day number of a month, named. Out-of-range numbers roll into the
   // neighbouring month on their own, which is exactly what the grid does.
-  const dateLabel = (d) =>
-    new Date(M.y, M.m, d).toLocaleString('en-US', { month: 'long', day: 'numeric' });
+  const dateLabel = (d, mm = M) =>
+    new Date(mm.y, mm.m, d).toLocaleString('en-US', { month: 'long', day: 'numeric' });
+
+  // Any month, in the same shape thisMonth() returns. `today` is 0 for a month
+  // that is not this one, so nothing in it can be ringed — which is the point
+  // of the tour's last step: turn the page and the ring is simply not there.
+  function monthAt(offset) {
+    if (!offset) return M;
+    const d = new Date(M.y, M.m + offset, 1);
+    const y = d.getFullYear(), m = d.getMonth();
+    return {
+      y, m,
+      first: d.getDay(),
+      days: new Date(y, m + 1, 0).getDate(),
+      today: 0,
+      month: d.toLocaleString('en-US', { month: 'long' }),
+    };
+  }
+  const EMPTY_DEAL = { byDay: new Map(), span: { week: -1, col: 0, len: 0 } };
 
   function eventHTML(e) {
     // the app's overflow line is not an event; it does not get an event's pill
@@ -199,33 +218,38 @@
       '</div>';
   }
 
-  function buildCalendar() {
+  // `mm`/`deal` default to this month and its dealt features. The tour hands in
+  // a different pair for its last step, where the reader turns the page.
+  function buildCalendar(mm = M, deal = DEAL) {
     const app = document.createElement('div');
     app.className = 'app dark blue bg-only-opacity';
 
-    const weeks = Math.ceil((M.first + M.days) / 7);
+    const weeks = Math.ceil((mm.first + mm.days) / 7);
     let rows = '';
     for (let w = 0; w < weeks; w++) {
       let cells = '';
       for (let c = 0; c < 7; c++) {
-        const d = w * 7 + c - M.first + 1;              // day number in this month
-        const other = d < 1 || d > M.days;
-        const shown = other ? new Date(M.y, M.m, d).getDate() : d;
-        const f = other ? null : DEAL.byDay.get(d);
+        const d = w * 7 + c - mm.first + 1;             // day number in this month
+        const other = d < 1 || d > mm.days;
+        const shown = other ? new Date(mm.y, mm.m, d).getDate() : d;
+        const f = other ? null : deal.byDay.get(d);
         const evs = f ? f.events : null;
 
         const cls = ['day-cell'];
         if (other) cls.push('other-month');
         if (c === 0) cls.push('sunday');
         if (c === 6) cls.push('saturday');
-        if (!other && d === M.today) cls.push('today');
+        if (!other && d === mm.today) cls.push('today');
 
-        const spanned = w === DEAL.span.week &&
-          c >= DEAL.span.col && c < DEAL.span.col + DEAL.span.len;
+        const spanned = w === deal.span.week &&
+          c >= deal.span.col && c < deal.span.col + deal.span.len;
 
-        cells += `<div class="${cls.join(' ')}">` +
+        // the tour reaches for days by number and prints their date, so the
+        // cells carry both rather than making it re-derive the grid's maths
+        cells += `<div class="${cls.join(' ')}"` +
+          `${other ? '' : ` data-day="${d}" data-when="${dateLabel(d, mm)}"`}>` +
           '<div class="day-cell-content"><div class="day-cell-header">' +
-            `<span class="day-number${!other && d === M.today ? ' today-badge' : ''}">${shown}</span>` +
+            `<span class="day-number${!other && d === mm.today ? ' today-badge' : ''}">${shown}</span>` +
             (f && f.overcommit ? `<span class="day-overcommit-badge">${ICON.warn}</span>` : '') +
             (f && f.weather ? ICON.sun : '') +
             (f && f.sticker ? `<span class="day-mood-sticker">${f.sticker}</span>` : '') +
@@ -238,8 +262,8 @@
       // spanning bar — absolutely placed over the week's columns, app geometry:
       // SPANNING_TOP_OFFSET 36, height 18 (CalendarGrid.tsx)
       let bar = '';
-      if (w === DEAL.span.week) {
-        const { col, len } = DEAL.span;
+      if (w === deal.span.week) {
+        const { col, len } = deal.span;
         bar = '<div class="spanning-bar start end" ' +
           `style="left:calc(${(col / 7) * 100}% + 4px);width:calc(${(len / 7) * 100}% - 8px);top:${SPAN_TOP}px;height:${SPAN_H}px">` +
           `<span class="spanning-bar-title">${SPAN.title}</span></div>`;
@@ -251,9 +275,9 @@
       '<div class="calendar">' +
         '<div class="calendar-header">' +
           '<div class="nav-center">' +
-            '<button class="nav-btn nav-arrow" tabindex="-1" aria-hidden="true">&lsaquo;</button>' +
-            `<div class="month-year"><span class="month-text">${M.month}</span><span class="year-text">${M.y}</span></div>` +
-            '<button class="nav-btn nav-arrow" tabindex="-1" aria-hidden="true">&rsaquo;</button>' +
+            '<button class="nav-btn nav-arrow nav-prev" tabindex="-1" aria-hidden="true">&lsaquo;</button>' +
+            `<div class="month-year"><span class="month-text">${mm.month}</span><span class="year-text">${mm.y}</span></div>` +
+            '<button class="nav-btn nav-arrow nav-next" tabindex="-1" aria-hidden="true">&rsaquo;</button>' +
           '</div>' +
           '<div class="header-right"><button class="today-btn" tabindex="-1" aria-hidden="true">Today</button></div>' +
         '</div>' +
@@ -705,85 +729,81 @@
     setTimeout(tick, 320);
   }
 
-  // ---------- 2. one part at a time ----------
-  // The hero shows two calendars. This section takes them apart and holds the
-  // same part of each up against the other.
+  // ---------- 2. the tour — the calendar uses itself ----------
+  // The hero leaves ours standing there. This picks it up and works it: a
+  // pointer walks to a day and clicks it, writes an event into it, drags it,
+  // ticks it off, turns the month.
   //
-  // Both sides are live DOM. The left is the reference rebuilt from its own
-  // measurements; the right is the app's own markup under the app's own
-  // stylesheet. Every spec line is written from the computed style of the
-  // element in the frame above it, so a line here cannot drift from what is on
-  // screen — change the app's CSS and the sentence changes with it. Nothing is
-  // typed in by hand that the browser can be asked for.
+  // Everything a step touches is the app's: the panel is SchedulePanel, the
+  // composer is EventPopup down to the PRO badges its own icon row carries,
+  // and the pill that lands is drawn by the same eventHTML as every other pill
+  // on the grid. Nothing here is a video and nothing is a mock-up — the DOM
+  // really changes, which is the whole reason a step also has to know how to
+  // put itself back.
   //
-  // The rule the whole section is held to: A CROP MAY NOT CLAIM WHAT IT DOES
-  // NOT SHOW. Where the reference simply has no equivalent, the crop is of the
-  // same days with nothing on them — the absence is the thing being shown, and
-  // it is in frame.
+  // Scroll picks the step; arriving at one plays it. Three entry points into
+  // the same state, and they must agree:
+  //   play()   — the pointer does it, at reading speed
+  //   settle() — the same end state, instantly (scrubbed past, or reduced motion)
+  //   undo()   — back to what the step found
 
-  // The family the browser actually rendered in — not the first name in the
-  // stack it was offered.
-  //
-  // getComputedStyle returns the whole stack verbatim, so reading its first
-  // entry names a font that may not exist here: the app's stack opens with
-  // -apple-system, and on Windows the face on screen is Segoe UI. A section
-  // about typography cannot print the name of a font it is not showing.
-  //
-  // There is no API for "which face won", so it is measured: a family the
-  // browser does not have falls through to whatever generic follows it, and
-  // then two different generics give the same width. The first candidate that
-  // moves either measurement is the one being drawn.
-  const CANVAS = document.createElement('canvas').getContext('2d');
-  const widthIn = (stack) => {
-    CANVAS.font = `72px ${stack}`;
-    return CANVAS.measureText('mmmwwwiii0123 Wednesday').width;
-  };
-  const RESOLVED = new Map();
-  const resolves = (fam) => {
-    if (!RESOLVED.has(fam)) {
-      const q = /^[a-z-]+$/i.test(fam) ? fam : `"${fam}"`;   // generics unquoted
-      RESOLVED.set(fam,
-        widthIn(`${q}, monospace`) !== widthIn('monospace') ||
-        widthIn(`${q}, serif`) !== widthIn('serif'));
-    }
-    return RESOLVED.get(fam);
-  };
-  const famOf = (el) => {
-    const stack = getComputedStyle(el).fontFamily
-      .split(',').map((f) => f.replace(/["']/g, '').trim()).filter(Boolean);
-    return (stack.find(resolves) || stack[stack.length - 1] || '—').toUpperCase();
-  };
-  // rgb(79, 195, 247) -> #4FC3F7, so the line prints what the app's CSS says
-  const hexOf = (el, prop) => {
-    const n = (getComputedStyle(el)[prop] || '').match(/\d+/g);
-    return n ? `#${n.slice(0, 3).map((v) => (+v).toString(16).padStart(2, '0')).join('').toUpperCase()}` : '—';
-  };
-  // "rgb(10, 132, 255) 0px 0px 0px 1.5px inset" — the fourth length is the ring
-  const ringOf = (el) => (getComputedStyle(el).boxShadow.match(/-?[\d.]+px/g) || [])[3] || '—';
+  // the app's SchedulePanel, rendered for one day.
+  // apps/brachy/src/components/SchedulePanel: the day grouped with its count,
+  // then each event as a schedule-item — checkbox, colour dot, tag dots, D-day
+  // badge, and a meta row of whatever the event actually has. Nothing is drawn
+  // for a field the event does not carry.
+  const DOW_LONG = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  // The old calendar's window, as the hero's demo leaves it: a white card with
-  // one free-text body. Markup and values are the reference's own.
-  const OLD_WINDOW = () =>
-    '<div class="old-note is-open">' +
-      `<div class="old-note-bar"><span>${M.month} ${M.today}, ${M.y}</span><span class="old-note-x">×</span></div>` +
-      `<div class="old-note-body">${SCRIPT[0].text}</div>` +
-      '<div class="old-note-foot"><span>◍</span><span>◢</span></div>' +
+  function scheduleItem(e) {
+    const meta =
+      (e.time ? `<div class="schedule-item-time"><span>◷</span><span>${e.time}</span></div>` : '') +
+      (e.repeat ? '<div class="schedule-item-repeat"><span>↻</span><span>Repeat</span></div>' : '') +
+      (e.remind ? `<div class="schedule-item-time"><span>◔</span><span>${e.remind}</span></div>` : '') +
+      (e.buffer ? `<div class="schedule-item-time"><span>◷</span><span>${e.buffer}</span></div>` : '');
+    return `<div class="schedule-item${e.done ? ' is-done' : ''}">` +
+      `<span class="schedule-item-checkbox${e.done ? ' checked' : ''}">✓</span>` +
+      '<div class="schedule-item-content"><div class="schedule-item-title-row">' +
+        (e.color ? `<span class="schedule-item-color-dot" style="background:${e.color}"></span>` : '') +
+        (e.tags ? `<span class="schedule-item-tag-dots">${e.tags.map((c) =>
+          `<span class="schedule-item-tag-dot" style="background:${c}"></span>`).join('')}</span>` : '') +
+        `<p class="schedule-item-title${e.done ? ' completed' : ''}">${e.t}</p>` +
+        (e.dday ? `<span class="schedule-item-dday">${e.dday}</span>` : '') +
+      '</div>' +
+      (meta ? `<div class="schedule-item-meta">${meta}</div>` : '') +
+      '</div></div>';
+  }
+
+  function scheduleDay(cell, events) {
+    const d = +cell.dataset.day;
+    const today = d === M.today;
+    return `<div class="schedule-day-group${today ? ' today' : ''}">` +
+      `<div class="schedule-day-header${today ? ' today' : ''}">` +
+        '<div class="schedule-day-header-left">' +
+          '<span class="schedule-day-chevron">›</span>' +
+          `<span class="schedule-day-label${today ? ' today' : ''}">${DOW_LONG[new Date(M.y, M.m, d).getDay()].toUpperCase()}</span>` +
+          `<span class="schedule-day-date">${cell.dataset.when}</span>` +
+        '</div>' +
+        `<span class="schedule-day-count">${events.length}</span>` +
+      '</div>' +
+      `<div class="schedule-day-events">${events.map(scheduleItem).join('')}</div>` +
     '</div>';
+  }
 
   // The app's EventPopup. Its icon row is split into two groups by the app
   // itself — the free fields, a divider, then the ones that carry a PRO badge.
   // That division is the product's, not ours, so the page shows it rather than
-  // describing it.
-  const OUR_WINDOW = () =>
+  // describing it, and the tour presses the PRO button before it picks a colour
+  // instead of demonstrating a paid field as though it were free.
+  const composeHTML = (when) =>
     '<div class="app dark blue event-modal-popup">' +
       '<div class="popup-header"><span class="popup-title">New event</span><span class="popup-close">×</span></div>' +
       '<div class="popup-content">' +
         '<div class="popup-field">' +
-          `<span class="popup-label">${dateLabel(M.today)}</span>` +
-          '<span class="popup-input">Design review</span>' +
+          `<span class="popup-label">${when}</span>` +
+          '<span class="popup-input" id="tc-title"><i></i><span class="tc-caret"></span></span>' +
         '</div>' +
         '<div class="popup-field"><span class="popup-label">Time</span>' +
-          '<span class="popup-input">14:00</span></div>' +
+          '<span class="popup-input is-empty" id="tc-time">--:--</span></div>' +
         '<div class="icon-row">' +
           '<div class="icon-group">' +
             '<span class="icon-btn-wrapper"><span class="icon-btn">↻</span><span class="icon-btn-label">Repeat</span></span>' +
@@ -793,368 +813,424 @@
           '</div>' +
           '<span class="icon-row-divider"></span>' +
           '<div class="icon-group">' +
-            '<span class="icon-btn-wrapper premium"><span class="icon-btn active">◉<span class="icon-btn-pro-badge">PRO</span></span><span class="icon-btn-label">Colour</span></span>' +
+            '<span class="icon-btn-wrapper premium" id="tc-colour-btn"><span class="icon-btn">◉<span class="icon-btn-pro-badge">PRO</span></span><span class="icon-btn-label">Colour</span></span>' +
             '<span class="icon-btn-wrapper premium"><span class="icon-btn">#<span class="icon-btn-pro-badge">PRO</span></span><span class="icon-btn-label">Tag</span></span>' +
             '<span class="icon-btn-wrapper premium"><span class="icon-btn">▤<span class="icon-btn-pro-badge">PRO</span></span><span class="icon-btn-label">Template</span></span>' +
             '<span class="icon-btn-wrapper premium"><span class="icon-btn">G<span class="icon-btn-pro-badge">PRO</span></span><span class="icon-btn-label">Google</span></span>' +
           '</div>' +
         '</div>' +
-        `<div class="colour-drop is-open">${PALETTE.map((c) =>
-          `<span class="compose-swatch${c === '#FF3B30' ? ' is-on' : ''}" style="background:${c};color:${c}"></span>`).join('')}</div>` +
+        `<div class="colour-drop" id="tc-colours">${PALETTE.map((c) =>
+          `<span class="compose-swatch" style="background:${c};color:${c}" data-c="${c}"></span>`).join('')}</div>` +
       '</div>' +
-      '<div class="popup-footer"><span class="popup-save">Save</span></div>' +
+      '<div class="popup-footer"><span class="popup-save" id="tc-save">Save</span></div>' +
     '</div>';
 
-  function buildVersus() {
-    const box = $('#versus-steps');
+  function initTour() {
+    const pin = $('.tour-pin');
+    const stage = $('#tour-stage');
+    const panel = $('#tour-panel');
+    const compose = $('#tour-compose');
+    const ptr = $('#tour-ptr');
+    const rail = $('#tour-rail');
 
-    // A live reference calendar, written on the way the hero leaves it: the
-    // same three appointments, in the only format that grid can hold.
-    const oldStage = () => {
-      const stage = document.createElement('div');
-      stage.className = 'vs-cal';
-      const cal = document.createElement('div');
-      cal.className = 'oldcal';
-      stage.appendChild(cal);
-      buildOldCalendar(cal);
-      const cells = oldNoteCells(cal);
-      SCRIPT.forEach((s, i) => jotInto(cells[i], s.text));
-      return stage;
+    let cal = buildCalendar();
+    stage.appendChild(cal);
+
+    const cells = () => [...cal.querySelectorAll('.day-cell[data-day]')];
+    // Days are held as NUMBERS, never as nodes. The last step replaces the whole
+    // grid to turn the month, and any node a step was holding dies with it — a
+    // day number survives, so every step reaches for its cell through here.
+    const cellFor = (d) => cal.querySelector(`.day-cell[data-day="${d}"]`);
+
+    // ---- the event the tour writes ----
+    // It is one of the month's own, taken back out of the grid before the
+    // reader gets here, so its day starts empty and step 2 writing it in is
+    // what puts the month back together. Without this the hand would be typing
+    // out an appointment that is already sitting two cells away.
+    //
+    // It comes out of the GRID, not out of DEAL: the hero's calendar is built
+    // from the same deal and should still show a whole month. Which means every
+    // rebuild has to take it out again — hence hold(), called from swap().
+    const HELD = FEATURES.find((f) => f.name === 'Ten event colours');
+    const WRITTEN = HELD.events[0];
+    const heldDay = ([...DEAL.byDay].find(([, f]) => f === HELD) || [])[0];
+    const hold = () => {
+      const c = heldDay && cellFor(heldDay);
+      const box = c && c.querySelector('.day-events-detail:not([data-written])');
+      if (box) box.remove();
+    };
+    hold();
+
+    // ---- the days each step works on ----
+    // The written event needs an empty day, and the drag needs an empty one two
+    // columns along in the same week, so the pair is read off the grid rather
+    // than assumed. The held day is tried first — writing the event back where
+    // it came from is the tidiest version of this — and the fallbacks are there
+    // so an awkward month degrades instead of throwing.
+    const free = cells().filter((c) => !c.querySelector('.day-events-detail') &&
+      !c.querySelector('.day-spanning-spacer'));
+    if (heldDay) free.sort((a, b) => (+b.dataset.day === heldDay) - (+a.dataset.day === heldDay));
+    const pairFrom = free.find((c) => {
+      const to = cellFor(+c.dataset.day + 2);
+      return to && to.closest('.week-row') === c.closest('.week-row') && free.includes(to);
+    });
+    const FROM = +(pairFrom || free[0] || cells()[0]).dataset.day;
+    const TO = pairFrom ? FROM + 2 : +(free[1] || cells()[1]).dataset.day;
+
+    // the day the first step opens: one that is actually carrying something
+    const OPEN = +(cells().find((c) => c.querySelector('.day-event-row') &&
+      +c.dataset.day !== FROM) || cells()[0]).dataset.day;
+    const OPEN_EVENTS = (DEAL.byDay.get(OPEN) || { events: [] })
+      .events.filter((e) => !e.more);
+
+    // ---- the hand ----
+    // left/top rather than a transform, so the two axes can carry different
+    // easings and the travel comes out as an arc (see .demo-ptr)
+    const pointAt = (el, fx = 0.5, fy = 0.5) => {
+      if (!el) return;
+      const p = pin.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      ptr.style.left = `${r.left - p.left + r.width * fx}px`;
+      ptr.style.top = `${r.top - p.top + r.height * fy}px`;
+    };
+    const click = () => {
+      ptr.classList.remove('is-click');
+      void ptr.offsetWidth;                    // restart the ring
+      ptr.classList.add('is-click', 'is-press');
+      setTimeout(() => ptr.classList.remove('is-press'), 130);
+    };
+    const hand = (on) => ptr.classList.toggle('is-on', !!on);
+
+    // ---- panels ----
+    const openPanel = (cell, events) => {
+      $('#tour-panel-when').textContent = cell.dataset.when;
+      $('#tour-panel-list').innerHTML = scheduleDay(cell, events);
+      panel.classList.add('is-open');
+      panel.setAttribute('aria-hidden', 'false');
+      pin.classList.add('is-panel-open');
+    };
+    const shutPanel = () => {
+      panel.classList.remove('is-open');
+      panel.setAttribute('aria-hidden', 'true');
+      pin.classList.remove('is-panel-open');
+    };
+    const openCompose = (cell) => {
+      compose.innerHTML = composeHTML(cell.dataset.when);
+      compose.classList.add('is-open');
+      compose.setAttribute('aria-hidden', 'false');
+      pin.classList.add('is-panel-open');
+    };
+    const shutCompose = () => {
+      compose.classList.remove('is-open', 'is-typing');
+      compose.setAttribute('aria-hidden', 'true');
+      pin.classList.remove('is-panel-open');
     };
 
-    // The run of days the multi-day bar covers, so step 6 crops the SAME days
-    // on both sides. The left crop is centred on the run's middle by taking the
-    // run's FIRST cell and walking half a run to the right — every cell in a
-    // week is the same width, so len/2 cell-widths lands exactly where the bar
-    // is centred on the other side, whether the run is odd or even.
-    const runStart = DEAL.span.week * 7 + DEAL.span.col;
-    const RUN = DEAL.span.len;
+    // ---- the written event, on the grid ----
+    const putEvent = (cell, done) => {
+      // a month that does not have that day simply has nowhere to put it
+      if (!cell) return null;
+      let box = cell.querySelector('.day-events-detail');
+      if (!box) {
+        box = document.createElement('div');
+        box.className = 'day-events-detail';
+        cell.querySelector('.day-cell-content').appendChild(box);
+      }
+      box.innerHTML = eventHTML({ ...WRITTEN, done });
+      box.dataset.written = '1';
+      return box;
+    };
+    const clearEvent = () => {
+      const box = cal.querySelector('.day-events-detail[data-written]');
+      if (box) box.remove();
+    };
+    const lit = (d, on) => {
+      const c = cellFor(d);
+      if (c) c.classList.toggle('is-lit', on);
+    };
 
+    // ---- the steps ----
+    // Each one owns three ways into the same state. If they ever disagree, a
+    // reader who scrolls quickly sees a different calendar from one who reads.
     const STEPS = [
       {
-        title: 'The typeface',
-        kind: 'type',
-        // Two live components per side; the specimen is then set in whatever
-        // family each of them actually resolved to.
-        old: {
-          probe: (s) => [s.querySelector('.oldcal-title'), s.querySelector('.old-cell')],
-          words: ['November', '24'],
+        title: 'Click a day.',
+        lead: 'The panel that opens is the app’s own — the day grouped with what it is ' +
+          'carrying, and every event as a row you can tick, not a line of text.',
+        async play(w) {
+          hand(true);
+          pointAt(cellFor(OPEN), 0.5, 0.35);
+          await w(700);
+          click();
+          await w(240);
+          this.settle();
         },
-        ours: {
-          probe: (s) => [s.querySelector('.month-year span'), s.querySelector('.day-number')],
-          words: ['November', '24'],
-        },
-        note: 'Two families inside one grid — a serif for the labels, a sans for the numbers ' +
-          'you actually read. Ours sets the whole month in one, so nothing on it is spoken in ' +
-          'a voice the rest of it does not use.',
+        settle() { openPanel(cellFor(OPEN), OPEN_EVENTS); lit(OPEN, true); },
+        undo() { shutPanel(); lit(OPEN, false); },
       },
       {
-        title: 'The month’s name',
-        span: 200,
-        // Both lines count characters, because the length of each title is the
-        // thing the two frames actually show. "centred" would be true of the
-        // left one and unshowable — the crop runs off both its edges.
-        old: {
-          find: (s) => s.querySelector('.oldcal-title'),
-          spec: (el) => {
-            const c = getComputedStyle(el);
-            // the glyph buttons live in this element too; they are not title
-            const words = [...el.childNodes]
-              .filter((n) => !(n.classList && n.classList.contains('oldcal-btns')))
-              .map((n) => n.textContent).join('').trim();
-            return `<b>${famOf(el)}</b> ${c.fontSize} · <b>${words.length} CHARACTERS</b> — ` +
-              'THE MONTH, THE YEAR, AND THEN THE WHOLE OF TODAY’S DATE AGAIN';
-          },
+        title: 'Write one in.',
+        lead: 'Double-click an empty day and everything about the appointment is a field. ' +
+          'The row of them splits itself where the paid ones start — that divider is the ' +
+          'product’s, so the hand presses the PRO button before it picks a colour.',
+        async play(w) {
+          shutPanel();
+          lit(OPEN, false);
+          hand(true);
+          pointAt(cellFor(FROM), 0.5, 0.4);
+          await w(620);
+          click(); await w(160); click();          // it is a double-click
+          await w(240);
+          openCompose(cellFor(FROM));
+          await w(520);
+
+          const title = $('#tc-title');
+          pointAt(title, 0.12, 0.5);
+          compose.classList.add('is-typing');
+          await w(320);
+          for (let i = 1; i <= WRITTEN.t.length; i++) {
+            title.querySelector('i').textContent = WRITTEN.t.slice(0, i);
+            await w(WRITTEN.t[i - 1] === ' ' ? 88 : 46);
+          }
+          compose.classList.remove('is-typing');
+          await w(320);
+
+          const time = $('#tc-time');
+          pointAt(time, 0.12, 0.5);
+          await w(420);
+          click(); await w(170);
+          time.textContent = WRITTEN.time;
+          time.classList.remove('is-empty');
+          await w(520);
+
+          const cBtn = $('#tc-colour-btn');
+          pointAt(cBtn, 0.5, 0.3);
+          await w(520);
+          click();
+          cBtn.querySelector('.icon-btn').classList.add('active');
+          $('#tc-colours').classList.add('is-open');
+          await w(480);
+          const sw = compose.querySelector(`.compose-swatch[data-c="${WRITTEN.color}"]`);
+          pointAt(sw);
+          await w(430);
+          click();
+          sw.classList.add('is-on');
+          title.querySelector('i').style.color = WRITTEN.color;
+          await w(620);
+
+          const save = $('#tc-save');
+          pointAt(save);
+          await w(460);
+          click();
+          save.classList.add('is-press');
+          await w(220);
+          this.settle();
         },
-        ours: {
-          find: (s) => s.querySelector('.month-year'),
-          spec: (el) => {
-            const t = el.querySelector('span');
-            const arrow = el.parentNode.querySelector('.nav-arrow');
-            return `<b>${famOf(t)}</b> ${getComputedStyle(t).fontSize} · ` +
-              `<b>${el.textContent.trim().length} CHARACTERS</b> — THE MONTH AND THE YEAR · ` +
-              `THE TWO ARROWS BESIDE IT ARE ${hexOf(arrow, 'color')}`;
-          },
-        },
-        note: 'A serif, and a sentence: the month, the year, and then today’s full date welded ' +
-          'on after a slash. Ours puts the month and the year in the same stack as the days, ' +
-          'and the only things standing next to them are the two arrows that move them.',
+        settle() { shutPanel(); shutCompose(); lit(OPEN, false); putEvent(cellFor(FROM), false); },
+        undo() { shutCompose(); clearEvent(); },
       },
       {
-        title: 'The weekend',
-        span: 164,
-        // Both lines name the label AND the date sitting under it, because both
-        // of them are inside the crop. "the same as every other weekday" would
-        // be true and unshowable — the frame holds one column.
-        old: {
-          find: (s) => s.querySelectorAll('.oldcal-dow span')[7],
-          spec: (el, s) => {
-            const c = getComputedStyle(el);
-            const num = s.querySelectorAll('.old-cell')[6];
-            return `<b>${famOf(el)}</b> ${c.fontSize} · LABEL ${hexOf(el, 'color')}, ` +
-              `THE DATE UNDER IT ${num ? hexOf(num, 'color') : '—'} — NOTHING MARKS THE COLUMN`;
-          },
+        title: 'Drag it somewhere else.',
+        lead: 'It is a desktop calendar, so an appointment moves the way anything on a ' +
+          'desktop moves. Pick it up, drop it on another day; the day you dropped it on is ' +
+          'the day it is on.',
+        async play(w) {
+          const from = cellFor(FROM), to = cellFor(TO);
+          const row = from && from.querySelector('.day-event-row');
+          if (!row || !to) { this.settle(); return; }
+          hand(true);
+          pointAt(row, 0.4, 0.5);
+          await w(560);
+          click();
+
+          // a ghost travels with the hand; the real one is re-drawn on the day
+          // it was dropped on, because that is what the drop means
+          const g = row.cloneNode(true);
+          g.className = 'day-event-row tour-ghost';
+          pin.appendChild(g);
+          const p = pin.getBoundingClientRect();
+          const a = row.getBoundingClientRect();
+          const b = to.getBoundingClientRect();
+          g.style.left = `${a.left - p.left}px`;
+          g.style.top = `${a.top - p.top}px`;
+          g.style.width = `${a.width}px`;
+          from.querySelector('.day-events-detail').style.opacity = '0.25';
+          await w(60);
+          g.style.left = `${b.left - p.left + 8}px`;
+          g.style.top = `${b.top - p.top + 34}px`;
+          pointAt(to, 0.4, 0.42);
+          await w(680);
+          g.remove();
+          this.settle();
+          await w(120);
         },
-        ours: {
-          find: (s) => s.querySelector('.weekday-cell.saturday'),
-          spec: (el, s) => {
-            const c = getComputedStyle(el);
-            const num = s.querySelector('.day-cell.saturday:not(.other-month) .day-number');
-            return `<b>${famOf(el)}</b> ${c.fontSize} · TRACKING ${c.letterSpacing} · ` +
-              `LABEL <b>${hexOf(el, 'color')}</b>, THE DATE UNDER IT <b>${num ? hexOf(num, 'color') : '—'}</b> — THE WHOLE COLUMN CARRIES IT`;
-          },
+        settle() {
+          shutPanel(); shutCompose();
+          clearEvent();
+          const box = putEvent(cellFor(TO), false);
+          if (box) box.classList.add('is-landed');
         },
-        note: 'Every weekday at one weight and one colour, so the shape of a week has to be ' +
-          'counted out. Ours colours both ends of it: you find Saturday without reading a word.',
+        undo() { clearEvent(); putEvent(cellFor(FROM), false); },
       },
       {
-        title: 'Today',
-        span: 146,
-        old: {
-          find: (s) => s.querySelector('.old-cell.is-today'),
-          spec: (el) => {
-            const c = getComputedStyle(el);
-            const w = (c.boxShadow.match(/-?[\d.]+px/g) || [])[3] || '—';
-            return `${c.fontSize} · TODAY IS A <b>${w}</b> BOX DRAWN ROUND THE WHOLE DAY`;
-          },
+        title: 'Tick it off where you are.',
+        lead: 'The grid and the panel are not two views of the appointment. They are the ' +
+          'appointment — check it in one and it strikes through in the other, in place.',
+        async play(w) {
+          const cell = cellFor(TO);
+          if (!cell) { this.settle(); return; }
+          hand(true);
+          pointAt(cell, 0.5, 0.4);
+          await w(520);
+          click();
+          await w(200);
+          openPanel(cell, [WRITTEN]);
+          lit(TO, true);
+          await w(760);
+          pointAt(panel.querySelector('.schedule-item-checkbox'));
+          await w(520);
+          click();
+          await w(180);
+          this.settle();
         },
-        ours: {
-          find: (s) => s.querySelector('.day-cell.today .day-number'),
-          spec: (el) => {
-            const c = getComputedStyle(el);
-            return `EVERY NUMERAL IN THE SAME <b>${c.width} × ${c.height}</b> CIRCLE · RING <b>${ringOf(el)}</b>, INSET — ` +
-              'A SHADOW, NOT A BORDER, SO IT COSTS THE CELL NO LAYOUT';
-          },
+        settle() {
+          shutCompose();
+          const cell = cellFor(TO);
+          if (!cell) return;
+          openPanel(cell, [{ ...WRITTEN, done: true }]);
+          lit(TO, true);
+          clearEvent();
+          putEvent(cell, true);
         },
-        note: 'A box drawn round the whole day. Ours rings the numeral instead, and rings it ' +
-          'with a shadow — so nothing in the cell has to move aside to make room for today.',
+        undo() {
+          shutPanel();
+          lit(TO, false);
+          clearEvent();
+          putEvent(cellFor(TO), false);
+        },
       },
       {
-        // The same appointment on both sides: the hero types "Design review 2pm"
-        // into the reference, and this is what the app makes of it.
-        title: 'An appointment',
-        span: 154,
-        old: {
-          find: (s) => s.querySelector('.old-jot'),
-          // Only what the frame shows. It says nowrap rather than "clipped",
-          // because on a short note like this one nothing is clipped and the
-          // crop would be claiming something it does not show.
-          spec: (el) => {
-            const c = getComputedStyle(el);
-            return `${c.fontSize} PLAIN TEXT · <b>WHITE-SPACE ${c.whiteSpace.toUpperCase()}</b> — ONE LINE, WHATEVER FITS · ` +
-              'NO TIME FIELD, NO COLOUR, NO REPEAT: THE 2PM IS A WORD';
-          },
+        title: 'Turn the page, and come back.',
+        lead: 'Next month is empty because you have not been there yet — and the ring is ' +
+          'gone with it. It only ever sits on today, which this calendar had to go and look ' +
+          'up. Today takes you back.',
+        async play(w) {
+          shutPanel(); shutCompose();
+          lit(TO, false);
+          hand(true);
+          pointAt(cal.querySelector('.nav-next'));
+          await w(620);
+          click();
+          await w(180);
+          swap(monthAt(1), EMPTY_DEAL);
+          await w(1600);
+          pointAt(cal.querySelector('.today-btn'));
+          await w(620);
+          click();
+          await w(180);
+          this.settle();
         },
-        ours: {
-          find: (s) => [...s.querySelectorAll('.day-event-row')]
-            .find((r) => r.textContent.indexOf('Design review') === 0),
-          spec: (row) => {
-            const p = row.querySelector('.day-event-title');
-            const c = getComputedStyle(p);
-            const t = row.querySelector('.day-event-time');
-            return `PILL — RADIUS <b>${c.borderTopLeftRadius}</b>, PADDING ${c.paddingTop} ${c.paddingLeft}, WEIGHT ${c.fontWeight} · ` +
-              `LABEL <b>${hexOf(p, 'color')}</b> ON THE SAME COLOUR AT 15% · ` +
-              `THE TIME IS ITS OWN ELEMENT, ${t ? getComputedStyle(t).fontSize : '—'}`;
-          },
+        settle() {
+          shutPanel(); shutCompose();
+          swap(M, DEAL);
+          lit(TO, false);
+          putEvent(cellFor(TO), true);
         },
-        note: 'The same appointment, twice. On the left the time is four characters inside a ' +
-          'sentence, and the colour and the repeat have nowhere to go. On the right each of ' +
-          'them is a field, and the title is only what is left over.',
-      },
-      {
-        // Nothing is added to the reference to lose this comparison. The crop
-        // is of the same days, and what it shows is that they are only days.
-        title: 'A run of days',
-        // The whole run has to be inside both frames: three cells of a 900px
-        // month is 372px, and a little over that leaves a margin. Any tighter
-        // and the left crop shows two days while its line says three.
-        span: 392,
-        old: {
-          find: (s) => s.querySelectorAll('.old-cell')[runStart],
-          ax: RUN / 2,
-          spec: (el) => {
-            const c = getComputedStyle(el);
-            return `THE SAME ${RUN} DAYS · ${c.borderRightWidth} BORDERS AND NOTHING ELSE — ` +
-              'NO BAR, NO JOIN, NOTHING SAYING THESE BELONG TO ONE THING';
-          },
+        undo() {
+          swap(M, DEAL);
+          const cell = cellFor(TO);
+          if (!cell) return;
+          putEvent(cell, true);
+          openPanel(cell, [{ ...WRITTEN, done: true }]);
+          lit(TO, true);
         },
-        ours: {
-          find: (s) => s.querySelector('.spanning-bar'),
-          spec: (el) => {
-            const spacer = el.closest('.week-row').querySelector('.day-spanning-spacer');
-            return `ONE BAR OVER ${RUN} DAYS, <b>${getComputedStyle(el).height}</b> TALL, DRAWN ONCE · ` +
-              `EVERY DAY IT CROSSES RESERVES <b>${spacer ? getComputedStyle(spacer).height : '—'}</b>, ` +
-              'SO IT NEVER LANDS ON A WORD';
-          },
-        },
-        note: `${RUN === 3 ? 'Three' : RUN} days that belong to one thing, and the grid on the ` +
-          'left has no way to say so — you would write it out again on each of them. Ours draws ' +
-          'it once, and every day underneath keeps the room for it.',
-      },
-      {
-        title: 'Writing it down',
-        kind: 'window',
-        old: {
-          html: OLD_WINDOW,
-          find: (s) => s.querySelector('.old-note-body'),
-          spec: (el) => {
-            const c = getComputedStyle(el);
-            return `<b>${famOf(el)}</b> ${c.fontSize} · ONE FREE-TEXT BOX, ${c.minHeight} OF IT · ` +
-              'ONE WINDOW PER DAY, AND NOTHING CARRIES OVER';
-          },
-        },
-        ours: {
-          html: OUR_WINDOW,
-          find: (s) => s.querySelector('.icon-row'),
-          spec: (el) => {
-            const all = el.querySelectorAll('.icon-btn-wrapper').length;
-            const pro = el.querySelectorAll('.icon-btn-wrapper.premium').length;
-            const sw = el.parentNode.querySelectorAll('.compose-swatch').length;
-            return `<b>${all}</b> FIELD BUTTONS — ${all - pro} FREE, <b>${pro} PRO</b> · ${sw} COLOURS · ` +
-              'THE DIVIDER IS THE APP’S OWN, NOT THIS PAGE’S';
-          },
-        },
-        note: 'One box, and whatever fits on a line of it. Ours asks for the parts separately — ' +
-          'and the row splits itself exactly where the paid fields start. That line is drawn ' +
-          'by the product, so the page shows it rather than making a claim about it.',
       },
     ];
 
-    const cropped = [];   // re-placed on resize and once the web fonts land
-    const total = pad2(STEPS.length);
+    // Swapping the month throws the whole grid away, which is why no step holds
+    // a cell — they hold day numbers and ask cellFor() each time. Whatever the
+    // written event was doing has to be re-drawn by the caller afterwards; a
+    // grid that has just been rebuilt is a grid with nothing written on it.
+    function swap(mm, deal) {
+      const next = buildCalendar(mm, deal);
+      cal.replaceWith(next);
+      cal = next;
+      hold();
+    }
 
-    STEPS.forEach((s, i) => {
-      const step = document.createElement('article');
-      step.className = `vs-step vs-step--${s.kind || 'crop'}`;
-      step.innerHTML =
-        `<p class="vs-n">${pad2(i + 1)} / ${total}</p>` +
-        `<h3 class="vs-title">${s.title}</h3>` +
-        '<div class="vs-pair">' +
-          '<figure class="vs-side vs-side--old">' +
-            '<figcaption class="vs-tag">WHERE THIS STARTED</figcaption>' +
-            '<div class="vs-box"></div><p class="vs-spec"></p></figure>' +
-          '<figure class="vs-side vs-side--ours">' +
-            '<figcaption class="vs-tag is-ours">BRACHY</figcaption>' +
-            '<div class="vs-box"></div><p class="vs-spec"></p></figure>' +
-        '</div>' +
-        `<p class="vs-note">${s.note}</p>`;
-      box.appendChild(step);
+    // ---- the rail: where you are, and how much is left ----
+    // Numbers only. The step's title is already on the plate to the left, and a
+    // rail that carried it too came out ragged — an `opacity: 0` title still
+    // takes its width, so five right-aligned ticks sat on five different lines.
+    rail.innerHTML = STEPS.map((_, i) => `<li class="tour-tick">${pad2(i + 1)}</li>`).join('');
+    const ticks = [...rail.querySelectorAll('.tour-tick')];
 
-      const boxes = step.querySelectorAll('.vs-box');
-      const specs = step.querySelectorAll('.vs-spec');
+    // ---- the engine ----
+    let at = -1;            // the last step whose end state is on screen
+    let token = 0;          // cancels a play() that the reader has scrolled past
+    const HALT = {};
 
-      [['old', 0], ['ours', 1]].forEach(([side, n]) => {
-        const cfg = s[side];
-        const frame = boxes[n];
-        const out = specs[n];
-
-        if (s.kind === 'window') {
-          frame.classList.add('vs-box--win');
-          frame.innerHTML = cfg.html();
-          out.innerHTML = cfg.spec(cfg.find(frame));
-          return;
-        }
-
-        const stage = side === 'old' ? oldStage() : buildCalendar();
-        frame.appendChild(stage);
-
-        if (s.kind === 'type') {
-          // The specimen is set in the same stack the live component beside it
-          // is set in, so the browser lands on the same face; the label says
-          // which face that turned out to be, and at what size the component
-          // itself is set.
-          //
-          // The stack goes on through el.style, NEVER through a style="" in an
-          // HTML string: a computed font-family carries double quotes around
-          // any family with a space in it ('Georgia, "Times New Roman", serif'),
-          // and those close the attribute early. The declaration then dies on a
-          // trailing comma and both specimens quietly fall back to the page's
-          // own display face — which is this section showing neither typeface
-          // while claiming to compare them.
-          frame.classList.add('vs-box--type');
-          const read = cfg.probe(stage).map((el) => {
-            const c = getComputedStyle(el);
-            return { fam: famOf(el), stack: c.fontFamily, size: c.fontSize };
-          });
-          stage.remove();
-          read.forEach((r, k) => {
-            const row = document.createElement('p');
-            row.className = 'vs-type-row';
-            const fam = document.createElement('span');
-            fam.className = 'vs-type-fam';
-            fam.textContent = `${r.fam} · ${r.size} IN THE CALENDAR`;
-            const line = document.createElement('span');
-            line.className = 'vs-type-line';
-            line.style.fontFamily = r.stack;
-            line.textContent = cfg.words[k];
-            row.append(fam, line);
-            frame.appendChild(row);
-          });
-          const fams = [...new Set(read.map((r) => r.fam))];
-          out.innerHTML = fams.length > 1
-            ? `<b>${fams.length} FAMILIES</b> IN ONE GRID — ${fams.join(' + ')}`
-            : `<b>ONE FAMILY</b> THROUGHOUT — ${fams[0]}`;
-          return;
-        }
-
-        cropped.push({
-          stage, out, frame, span: s.span, find: cfg.find, spec: cfg.spec,
-          // where inside the found element the crop is centred, in multiples of
-          // its own width/height. 0.5 is its middle; step 6 uses 1.5 to land on
-          // the middle of a three-cell run from the run's first cell.
-          ax: cfg.ax === undefined ? 0.5 : cfg.ax,
-          ay: cfg.ay === undefined ? 0.5 : cfg.ay,
-        });
-      });
-    });
-
-    // Centre each crop on its target. Scaling about the element's centre keeps
-    // the centre fixed, so the target is first translated there — in the
-    // element's own pre-scale coordinates, which is what a percentage translate
-    // on the inside of the scale gives us.
-    //
-    // A step declares `span`: how many of the stage's 900 px must be visible
-    // across the frame, and the scale falls out of the frame's real width. A
-    // fixed multiplier would be tuned to one viewport — the phone's frames are
-    // a third narrower than the desktop's, and the same 3.4× that framed an
-    // appointment on a laptop cut the words off either end of it.
-    const place = () => {
-      cropped.forEach(({ stage, out, frame, span, find, spec, ax, ay }) => {
-        const target = find(stage);
-        if (!target) return;
-        // the stage goes through too: a line may need a second element from the
-        // same calendar, and it must be THIS calendar rather than another step's
-        out.innerHTML = spec(target, stage);
-        stage.style.transform = 'none';   // measure untransformed, or a re-run compounds
-        const c = stage.getBoundingClientRect();
-        const t = target.getBoundingClientRect();
-        const fw = frame.clientWidth;
-        if (!c.width || !c.height || !fw) return;
-        const zoom = fw / span;
-        const dx = 50 - ((t.left + t.width * ax - c.left) / c.width) * 100;
-        const dy = 50 - ((t.top + t.height * ay - c.top) / c.height) * 100;
-        stage.style.transform = `scale(${zoom}) translate(${dx}%, ${dy}%)`;
-      });
+    const say = (i) => {
+      const s = STEPS[i];
+      $('#tour-n').textContent = `${pad2(i + 1)} / ${pad2(STEPS.length)}`;
+      $('#tour-title').textContent = s ? s.title : '';
+      $('#tour-lead').textContent = s ? s.lead : '';
+      ticks.forEach((t, k) => t.classList.toggle('is-at', k === i));
     };
-    requestAnimationFrame(place);
-    addEventListener('resize', place);
-    // web fonts change the metrics under us; re-measure once they are in
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
 
-    // The section closes on itself: the page went and looked up what day it is,
-    // and so did the calendar it is arguing for.
-    const self = document.createElement('div');
-    self.className = 'vs-step vs-step--self';
-    self.innerHTML =
-      `<p class="vs-self">This page knows today is the ${ORDINAL(M.today)}.<br />So does the calendar.</p>`;
-    box.appendChild(self);
+    function goTo(n, animate) {
+      if (n === at) return;
+      // Bumping the token halts whatever play() is mid-flight, which means it
+      // stops between two awaits and never reaches its own tidying up. So the
+      // things a play can leave lying around are cleared here, where every
+      // route in and out of a step passes.
+      token++;
+      const mine = token;
+      pin.querySelectorAll('.tour-ghost').forEach((g) => g.remove());
+      const w = (ms) => new Promise((r) => setTimeout(r, ms))
+        .then(() => { if (token !== mine) throw HALT; });
 
-    return [...box.querySelectorAll('.vs-step')];
+      if (n < at) {
+        // backwards: hand the calendar back one step at a time, in reverse
+        for (let i = at; i > n; i--) STEPS[i].undo();
+        hand(false);
+        at = n;
+        say(Math.max(0, at));
+        return;
+      }
+      // Forwards. The step being left is settled first — it may have been cut
+      // off halfway through its own play, and the next one is entitled to find
+      // the calendar in the state the last one promised. settle() is written to
+      // be safe to call on a step that is already settled.
+      if (at >= 0) STEPS[at].settle();
+      for (let i = at + 1; i < n; i++) STEPS[i].settle();
+      at = n;
+      say(n);
+      const s = STEPS[n];
+      if (!animate || REDUCED()) { hand(false); s.settle(); return; }
+      Promise.resolve(s.play(w)).catch((e) => { if (e !== HALT) throw e; })
+        .then(() => { if (token === mine) hand(false); });
+    }
+
+    say(0);
+    return {
+      steps: STEPS.length,
+      // p is 0..1 across the section, and it is 0 both above the section and at
+      // the instant the pin sticks. So p === 0 means "not here yet" and winds
+      // the calendar all the way back — otherwise the scrub's very first frame,
+      // which runs at load while the reader is still in the hero, would play
+      // step one to an empty room.
+      at: (p) => {
+        if (p <= 0) { goTo(-1, false); return; }
+        goTo(Math.min(STEPS.length - 1, Math.floor(p * STEPS.length)), true);
+      },
+    };
   }
 
   // ---------- scroll scrub — one rAF-throttled pass drives every section ----------
-  function initScrub(demo, vsSteps) {
+  function initScrub(demo, tour) {
     const hero = $('#hero');
+    const tourSec = $('#tour');
     const wall = $('#plane-wall');
     const cal = $('#plane-cal');
     const pin = $('.hero-pin');
@@ -1241,21 +1317,16 @@
       const label = !demo.isDone() ? 'SCROLL WHEN READY'
         : p < 0.30 ? 'SCROLL TO BREAK IT'
         : p < 0.86 ? 'SCROLL'
-        : 'ONE PART AT A TIME';
+        : 'NOW WATCH IT WORK';
       if (cue.textContent !== label) cue.textContent = label;
 
       // the pin dims on the way out, so nothing outlives the calendar
       pin.style.opacity = String(clamp01(1 - (p - 0.93) / 0.07));
 
-      // 2. one part at a time — each comparison assembles as it reaches the
-      //    middle of the screen and lets go as it leaves. One custom property
-      //    per step; the two sides read it for their own offsets, so this pass
-      //    writes one value and the compositor does the rest.
-      vsSteps.forEach((el) => {
-        const r = el.getBoundingClientRect();
-        const off = Math.abs(r.top + r.height / 2 - vh / 2) / (vh / 2);
-        el.style.setProperty('--k', clamp01(1 - off * 1.15).toFixed(3));
-      });
+      // 2. the tour — scroll picks the step and the step plays itself. The
+      //    engine is told a position, never a direction: it works out for
+      //    itself what to play, what to snap past, and what to put back.
+      tour.at(prog(tourSec));
     }
 
     // While the cue reads as an instruction it must not do the opposite of
@@ -1358,10 +1429,10 @@
     scrollTo(0, 0);
     buildOldCalendar($('#oldcal'));
     $('#plane-cal').appendChild(buildCalendar());
-    const vsSteps = buildVersus();
+    const tour = initTour();
     const demo = initOldDemo();
     runLoader(demo.start);
-    initScrub(demo, vsSteps);
+    initScrub(demo, tour);
     initCursor();
     initGet();
 

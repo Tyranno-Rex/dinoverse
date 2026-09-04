@@ -78,8 +78,7 @@ img { max-width: 100%; display: block; }
 }
 /* the contrast axis: very tight huge type against very wide small mono */
 .eyebrow, .topbar, .scroll-cue, .loader-count, .loader-month,
-.vs-n, .vs-tag, .vs-spec, .vs-type-fam,
-.get-meta, .footer, .link-btn, .file-row {
+.tour-tick, .get-meta, .footer, .link-btn, .file-row {
   font-family: var(--mono);
   text-transform: uppercase;
   letter-spacing: 0.22em;
@@ -298,8 +297,8 @@ img { max-width: 100%; display: block; }
 
    EventPopup.tsx / Popup.css is what a new event is written in, ported from
    the product rather than designed here. Class names and values are the app's,
-   so what this page shows and what the app shows cannot drift apart. Section 2
-   stands it next to the reference's one free-text window.
+   so what this page shows and what the app shows cannot drift apart. The tour's
+   second step fills one in.
    ============================================================ */
 
 /* ---------- EventPopup ---------- */
@@ -318,6 +317,15 @@ img { max-width: 100%; display: block; }
   border-radius: 8px; color: var(--text-color); font-size: 13px;
   box-sizing: border-box; transition: border-color 0.15s;
 }
+.popup-input.is-empty { color: var(--text-muted); }
+.popup-input i { font-style: normal; transition: color 0.3s; }
+/* it blinks only while something is actually being typed into it */
+.tc-caret {
+  display: none; width: 1px; height: 1em; margin-left: 1px;
+  background: var(--text-color); vertical-align: -2px;
+}
+.tour-compose.is-typing .tc-caret { display: inline-block; animation: oldblink 1.06s step-end infinite; }
+
 .icon-row { display: flex; gap: 4px; align-items: flex-start; flex-wrap: wrap; }
 .icon-group { display: flex; gap: 4px; }
 .icon-row-divider {
@@ -342,13 +350,19 @@ img { max-width: 100%; display: block; }
   padding: 1px 4px; border-radius: 4px; line-height: 1.3;
 }
 
-/* the colour picker, as the app draws it once its button has been pressed */
+/* the colour picker only exists once its button has been pressed */
 .colour-drop {
   display: flex; gap: 7px; flex-wrap: wrap;
   padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px;
   background: var(--bg-primary);
+  opacity: 0; transform: translateY(-5px); visibility: hidden;
+  transition: opacity 0.24s, transform 0.24s cubic-bezier(0.2, 0, 0, 1), visibility 0.24s;
 }
-.compose-swatch { width: 16px; height: 16px; border-radius: 50%; opacity: 0.55; }
+.colour-drop.is-open { opacity: 1; transform: none; visibility: visible; }
+.compose-swatch {
+  width: 16px; height: 16px; border-radius: 50%; opacity: 0.55;
+  transition: opacity 0.25s, box-shadow 0.25s, transform 0.25s;
+}
 .compose-swatch.is-on {
   opacity: 1; transform: scale(1.14);
   box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 3.5px currentColor;
@@ -360,7 +374,9 @@ img { max-width: 100%; display: block; }
 .popup-save {
   padding: 9px 22px; border-radius: 8px;
   background: var(--accent-color); color: #fff; font-size: 13px; font-weight: 500;
+  transition: filter 0.2s, transform 0.12s;
 }
+.popup-save.is-press { transform: scale(0.97); filter: brightness(1.25); }
 
 /* ---------- 1. hero ---------- */
 /* Three beats live inside this one pin — before, shatter, reveal — so it needs
@@ -644,145 +660,170 @@ img { max-width: 100%; display: block; }
 }
 
 /* ============================================================
-   2. ONE PART AT A TIME — the comparison, on black.
+   2. THE TOUR — ours, being used.
 
-   Each step is one part of the calendar, drawn twice: the reference on the
-   left, ours on the right, both of them live DOM rather than pictures. The
-   spec line under each frame is written by app.js from that frame's own
-   computed style, so it cannot say something the frame does not show.
-
-   The scrub gives each step a --k of 0..1 — 1 when it is at the middle of the
-   screen. The two sides read it for their own offsets, so a scroll frame
-   writes one custom property per step and the compositor does the rest.
+   One pin holding one live calendar. A pointer walks to a day and clicks it,
+   writes an event in, drags it, ticks it off, turns the month; scroll picks
+   which step is on. The panel and the composer below are the app's own
+   components, ported the same way the calendar was.
    ============================================================ */
-.versus { padding: 12vh clamp(16px, 5vw, 64px) 6vh; }
-.versus-head {
-  display: grid; gap: 20px; margin-bottom: 10vh;
-  max-width: 46ch;
+.tour { height: 520vh; position: relative; }
+.tour-pin {
+  --panel-w: min(380px, 32vw);
+  --gut: clamp(12px, 3vw, 44px);
+  /* the band the copy and the rail live in, under the calendar rather than on
+     top of it: this month is full, and a plate laid over it covers a week */
+  --band: clamp(150px, 22vh, 210px);
+  position: sticky; top: 0; height: 100vh;
+  overflow: hidden;
 }
-.versus-head .eyebrow { margin: 0; color: var(--accent-lit); }
-.versus-lead { margin: 0; color: var(--steel); line-height: 1.55; }
+.tour-stage {
+  position: absolute;
+  /* the top clears the fixed topbar, which is 56px tall and would otherwise sit
+     across the calendar's own header — and a thing being pointed at must not
+     move under the pointer */
+  top: clamp(56px, 7vh, 88px); left: var(--gut); right: var(--gut);
+  bottom: var(--band);
+  transition: right 0.42s cubic-bezier(0.2, 0, 0, 1);
+}
+.tour-stage > .app { height: 100%; }
+/* The panel does not sit on top of the month — the month makes room for it,
+   which is what the app's own side panel does. */
+.tour-pin.is-panel-open .tour-stage { right: calc(var(--panel-w) + var(--gut)); }
 
-.vs-step {
-  --k: 0;
-  min-height: 96vh;
-  display: grid; align-content: center; justify-items: center;
-  gap: 20px;
-  padding: 6vh 0;
+/* the day a step is working on stays lit while its panel is up */
+.day-cell.is-lit {
+  background: var(--bg-cell-hover);
+  box-shadow: inset 0 0 0 1.5px var(--accent-color);
 }
-.vs-n { margin: 0; color: var(--steel-dim); }
-.vs-title {
-  margin: 0; text-align: center;
-  font-family: var(--display); font-weight: 500;
-  font-size: clamp(26px, 3.4vw, 52px); line-height: 1.04; letter-spacing: -0.03em;
+/* the event a step just put down, landing on its day */
+@keyframes land { from { opacity: 0; transform: translateY(-11px) scale(0.86); } }
+.day-events-detail.is-landed { animation: land 0.46s cubic-bezier(0.34, 1.4, 0.64, 1); }
+/* the one travelling with the hand mid-drag */
+.tour-ghost {
+  position: absolute; z-index: 9; pointer-events: none;
+  font-size: 0.75em;
+  transition: left 0.62s cubic-bezier(0.3, 0, 0, 1), top 0.62s cubic-bezier(0.5, 0, 0.2, 1);
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.6));
+}
+
+/* ---------- the two app panels ---------- */
+.tour-panel, .tour-compose {
+  position: absolute; z-index: 8;
+  top: 0; right: 0; bottom: var(--band); width: var(--panel-w);
+  padding: 56px 0 0;              /* clears the fixed topbar */
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+  background: rgba(14, 16, 18, 0.94);
+  border-left: 1px solid var(--line);
+  backdrop-filter: blur(14px);
+  transform: translateX(100%);
+  opacity: 0; visibility: hidden;
+  transition: transform 0.42s cubic-bezier(0.2, 0, 0, 1), opacity 0.3s, visibility 0.42s;
+}
+.tour-panel.is-open, .tour-compose.is-open { transform: none; opacity: 1; visibility: visible; }
+.tour-panel .app, .tour-compose .app { height: auto; display: block; }
+
+/* ---------- SchedulePanel ---------- */
+/* apps/brachy/src/components/SchedulePanel — class names and values are the
+   app's, so what this page shows and what the app shows cannot drift apart. */
+.schedule-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(28, 28, 30, 0.6);
+}
+.schedule-header-content { flex: 1; }
+.schedule-title { font-size: 1.3em; font-weight: 500; color: var(--text-color); margin: 0 0 4px; }
+.schedule-date { font-size: 1em; color: var(--text-secondary); margin: 0; }
+.schedule-close { color: var(--text-secondary); font-size: 20px; line-height: 1; padding: 8px; }
+
+.schedule-list { padding: 16px 24px; }
+.schedule-day-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 4px; margin-bottom: 6px;
+  border-bottom: 1px solid var(--border-color); border-radius: 4px;
+}
+.schedule-day-header.today { border-bottom-color: var(--accent-color); }
+.schedule-day-header-left { display: flex; align-items: center; gap: 8px; }
+.schedule-day-chevron { display: flex; align-items: center; color: var(--text-muted); width: 14px; }
+.schedule-day-label {
+  font-size: 0.8em; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--text-secondary);
+}
+.schedule-day-label.today { color: var(--accent-color); }
+.schedule-day-date { font-size: 0.8em; color: var(--text-muted); }
+.schedule-day-count {
+  font-size: 0.75em; font-weight: 600; min-width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px; background: var(--accent-light); color: var(--accent-color);
+}
+.schedule-day-group.today .schedule-day-count { background: var(--accent-color); color: #fff; }
+
+.schedule-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; margin-bottom: 8px;
+  background: var(--bg-primary); border: 1px solid var(--border-color);
+  border-radius: 12px; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4);
+  transition: opacity 0.3s;
+}
+.schedule-item.is-done { opacity: 0.6; }
+.schedule-item-checkbox {
+  width: 22px; height: 22px; min-width: 22px; border-radius: 50%;
+  border: 2px solid var(--text-muted); background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; padding: 0; color: transparent; font-size: 12px;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.schedule-item-checkbox.checked {
+  background: var(--accent-color); border-color: var(--accent-color); color: #fff;
+}
+.schedule-item-content { flex: 1; min-width: 0; }
+.schedule-item-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.schedule-item-color-dot { width: 8px; height: 8px; min-width: 8px; border-radius: 50%; flex-shrink: 0; }
+.schedule-item-tag-dots { display: flex; gap: 2px; align-items: center; flex-shrink: 0; }
+.schedule-item-tag-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.schedule-item-title { font-size: 1em; font-weight: 400; color: var(--text-color); line-height: 1.5; flex: 1; margin: 0; }
+.schedule-item-title.completed { color: var(--text-muted); text-decoration: line-through; }
+.schedule-item-dday {
+  font-size: 0.8em; font-weight: 600; padding: 2px 6px; border-radius: 4px;
+  background: var(--accent-light); color: var(--accent-color); white-space: nowrap;
+}
+.schedule-item-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.schedule-item-time { display: flex; align-items: center; gap: 4px; font-size: 0.85em; color: var(--text-secondary); }
+.schedule-item-repeat { display: flex; align-items: center; gap: 4px; font-size: 0.8em; color: var(--accent-color); }
+
+/* ---------- the band: the copy, and where you are in the tour ---------- */
+.tour-copy {
+  position: absolute; z-index: 7;
+  left: var(--gut); bottom: 0; height: var(--band);
+  /* it stops short of the rail, and of the panel when one is open */
+  right: calc(var(--panel-w) + var(--gut) * 2);
+  display: grid; align-content: center; gap: 9px;
+  padding: 0 0 0 20px;
+  border-left: 2px solid var(--accent);
+}
+.tour-copy .eyebrow { margin: 0; color: var(--accent-lit); }
+.tour-title {
+  margin: 0; font-family: var(--display); font-weight: 500;
+  font-size: clamp(22px, 2.4vw, 36px); line-height: 1.06; letter-spacing: -0.03em;
   color: var(--chalk);
-  /* it arrives with its step rather than sitting there waiting */
-  opacity: calc(0.25 + 0.75 * var(--k));
+}
+.tour-lead {
+  margin: 0; max-width: 70ch;
+  font-size: clamp(15px, 1.2vw, 18px); line-height: 1.5; color: var(--steel);
 }
 
-/* The two sides come in from opposite edges as the step reaches the middle of
-   the screen. Nothing is hidden at k=0 — a reader who lands mid-section with
-   scripting slow still sees both halves. */
-.vs-pair {
-  display: grid; grid-template-columns: 1fr 1fr; gap: clamp(14px, 2.4vw, 34px);
-  width: min(1080px, 100%);
-  align-items: start;
+.tour-rail {
+  position: absolute; z-index: 7; margin: 0;
+  right: var(--gut); bottom: 0; height: var(--band);
+  list-style: none; padding: 0;
+  display: grid; align-content: center; gap: 10px; justify-items: end;
 }
-.vs-side { margin: 0; display: grid; gap: 12px; min-width: 0; }
-.vs-side--old  { transform: translateX(calc((1 - var(--k)) * -22px)); }
-.vs-side--ours { transform: translateX(calc((1 - var(--k)) * 22px)); }
-.vs-side { opacity: calc(0.34 + 0.66 * var(--k)); }
+.tour-tick { color: var(--steel-dim); transition: color 0.3s; }
+.tour-tick.is-at { color: var(--accent-lit); }
 
-.vs-tag { margin: 0; color: var(--steel-dim); }
-.vs-tag.is-ours { color: var(--accent-lit); }
-
-.vs-box {
-  position: relative; overflow: hidden;
-  aspect-ratio: 4 / 3;
-  border: 1px solid var(--line);
-  background: var(--void-2);
-  /* NOT a centering grid: an auto track grows to the 900px stage, so
-     place-items:center would be a no-op and every crop would sit ~170px off.
-     The stage is pinned to the box's centre instead. */
-}
-.vs-side--ours .vs-box { border-color: rgba(10, 132, 255, 0.32); }
-/* A fixed desktop-sized box to crop out of, centred on the frame's centre.
-   :not(--win) is load-bearing: step 7 puts the app's own composer straight into
-   a .vs-box, and without the exclusion this geometry drags it 189px off the
-   left edge at a fixed 560px tall — which cropped away the icon row that whole
-   step exists to show. */
-.vs-box:not(.vs-box--win) > .app, .vs-box > .vs-cal {
-  position: absolute; left: 50%; top: 50%;
-  width: 900px; height: 560px;
-  margin: -280px 0 0 -450px;
-  transform-origin: center;
-}
-/* the reference's own frame, the one the hero draws round it */
-.vs-cal { border: 1px solid rgba(255, 255, 255, 0.45); }
-
-.vs-spec { margin: 0; color: var(--steel); line-height: 1.75; }
-.vs-spec b { color: var(--chalk); font-weight: 500; }
-.vs-side--ours .vs-spec b { color: var(--accent-lit); }
-
-.vs-note {
-  margin: 10px 0 0; max-width: 62ch; text-align: center;
-  color: var(--steel); line-height: 1.6;
-  opacity: calc(0.2 + 0.8 * var(--k));
-}
-
-/* ---------- the type specimen (step 1) ---------- */
-/* Set in whatever family the live component beside it resolved to, at a size
-   the page chose — so the spec line says what size that component is actually
-   set at, and the specimen never implies otherwise. */
-.vs-box--type {
-  aspect-ratio: 4 / 3;
-  display: grid; align-content: center; gap: clamp(14px, 2.4vh, 30px);
-  padding: clamp(16px, 3vw, 34px);
-}
-.vs-type-row { margin: 0; display: grid; gap: 7px; }
-.vs-type-fam { color: var(--steel-dim); font-size: 10px; }
-.vs-type-line {
-  font-size: clamp(26px, 4.4vw, 58px); line-height: 1;
-  color: var(--chalk); white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
-}
-
-/* ---------- the two windows (step 7) ---------- */
-/* At their own size: the difference between a 152px note and the app's
-   composer is itself part of what is being compared, so neither is scaled. */
-.vs-box--win {
-  aspect-ratio: auto;
-  /* the two windows are different heights and neither is scaled, so the pair
-     is levelled by giving both boxes the taller one's room */
-  min-height: 500px; overflow: visible;
-  display: grid; place-items: center;
-  padding: 26px 16px;
-}
-.vs-box--win .old-note {
-  position: static; transform: none; opacity: 1; transition: none;
-}
-/* 380px, not less: the app's icon row is 329px of buttons and it wraps below
-   that. A wrapped row puts the divider at the end of a line instead of between
-   the two groups — and where that divider falls is the whole point of the
-   right-hand frame. */
-.vs-box--win .app {
-  position: static; height: auto; display: block; margin: 0;
-  width: min(380px, 100%);
-}
-.vs-box--win .event-modal-popup {
-  border: 1px solid var(--border-color); border-radius: 12px;
-  background: rgba(20, 22, 25, 0.92);
-}
-
-/* the section closes on the page itself */
-.vs-step--self { min-height: 76vh; }
-.vs-self {
-  margin: 0; text-align: center; max-width: 18ch;
-  font-family: var(--display); font-size: var(--t-section);
-  letter-spacing: -0.03em; line-height: 1.02; color: var(--chalk);
-  opacity: calc(0.15 + 0.85 * var(--k));
-}
-
+/* ---------- 3. get ---------- */
 /* ---------- 3. get ---------- */
 .get {
   min-height: 100vh;
@@ -826,9 +867,12 @@ img { max-width: 100%; display: block; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .scroll-cue-arrow { animation: none; }
-  /* the comparison arrives whole rather than assembling: --k is still written
-     by the scrub, but nothing reads it for movement or for fade */
-  .vs-side, .vs-title, .vs-note, .vs-self { opacity: 1; transform: none; }
+  /* the tour does not play here either: each step is snapped to its end state,
+     so nothing may be caught mid-transition on the way to it */
+  .tour-panel, .tour-compose { transition: opacity 0.2s, visibility 0.2s; }
+  .tour-stage, .colour-drop, .tour-ghost, .schedule-item, .schedule-item-checkbox { transition: none; }
+  .tour-compose.is-typing .tc-caret { animation: none; }
+  .day-events-detail.is-landed { animation: none; }
   /* the demo does not play here: the script draws its end state at once, so
      nothing should be caught mid-transition on the way to it */
   .old-note.is-typing .old-caret { animation: none; opacity: 1; }
@@ -863,19 +907,37 @@ img { max-width: 100%; display: block; }
   .popup-content { padding: 14px 16px; gap: 12px; }
   .popup-footer { padding: 12px 16px 16px; }
 
-  /* Two 4:3 crops side by side on a 390px screen are 180px wide each, which is
-     smaller than the thing being magnified. They stack, and each gets the full
-     column — the comparison is between two frames, not between two columns. */
-  .versus { padding: 8vh 16px 4vh; }
-  .versus-head { margin-bottom: 6vh; }
-  .vs-step { min-height: auto; padding: 8vh 0; gap: 14px; }
-  .vs-pair { grid-template-columns: 1fr; gap: 22px; }
-  /* stacked, so they arrive from above and below rather than left and right */
-  .vs-side--old  { transform: translateY(calc((1 - var(--k)) * -14px)); }
-  .vs-side--ours { transform: translateY(calc((1 - var(--k)) * 14px)); }
-  .vs-note { text-align: left; margin-top: 4px; }
-  .vs-type-line { font-size: 34px; }
-  .vs-box--win { min-height: 300px; }
+  /* The tour's calendar gives up the same things the hero's does, and for the
+     same reason — it is a live month at whatever the viewport is. */
+  .tour-pin { --gut: 4px; --band: 172px; }
+  .tour-stage .day-cell { padding: 5px 3px; }
+  .tour-stage .day-event-time { display: none; }
+  .tour-stage .day-event-title { padding: 2px 4px; }
+  /* the panel becomes a sheet: a 32vw column is unreadable on a phone, and it
+     overlays rather than pushes — squeezing the month into the top third would
+     be worse than covering its lower weeks */
+  .tour-pin.is-panel-open .tour-stage { right: var(--gut); }
+  .tour-copy { right: var(--gut); padding-left: 14px; }
+  .tour-panel, .tour-compose {
+    /* A sheet, because a 32vw column is unreadable down here — but it stops at
+       the copy band rather than at the bottom of the screen. Run it to 0 and it
+       covers the band, and the step's own words are the one thing on this
+       screen a reader cannot do without. */
+    top: auto; bottom: var(--band); width: 100%; height: auto; max-height: 50%;
+    /* down here the sheet lies over a full month rather than beside it, and at
+       0.94 the grid ghosts straight through it */
+    background: rgba(14, 16, 18, 0.985);
+    border-left: none; border-top: 1px solid var(--line);
+    transform: translateY(calc(100% + var(--band)));
+    padding-top: 0;               /* no topbar to clear down here */
+  }
+  .tour-panel.is-open, .tour-compose.is-open { transform: none; }
+  .schedule-header { padding: 13px 18px; }
+  .schedule-list { padding: 12px 18px; }
+  .schedule-item { padding: 11px 13px; }
+  .tour-title { font-size: 20px; }
+  .tour-lead { font-size: 13px; line-height: 1.45; }
+  .tour-rail { display: none; }
 
   /* The old calendar was drawn for a desktop; in the hero at 390px it has to
      give up the long weekday names and the long title or it runs off its own

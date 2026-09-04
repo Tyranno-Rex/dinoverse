@@ -10,7 +10,7 @@
   <title>BRACHY CALENDAR — DINOVERSE</title>
   <link rel="icon" href="../image/brachy-icon.png" />
   <link rel="preload" href="assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/style.css?v=9" />
+  <link rel="stylesheet" href="assets/style.css?v=10" />
 </head>
 <body>
   <!-- ============ LOADER — this actual month draws itself ============
@@ -41,8 +41,8 @@
        then comes apart at its own seams and goes into the bin. THEN ours rises
        in its place, full screen, the way it actually sits on a desktop.
 
-       The hero states the difference. Section 2 proves it, one part at a
-       time. -->
+       The hero states the difference. Section 2 hands ours over and works
+       it. -->
   <section class="hero" id="hero">
     <div class="hero-pin">
       <div class="plane plane--wall" id="plane-wall" aria-hidden="true"></div>
@@ -97,32 +97,59 @@
 
       <div class="plane plane--cal" id="plane-cal"></div>
 
-      <a class="scroll-cue" href="#versus">
+      <a class="scroll-cue" href="#tour">
         <span id="cue-label">SCROLL</span><span class="scroll-cue-arrow" aria-hidden="true">↓</span>
       </a>
     </div>
   </section>
 
-  <!-- ============ 2. ONE PART AT A TIME ============
-       The hero shows two calendars. This section takes them apart and holds
-       the same part of each up against the other — the typeface, the header,
-       the weekday row, the date, an appointment, the grid line, the window you
-       write in.
+  <!-- ============ 2. THE TOUR — it uses itself ============
+       The hero ends with our calendar standing there. This section picks it up
+       and works it: a pointer walks to a day and clicks it, writes an event
+       into it, drags it, ticks it off, turns the month. Every step is the
+       app's own UI doing the thing — the panel is SchedulePanel, the composer
+       is EventPopup, the pill that lands is drawn by the same markup as every
+       other pill on the grid.
 
-       Both sides are live DOM. The left is the reference rebuilt from its own
-       measurements; the right is Brachy's own markup under Brachy's own
-       stylesheet. Every spec line under a frame is read off that frame with
-       getComputedStyle, so a caption here cannot drift from what is on
-       screen — change the app's CSS and the sentence changes with it. -->
-  <section class="versus" id="versus">
-    <header class="versus-head">
-      <p class="eyebrow">ONE PART AT A TIME</p>
-      <h2 class="display section-title">HELD<br />AGAINST<br />IT</h2>
-      <p class="versus-lead">Seven parts of the same calendar, drawn twice. Nothing below is a
-        picture of either one — both sides are running, and every measurement is read off the
-        screen it is printed under.</p>
-    </header>
-    <div class="versus-steps" id="versus-steps"></div>
+       Scroll moves between steps; arriving at one plays it. Nothing here is a
+       video and nothing is a mock-up: the DOM really changes, which is why
+       scrolling back has to put it all the way back. -->
+  <section class="tour" id="tour">
+    <div class="tour-pin">
+      <div class="tour-stage" id="tour-stage"></div>
+
+      <!-- the app's own side panel, when a step opens a day -->
+      <aside class="tour-panel" id="tour-panel" aria-hidden="true">
+        <div class="app dark blue">
+          <div class="schedule-header">
+            <div class="schedule-header-content">
+              <h2 class="schedule-title">Schedule</h2>
+              <p class="schedule-date" id="tour-panel-when"></p>
+            </div>
+            <span class="schedule-close">×</span>
+          </div>
+          <div class="schedule-list" id="tour-panel-list"></div>
+        </div>
+      </aside>
+
+      <!-- the app's own composer, when a step writes one -->
+      <aside class="tour-compose" id="tour-compose" aria-hidden="true"></aside>
+
+      <span class="demo-ptr" id="tour-ptr" aria-hidden="true">
+        <svg width="17" height="20" viewBox="0 0 17 20" fill="#fff" stroke="#0b0e11"
+             stroke-width="1.1" stroke-linejoin="round">
+          <path d="M1 1 1 15.4 5 11.6 7.8 17.8 10.6 16.5 7.9 10.5 12.9 10.2Z" />
+        </svg>
+      </span>
+
+      <div class="tour-copy" id="tour-copy">
+        <p class="eyebrow" id="tour-n">01 / 05</p>
+        <h2 class="tour-title" id="tour-title"></h2>
+        <p class="tour-lead" id="tour-lead"></p>
+      </div>
+
+      <ol class="tour-rail" id="tour-rail" aria-hidden="true"></ol>
+    </div>
   </section>
 
   <!-- ============ 3. GET — the page ends quiet ============ -->
@@ -150,6 +177,6 @@
   <script src="../assets/vendor/lenis.min.js"></script>
   <script src="../assets/crypto.js"></script>
   <script src="../data.js"></script>
-  <script src="assets/app.js?v=9"></script>
+  <script src="assets/app.js?v=10"></script>
 </body>
 </html>
