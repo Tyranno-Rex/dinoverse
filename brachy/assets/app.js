@@ -2,26 +2,35 @@
 //
 // Two screens, and neither of them is a picture.
 //
-//   1. HERO — the desktop calendar this app was built on, rebuilt in DOM on the
-//             visitor's real month. It writes three appointments the only way it
-//             can, comes apart at its own seams, and ours rises in its place,
-//             full screen, the way it sits on a desktop.
-//   2. TOUR — ours, being used. A pointer walks to a day and clicks it, writes
-//             an event in, drags it, ticks it off, turns the month. Scroll picks
-//             the step; arriving at one plays it.
+//   1. WALL — every feature the product has, all at once, set on a wallpaper.
+//             The count is read off the list rather than typed next to it.
+//             Scroll scatters the words and leaves the calendar standing in the
+//             cleared middle with no window around it — which is desktop mode,
+//             demonstrated rather than described.
+//   2. TOUR — ours, being used. A pointer writes an event with QuickAdd, drags
+//             it, plans the day, filters the month down to one project,
+//             decorates it, syncs it to a second device, then steps away and
+//             lets an agent put one in. Scroll picks the step; arriving at one
+//             plays it.
 //
-// Nothing here is a drawing of either product: the calendar, the side panel and
-// the composer are Brachy's own markup (CalendarGrid.tsx, DayCell.tsx,
-// SchedulePanel.tsx, EventPopup.tsx) under Brachy's own stylesheet, in desktop
-// mode. The reference is rebuilt from its own measurements. The tour is not a
-// video either — the DOM really changes, which is why every step also knows how
-// to put itself back when the reader scrolls up.
+// Nothing here is a drawing of the product: the calendar, the side panel,
+// QuickAdd, the daily planner, the tag filter bar and the stickers are Brachy's
+// own markup (CalendarGrid.tsx, DayCell.tsx, SchedulePanel.tsx, QuickAdd.tsx,
+// DailyPlanner.tsx, TagFilterBar.tsx, FreeStickerItem.tsx) under Brachy's own
+// stylesheet, in desktop mode. The tour is not a video either — the DOM really
+// changes, which is why every step also knows how to put itself back when the
+// reader scrolls up.
 //
-// The page runs on the visitor's real date throughout — the loader draws this
-// actual month and stops on today, and the tour's last step turns the page to a
-// month that has no ring in it because today is not there.
+// Two things have no window of their own to show. Desktop mode is something the
+// OS does, so it is shown as the real calendar on a real wallpaper. MCP is a
+// socket, so what the agent asked for is said in the PAGE's type, outside the
+// app's frame — neither is drawn as a screen the product does not have.
 //
-// Stage one is CSS only. The two WebGL moments (hero sheen, wallpaper
+// The page runs on the visitor's real date throughout: the loader draws this
+// actual month and stops on today, and every step works on days this month
+// really has.
+//
+// Stage one is CSS only. The two WebGL moments (wall sheen, wallpaper
 // displacement dissolve) wait on real app screenshots — see
 // docs/superpowers/specs/2026-08-31-brachy-site-design.md §7. Their fallbacks
 // are what you see now, and they stay when the shaders land.
@@ -51,11 +60,158 @@
   }
   const M = thisMonth();
 
-  const ORDINAL = (n) => {
-    const s = ['th', 'st', 'nd', 'rd'];
-    const v = n % 100;
-    return n + (s[(v - 20) % 10] || s[v] || s[0]);
-  };
+  // ---------- the catalogue: everything the product does ----------
+  // Transcribed from mesozoic's docs/spec/FEATURE_MATRIX.md, which is written
+  // against the code rather than against a plan — section by section, in its
+  // order, one line per row of its tables. A leading * means the app gates it
+  // behind PRO, and that mark is the matrix's, not this page's.
+  //
+  // The two repositories are separate, so nothing keeps this in step
+  // automatically. It is a snapshot of the matrix dated 2026-08-31; when the
+  // product grows, this list has to be brought over by hand.
+  //
+  // The wall's numbers are counted off these arrays at run time. A count typed
+  // next to a list is a claim; a count read out of it cannot be wrong.
+  const CATALOG = [
+    // 2.1 views and navigation
+    'Month, week, day and agenda views',
+    'A custom N-day view',
+    'Year heatmap',
+    'Today, previous, next — and jump to any month',
+    'Mini calendar in the day view',
+    'Timeline scrubber',
+    '*Tag filter bar',
+    '*Account filter bar',
+    'Overcommit warning',
+    // 2.2 events
+    'Create, edit, delete, duplicate',
+    'Write one in its own window',
+    'Drag an event to another day',
+    'Drag its edges to change the time',
+    'Title, notes, start and end, all-day',
+    'Multi-day events',
+    'Location, and locations you have saved',
+    'Several links, each with its own label',
+    'Meet, Zoom and Teams links recognised',
+    'Attendees and organiser, read from the invite',
+    'D-day countdown',
+    'Buffer time before and after',
+    'Completion, per repeat instance',
+    'Time-conflict detection',
+    '*Per-event colour',
+    '*Tags on an event',
+    '*Save and apply templates',
+    '*Assign an event to an account',
+    // 2.3 repeats
+    'Daily, weekly, monthly, yearly — every N',
+    'Ends on a date, or after N times',
+    'Edit or skip a single occurrence',
+    'This one, or all the ones after it',
+    // 2.4 reminders
+    'Several reminders on one event',
+    'OS-native notification scheduler',
+    'Snooze',
+    'Join the meeting from the notification',
+    // 2.5 memos, pomodoro, planner, time
+    'Memos, and memo windows',
+    'Pomodoro timer, started from an event',
+    'The daily planner',
+    'Focus-time suggestions',
+    'Share your free slots',
+    '*Statistics and charts',
+    // 2.6 search, quick add, birthdays
+    'Search, in a modal or its own window',
+    'QuickAdd — parsed on the device',
+    'Birthdays, drawn on the month',
+    // 2.7 stickers
+    'Mood stickers',
+    'Your own images as stickers',
+    '*Decorate mode — place, size, rotate',
+    // 2.8 appearance, display, layout
+    'Light and dark',
+    'Accent colour',
+    'Font size',
+    'Window opacity, or background only',
+    'Colourblind-friendly palette',
+    'Reduce motion',
+    'Holidays, lunar dates, adjacent months, grid lines, ISO week numbers',
+    'Event dots, for a compact month',
+    'Events per cell, and columns within one',
+    'Hide weekdays you do not use',
+    'Carry unfinished days forward',
+    'Overcommit warning, and where the line is',
+    'Schedule panel left or right, and pinned',
+    'Always on top, resize mode, drag, fit to screen',
+    'Desktop mode — it becomes the wallpaper',
+    'Tray icon',
+    '*Weather in the day',
+    // 2.9 time and language
+    'First day of the week',
+    'When your day starts',
+    '12 or 24 hour',
+    'Up to two more time zones',
+    'Six languages, or follow the system',
+    'Locale defaults applied for you',
+    // 2.10 data in and out
+    'Export and import JSON',
+    'Import and export iCal',
+    'Export the month as PDF',
+    'Automatic backup, encrypted, five kept',
+    'Undo and redo',
+    // 2.11 account and subscription
+    'Sign in with Google',
+    'Subscription status, and the upgrade sheet',
+    'Redeem a coupon',
+    'Card payment',
+    'Manage, cancel or reactivate',
+    'Delete your account and everything in it',
+    '*Link up to three email addresses',
+    '*Choose the account new events go to',
+    // 2.12 external calendars
+    '*Google Calendar, both ways',
+    '*CalDAV, both ways',
+    '*Background sync every 15 minutes',
+    '*Credentials in the OS keychain only',
+    '*Subscribe to an iCal feed',
+    // 2.13 cloud
+    '*Cloud sync — events, memos, settings, tags',
+    '*Live push over SSE',
+    '*How much storage you are using',
+    '*Erase everything on the server',
+    // 2.14 MCP
+    'MCP connection, off until you turn it on',
+    'Local socket only — no network port',
+    'list, create and update events',
+    'list, create and update memos and tags',
+    'Connecting copies a prompt, and touches nothing else',
+    // 2.15 onboarding
+    'A tour on first run',
+    'Tip of the day',
+    '*Privacy re-consent when you upgrade',
+  ];
+
+  // The matrix counts these among its rows, but each one is a second way into a
+  // feature already on the list above. Counting them again would inflate the
+  // total, so they get their own band and their own number.
+  const KEYS = [
+    ['N', 'new event'], ['Q', 'quickadd'], ['P', 'planner'], ['T', 'today'],
+    ['← →', 'prev · next'], ['1 2 3 4', 'month · week · day · agenda'],
+    ['Ctrl K', 'search'], ['Ctrl Z', 'undo'], ['F5', 'refresh'],
+  ];
+
+  // The eight the tour actually performs, set larger on the wall so it has a
+  // rhythm instead of being an even paste. Desktop mode is one of them: the
+  // wall's own transition is its demonstration.
+  const BIG = new Set([
+    'Desktop mode — it becomes the wallpaper',
+    'QuickAdd — parsed on the device',
+    'Drag an event to another day',
+    'The daily planner',
+    '*Tag filter bar',
+    '*Decorate mode — place, size, rotate',
+    '*Cloud sync — events, memos, settings, tags',
+    'MCP connection, off until you turn it on',
+  ]);
 
   // ---------- the feature tour ----------
   // Each entry is a real feature of the app (apps/brachy/docs/FEATURE_SPEC.md),
@@ -71,41 +227,67 @@
   // apps/brachy/src/utils/colors.ts — Apple system colours, and its getColorLight
   const light = (hex) => `rgba(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)}, 0.15)`;
 
+  // The three tags the month is filed under. A tag in the app is a name and a
+  // colour, and it is what the filter bar filters on — so the page needs real
+  // ones rather than three loose dots.
+  const TAGS = [
+    { name: 'Client', color: '#34C759' },
+    { name: 'Personal', color: '#AF52DE' },
+    { name: 'Ship', color: '#FF9500' },
+  ];
+  const TAG = Object.fromEntries(TAGS.map((t) => [t.name, t.color]));
+
   // Every entry is a real feature of the app, and what it puts on the grid is
   // what the app would put there — a repeat icon, a tag dot, one of the ten
   // Apple system colours it ships. docs/spec/FEATURE_MATRIX.md (mesozoic) is
   // the code-checked reference; where it and this page disagreed, this page
-  // was wrong.
+  // was wrong. Two of them were: the tag filter does not dim what does not
+  // match, it takes it out of the day (App.tsx getFilteredEventsForDate), and
+  // QuickAdd's parser reads relative days and named dates but not weekday
+  // names, so a pill reading "fri 1pm" was advertising something it cannot do.
   //
-  // The month is dressed with these so that section 2 has a real month to take
-  // apart. Which of them are paid is not asserted here — the composer in
-  // section 2 shows the app's own icon row, and the product has already drawn
-  // that line itself.
+  // The month is dressed with these so that the tour has a real month to work
+  // in. Which of them are paid is not asserted here — the tour reaches the paid
+  // ones through the app's own gates, and the product has already drawn that
+  // line itself.
   const FEATURES = [
-    { events: [{ t: 'Weekly standup', time: '09:30', repeat: true }],
+    { events: [{ t: 'Weekly standup', time: '09:30', repeat: true, tags: [TAG.Client] }],
       name: 'Repeating events' },
 
     { events: [{ t: 'Design review', time: '14:00', color: '#FF3B30' }],
       name: 'Ten event colours' },
 
-    { events: [{ t: 'Launch', dday: 'D-7', color: '#FF2D55' }],
+    { events: [{ t: 'Launch', dday: 'D-7', color: '#FF2D55', tags: [TAG.Ship] }],
       name: 'D-day countdown' },
 
-    { events: [{ t: 'Client call', time: '11:00', tags: ['#34C759', '#AF52DE'] }],
-      name: 'Tags, and a filter that dims' },
+    { events: [{ t: 'Client call', time: '11:00', tags: [TAG.Client, TAG.Personal] }],
+      name: 'Tags, and a filter' },
 
     { events: [{ t: 'Renew domain', done: true }],
       name: 'Completion' },
 
     { sticker: '🎉',
-      events: [{ t: 'Ship v1.2', time: '17:00', color: '#34C759' }],
+      events: [{ t: 'Ship v1.2', time: '17:00', color: '#34C759', tags: [TAG.Ship] }],
       name: 'Mood stickers' },
 
+    // The day the warning is for, and the one the planner opens on. The grid
+    // shows what fits and counts the rest, which is what monthViewMaxEvents
+    // does; `extra` is the rest, and the planner gets all of them — which is
+    // the whole reason anyone opens it on a day like this.
     { overcommit: true,
-      events: [{ t: 'All-hands', time: '10:00' }, { t: '+4 more', more: true }],
+      events: [
+        { t: 'All-hands', time: '10:00', tags: [TAG.Client] },
+        { t: 'Vendor sync', time: '13:00', color: '#5AC8FA', tags: [TAG.Client] },
+        { t: '+3 more', more: true },
+      ],
+      extra: [
+        { t: 'Budget review', time: '15:00', color: '#FF9500' },
+        { t: '1:1 with Dana', time: '16:30', tags: [TAG.Personal] },
+        { t: 'Ship checklist', time: '18:00', color: '#34C759', tags: [TAG.Ship] },
+      ],
       name: 'Overcommit warning' },
 
-    { events: [{ t: 'Dentist', time: '15:00', color: '#5856D6', remind: '15 min before' }],
+    { events: [{ t: 'Dentist', time: '15:00', color: '#5856D6', remind: '15 min before', tags: [TAG.Personal] }],
       name: 'Reminders, and snooze' },
 
     { events: [{ t: 'Synced · Google', time: '08:00', color: '#8E8E93' }],
@@ -121,7 +303,7 @@
       name: 'Focus-time suggestions' },
 
     { weather: true,
-      events: [{ t: 'Picnic', time: '12:00', color: '#34C759' }],
+      events: [{ t: 'Picnic', time: '12:00', color: '#34C759', tags: [TAG.Personal] }],
       name: 'Weather in the day' },
 
     { events: [{ t: 'Backup written', done: true }],
@@ -130,19 +312,16 @@
     { events: [{ t: 'Planner · 8 blocks', time: '08:00', color: '#007AFF' }],
       name: 'The daily planner' },
 
-    { events: [{ t: 'Lunch w/ sam fri 1pm', time: '13:00' }],
+    // The tour writes this one back in with QuickAdd, so it is held out of the
+    // grid before the reader arrives — see hold() in initTour.
+    { events: [{ t: 'Lunch with Sam', time: '13:00' }],
       name: 'QuickAdd, on the device' },
 
-    { events: [{ t: 'Interview', time: '16:00', buffer: '10 min either side', color: '#AF52DE' }],
+    { events: [{ t: 'Interview', time: '16:00', buffer: '10 min either side', color: '#AF52DE', tags: [TAG.Client] }],
       name: 'Conflicts and buffer time' },
   ];
 
   const SPAN = { title: 'Sprint 12 · multi-day' };
-
-  // apps/brachy/src/utils/colors.ts — the ten Apple system colours it ships
-  const PALETTE = ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#5AC8FA',
-                   '#0A84FF', '#5856D6', '#AF52DE', '#FF2D55', '#8E8E93'];
-
 
   const shuffle = (a) => {
     for (let i = a.length - 1; i > 0; i--) {
@@ -204,11 +383,31 @@
   }
   const EMPTY_DEAL = { byDay: new Map(), span: { week: -1, col: 0, len: 0 } };
 
+  // ---------- the two the tour writes ----------
+  // They are the month's own, taken off EVERY calendar the page draws so that
+  // writing them is what puts the month together rather than adding a second
+  // copy two cells away. Off every calendar, not just the tour's: the wall
+  // hands the reader a month and the tour picks it up, and two pills quietly
+  // vanishing at the seam would be the page contradicting itself.
+  const HELD = ['QuickAdd, on the device', 'Google Calendar, CalDAV, iCal feeds']
+    .map((name) => {
+      const f = FEATURES.find((x) => x.name === name);
+      return { ev: f.events[0], day: ([...DEAL.byDay].find(([, v]) => v === f) || [])[0] };
+    });
+  const holdFrom = (root) => HELD.forEach(({ day }) => {
+    const c = day && root.querySelector(`.day-cell[data-day="${day}"]`);
+    const box = c && c.querySelector('.day-events-detail');
+    if (box) box.remove();
+  });
+
   function eventHTML(e) {
     // the app's overflow line is not an event; it does not get an event's pill
     if (e.more) return `<div class="day-event-more">${e.t}</div>`;
     const style = e.color ? ` style="--event-color:${e.color};--event-color-light:${light(e.color)}"` : '';
-    return `<div class="day-event-row${e.done ? ' completed' : ''}">` +
+    // the tags ride on the row so the filter step can pick rows the way the app
+    // picks events — by which tags they carry, not by where they happen to sit
+    return `<div class="day-event-row${e.done ? ' completed' : ''}"` +
+      `${e.tags ? ` data-tags="${e.tags.join(' ')}"` : ''}>` +
       `<span class="day-event-title${e.done ? ' completed' : ''}${e.color ? ' has-color' : ''}"${style}>` +
         (e.repeat ? ICON.repeat : '') +
         (e.tags ? `<span class="day-event-tag-dots">${e.tags.map((c) => `<span class="day-event-tag-dot" style="background:${c}"></span>`).join('')}</span>` : '') +
@@ -290,393 +489,158 @@
     return app;
   }
 
-  // ---------- 1a. where this started ----------
-  // The desktop calendar this app was built on, rebuilt in DOM rather than
-  // screenshotted — so it can come apart at its own seams, and so it can run
-  // on the SAME month as ours. The two are then the same subject drawn twice.
+  // ---------- 1. the wall — everything it does, and then where it lives ----------
+  // The whole catalogue at once, set on a wallpaper. The words are one block of
+  // type in three sizes, so the wall has a rhythm rather than being an even
+  // paste; the large ones are the eight the tour is about to perform.
   //
-  // Nothing here is exaggerated to make a point: an empty grid with one plain
-  // white note open on it is what the reference actually shows. The original
-  // product is not named. Where this started is the claim; whose it was is
-  // not the page's business.
-  const OLD_DOW = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  // Scroll takes it apart. Each word has its own direction and its own delay,
+  // and the delay is not random for the large ones: the small type leaves
+  // first, so the eight are the last things standing before the calendar takes
+  // the screen. What is left in the cleared middle has no window around it,
+  // which is the whole of desktop mode — shown rather than described, and the
+  // reason the tour does not spend a step on it.
+  //
+  // Every number here is counted off CATALOG and KEYS. A count typed next to a
+  // list is a claim; a count read out of the list cannot be wrong.
+  function initWall() {
+    const words = $('#wall-words');
+    const keysEl = $('#wall-keys');
+    const wallPlane = $('#plane-wall');
+    const cal = $('#plane-cal');
+    const pin = $('.wall-pin');
 
-  // ISO week number, off the week's Thursday — which alone fixes the week.
-  function isoWeek(date) {
-    const t = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
-    const jan1 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
-    return Math.ceil(((t - jan1) / 86400000 + 1) / 7);
-  }
+    const pro = CATALOG.filter((s) => s[0] === '*').length;
+    const COPY = [
+      {
+        eyebrow: `${CATALOG.length} FEATURES · ${CATALOG.length - pro} FREE · ${pro} PRO`,
+        title: 'All of it, at once.',
+        lead: 'Every feature in the build you can download today, settings included. ' +
+          'Nothing on this wall is on a roadmap.',
+      },
+      {
+        eyebrow: 'AND NO WINDOW AROUND IT',
+        title: 'It is the wallpaper.',
+        lead: 'Desktop mode drops the frame and hands the month to the desktop itself. ' +
+          'Nothing to arrange, and nothing sitting on top of anything.',
+      },
+    ];
 
-  // Only fixed-date holidays, so the label is never a guess about the
-  // visitor's own calendar. Most months show none, which is correct.
-  const OLD_HOL = { '11-24': 'Christmas Eve', '11-25': 'Christmas', '11-31': "New Year's Eve", '0-1': 'New Year' };
-
-  // The three appointments, and what the old format cannot hold about each.
-  // The hero types them; section 2 shows one of them again, next to the pill
-  // that replaced it. Both read from here, so the two screens cannot drift.
-  const SCRIPT = [
-    { text: 'Design review 2pm',
-      loses: 'The 2pm is a word, not a time. Nothing will ring.' },
-    { text: 'Client call - jamie',
-      loses: 'No tag and no colour, so the project has to go inside the sentence.' },
-    { text: 'Standup 9:30 every mon',
-      loses: 'No repeat. You will type this again next Monday, and the one after that.' },
-  ];
-
-  // Fills `root` — the hero owns one of these, and section 2 builds one per
-  // comparison so that each crop is of a live calendar rather than a picture.
-  function buildOldCalendar(root) {
-    const weeks = Math.ceil((M.first + M.days) / 7);
-    const long = new Date(M.y, M.m, M.today).toLocaleString('en-US', { weekday: 'long' });
-
-    let gutter = '';
-    let cells = '';
-    for (let w = 0; w < weeks; w++) {
-      gutter += `<div class="oldcal-week">${isoWeek(new Date(M.y, M.m, w * 7 + 4 - M.first + 1))}</div>`;
-      for (let c = 0; c < 7; c++) {
-        const d = w * 7 + c - M.first + 1;
-        const other = d < 1 || d > M.days;
-        const date = new Date(M.y, M.m, d);
-        const hol = OLD_HOL[`${date.getMonth()}-${date.getDate()}`];
-        // data-d marks the days of this month — the ones the demo writes on
-        cells += `<div class="old-cell${other ? ' is-other' : ''}${!other && d === M.today ? ' is-today' : ''}"` +
-          `${other ? '' : ` data-d="${d}"`}>` +
-          `${date.getDate()}${hol ? `<span class="old-hol">${hol}</span>` : ''}</div>`;
+    const build = (raw) => {
+      const isPro = raw[0] === '*';
+      const el = document.createElement('span');
+      el.className = `wall-word${BIG.has(raw) ? ' is-big' : ''}${isPro ? ' is-pro' : ''}`;
+      el.textContent = isPro ? raw.slice(1) : raw;
+      if (isPro) {
+        const b = document.createElement('i');
+        b.className = 'wall-pro';
+        b.textContent = 'PRO';
+        el.appendChild(b);
       }
-    }
+      words.insertBefore(el, keysEl);      // the keys band stays last
+      return el;
+    };
 
-    root.innerHTML =
-      `<div class="oldcal-title">${M.month}, ${M.y}` +
-        `<span class="oldcal-title-long"> / Today is ${M.month} ${M.today}, ${M.y} ${long}</span>` +
-        '<span class="oldcal-btns"><span>☁</span><span>▤</span><span>←</span><span>→</span><span>❐</span><span>⌄</span></span>' +
-      '</div>' +
-      '<div class="oldcal-dow"><span></span>' +
-        OLD_DOW.map((d) => `<span><i>${d}</i><em>${d.slice(0, 3)}</em></span>`).join('') +
-      '</div>' +
-      `<div class="oldcal-body"><div class="oldcal-weeks">${gutter}</div>` +
-        `<div class="oldcal-grid">${cells}</div></div>`;
-  }
+    // where each piece goes when the wall comes apart, decided once
+    const scatter = (el, delay) => {
+      const a = Math.random() * Math.PI * 2;
+      const d = 260 + Math.random() * 520;
+      return {
+        el, delay, t: -1,
+        dx: Math.cos(a) * d,
+        dy: Math.sin(a) * d - 70,
+        rot: (Math.random() * 2 - 1) * 64,
+      };
+    };
 
-  // Where a note can stand: the middle columns of the second and third weeks.
-  // The card hangs off the day it was opened on, so where it can be opened is
-  // decided by where it will then be standing — clear of the copy plate on the
-  // left and of ours on the right. Those two rows are in this month whatever
-  // weekday it starts on, so there is always somewhere to write.
-  function oldNoteCells(root) {
-    const room = [...root.querySelectorAll('.old-cell')].filter((el, i) => {
-      const row = Math.floor(i / 7), col = i % 7;
-      return col >= 3 && col <= 4 && row >= 1 && row <= 2 && el.dataset.d;
-    });
-    return [0.16, 0.5, 0.84].map((f) => room[Math.round((room.length - 1) * f)]);
-  }
+    const pieces = CATALOG.map((raw) =>
+      scatter(build(raw), (BIG.has(raw) ? 0.36 : 0) + Math.random() * 0.28));
 
-  // what a saved note leaves on the day: the text, and nothing else
-  function jotInto(cell, text) {
-    if (!cell || cell.querySelector('.old-jot')) return;
-    const el = document.createElement('span');
-    el.className = 'old-jot';
-    el.textContent = text;
-    cell.appendChild(el);
-  }
+    keysEl.innerHTML = `<span class="wall-keys-n">${KEYS.length} SHORTCUTS</span>` +
+      KEYS.map(([k, what]) => `<span class="wall-key"><b>${k}</b>${what}</span>`).join('');
+    // the band leaves in one piece: it is one thought, not nine
+    pieces.push({ el: keysEl, delay: 0, t: -1, dx: 0, dy: 260, rot: 0 });
 
-  // Every piece that can fall. The grid lines are the cells' own borders, so
-  // when the cells go the grid goes with them — it comes apart where it was
-  // joined, not along invented cracks.
-  function collectShards() {
-    const root = $('#oldcal');
-    const bin = $('#bin');
-    const list = [...root.querySelectorAll('.old-cell, .oldcal-week, .oldcal-dow span, .oldcal-title'), $('#old-note')]
-      .filter(Boolean)
-      .map((el) => ({
-        el,
-        rot: (Math.random() * 2 - 1) * 110,
-        hop: 0.4 + Math.random() * 0.9,
-        // the note goes last: it is the thing the section is about
-        delay: el.id === 'old-note' ? 0.42 : Math.random() * 0.36,
-        dx: 0, dy: 0,
-      }));
-
+    // A hundred names do not fit one phone screen, and a block clipped at both
+    // ends reads as a bug rather than as a lot of features. So the wall pans
+    // through itself before it comes apart. On a wide screen the block fits,
+    // the overflow is zero, and this span collapses to nothing — one code path,
+    // no phone-only behaviour to keep in step.
+    let over = 0, panEnd = 0, lastP = 0;
     const measure = () => {
-      const b = bin.getBoundingClientRect();
-      const bx = b.left + b.width / 2, by = b.top + b.height / 2;
-      list.forEach((s) => {
-        s.el.style.transform = 'none';
-        const r = s.el.getBoundingClientRect();
-        s.dx = bx - (r.left + r.width / 2);
-        s.dy = by - (r.top + r.height / 2);
-      });
-    };
-    return { list, measure };
-  }
-
-  // ---------- 1b. three appointments, written twice ----------
-  // This plays where the page opens, with no scroll asked for: the same three
-  // appointments entered the way the old calendar makes you — one
-  // double-click, one window and one line of plain text per day — and then
-  // the same three, ours, in one panel.
-  //
-  // The pills at the end are FEATURES' own entries put through the app's own
-  // eventHTML, so the right-hand side is the product rather than a picture of
-  // it. The left side types the same information in the only format that grid
-  // can hold. Nothing is invented to make the point, and what the old way
-  // costs is counted rather than asserted — windows opened, keys pressed.
-  function initOldDemo() {
-    const stage = $('#before-stage');
-    const note = $('#old-note');
-    const noteText = $('#old-note-text');
-    const noteDate = $('#old-note-date');
-    const noteX = note.querySelector('.old-note-x');
-    const ptr = $('#demo-ptr');
-    const step = $('#demo-step');
-    const tallyEl = $('#demo-tally');
-    const nw = $('#newway');
-
-    // the three the app draws for those same three appointments
-    const OURS = ['Ten event colours', 'Tags, and a filter that dims', 'Repeating events']
-      .map((n) => FEATURES.find((f) => f.name === n))
-      .filter(Boolean)
-      .map((f) => f.events[0]);
-
-    // the three days it writes on — the same rule section 2 uses, so both
-    // screens write in the same places
-    const PICK = oldNoteCells($('#oldcal'));
-
-    const api = { done: false, onSettle: null, isDone: () => api.done };
-    let stopped = false;
-    const HALT = {};
-    const wait = (ms) => new Promise((r) => setTimeout(r, ms))
-      .then(() => { if (stopped) throw HALT; });
-
-    let windows = 0, keys = 0, ours = false;
-    const tally = () => {
-      tallyEl.innerHTML =
-        `<b>OLD</b><span>${windows} WINDOW${windows === 1 ? '' : 'S'} · ` +
-          `<span class="k">${keys}</span> KEYSTROKES · 0 FIELDS</span>` +
-        `<b>OURS</b><span class="is-ours">${ours
-          ? '1 PANEL · COLOUR · TIME · TAG · REPEAT · REMINDER'
-          : '—'}</span>`;
+      // measured with nothing scattered: a transformed word still counts
+      // towards the scrollable area, so a half-flung wall would measure taller
+      // than it is
+      pieces.forEach((s) => { s.el.style.transform = 'none'; s.el.style.opacity = ''; s.t = -1; });
+      // centred content that overflows spills past BOTH ends and the top half
+      // cannot be scrolled to, so a block too tall for its box is aligned to
+      // the top instead — and then panned through with scrollTop
+      words.classList.remove('is-tall');
+      // a couple of pixels over is not a wall that needs panning — it is a wall
+      // that fits, and spending a third of the section scrolling three pixels
+      // would be a dead beat on every desktop
+      const tall = words.scrollHeight > words.clientHeight + 24;
+      words.classList.toggle('is-tall', tall);
+      over = tall ? words.scrollHeight - words.clientHeight : 0;
+      // how long the pan takes is how much there is to pan, capped
+      panEnd = over ? Math.max(0.12, Math.min(0.34, (over / words.clientHeight) * 0.3)) : 0;
     };
 
-    // the card hangs off its day, and flips above it rather than run off the
-    // bottom of the stage
-    const place = (cell) => {
-      const s = stage.getBoundingClientRect();
-      const c = cell.getBoundingClientRect();
-      const w = note.offsetWidth, h = note.offsetHeight;
-      const below = c.bottom - s.top;
-      const y = below + h > s.height ? c.top - s.top - h : below;
-      note.style.left = `${Math.max(0, Math.min(c.left - s.left - 2, s.width - w - 2))}px`;
-      note.style.top = `${Math.max(0, y)}px`;
+    let said = -1;
+    const say = (i) => {
+      if (i === said) return;
+      said = i;
+      $('#wall-eyebrow').textContent = COPY[i].eyebrow;
+      $('#wall-title').textContent = COPY[i].title;
+      $('#wall-lead').textContent = COPY[i].lead;
     };
-    // left/top rather than a transform, so the two axes can carry different
-    // easings and the travel comes out as an arc (see .demo-ptr)
-    const pointAt = (el, fx = 0.5, fy = 0.5) => {
-      const s = stage.getBoundingClientRect();
-      const r = el.getBoundingClientRect();
-      ptr.style.left = `${r.left - s.left + r.width * fx}px`;
-      ptr.style.top = `${r.top - s.top + r.height * fy}px`;
-    };
-    const click = () => {
-      ptr.classList.remove('is-click');
-      void ptr.offsetWidth;                    // restart the ring
-      ptr.classList.add('is-click', 'is-press');
-      setTimeout(() => ptr.classList.remove('is-press'), 130);
-    };
-    // Saving does not delete a window and create a line somewhere else. The
-    // window goes into the day, and the line is what is left of it — so the
-    // card is aimed at the cell and shrunk to nothing on the way there.
-    const collapseInto = (cell) => {
-      const n = note.getBoundingClientRect();
-      const c = cell.getBoundingClientRect();
-      note.classList.add('is-collapsing');
-      note.style.transform =
-        `translate(${c.left + 12 - (n.left + n.width / 2)}px, ` +
-        `${c.top + 16 - (n.top + n.height / 2)}px) scale(0.04)`;
-      note.style.opacity = '0';
-    };
-    const resetNote = () => {
-      note.classList.remove('is-collapsing', 'is-open');
-      note.style.transform = '';
-      note.style.opacity = '';
-    };
+    say(0);
 
-    const oursHTML = () =>
-      '<p class="newway-head">THE SAME THREE, HERE</p>' +
-      '<div class="app dark blue bg-only-opacity">' +
-        `<div class="day-events-detail">${OURS.map(eventHTML).join('')}</div>` +
-      '</div>' +
-      '<p class="newway-foot">ONE PANEL · FIVE FIELDS · NO RETYPING</p>';
+    measure();
+    return {
+      // the block's height changes when the web fonts land and when the window
+      // is resized, and how far it has to pan changes with it
+      measure() { measure(); this.at(lastP); },
+      // p is 0 → 1 across the section behind the pin
+      at(p) {
+        lastP = p;
+        // first the block pans through itself (nothing to pan on a wide
+        // screen), then everything after it runs on what is left of the scroll
+        const pan = panEnd ? clamp01(p / panEnd) : 0;
+        // a little past the measured bottom, because the browser clamps
+        // scrollTop for us: the block can settle a few pixels taller than it
+        // measured, and stopping short would leave the last row half cut
+        words.scrollTop = (over + 24) * pan;
+        // a beat at the bottom before it comes apart, so the end of the list is
+        // something the reader gets to see rather than something that flashes
+        const rest = panEnd ? panEnd + 0.08 : 0;
+        const r = rest ? clamp01((p - rest) / (1 - rest)) : p;
 
-    // A line from the grey line on the day to the pill standing in for it. It
-    // stops at the card's edge rather than at the pill, because it runs under
-    // the card. Measured when it is drawn; a resize after that leaves it
-    // stale, and the shatter clears it a moment later either way.
-    const link = $('#demo-link');
-    const NS = 'http://www.w3.org/2000/svg';
-    const linkTo = (i) => {
-      const src = PICK[i].querySelector('.old-jot');
-      const pill = nw.querySelectorAll('.day-event-row')[i];
-      if (!src || !pill) return;
-      const s = stage.getBoundingClientRect();
-      // the end of the words, not the end of the cell they sit in: the jot is
-      // a block and fills its day, so its box says nothing about the text
-      const range = document.createRange();
-      range.selectNodeContents(src);
-      const a = range.getBoundingClientRect();
-      const card = nw.getBoundingClientRect();
-      const b = pill.getBoundingClientRect();
+        const q = clamp01(r / 0.56);          // the scatter is over well before the end
+        pieces.forEach((s) => {
+          const t = clamp01((q - s.delay) / (1 - s.delay));
+          if (t === s.t) return;              // 110 nodes: do not write what has not changed
+          s.t = t;
+          const e = t * t;
+          s.el.style.transform = t
+            ? `translate3d(${s.dx * e}px, ${s.dy * e}px, 0) rotate(${s.rot * e}deg)`
+            : 'none';
+          s.el.style.opacity = String(1 - t);
+        });
 
-      // The card is beside the day on a wide screen and above it on a narrow
-      // one, so the line leaves and arrives on whichever axis separates them.
-      let x1, y1, x2, y2, c1, c2;
-      if (card.bottom < a.top || card.top > a.bottom) {
-        const up = card.bottom < a.top;
-        x1 = a.left + a.width / 2 - s.left;
-        y1 = (up ? a.top - 2 : a.bottom + 2) - s.top;
-        x2 = b.left + b.width / 2 - s.left;
-        y2 = (up ? card.bottom + 5 : card.top - 5) - s.top;
-        const my = (y1 + y2) / 2;
-        c1 = `${x1} ${my}`;
-        c2 = `${x2} ${my}`;
-      } else {
-        const right = card.left > a.right;
-        x1 = (right ? a.right + 3 : a.left - 3) - s.left;
-        y1 = a.top + a.height / 2 - s.top;
-        x2 = (right ? card.left - 5 : card.right + 5) - s.left;
-        y2 = b.top + b.height / 2 - s.top;
-        const mx = (x1 + x2) / 2;
-        c1 = `${mx} ${y1}`;
-        c2 = `${mx} ${y2}`;
-      }
-      const path = document.createElementNS(NS, 'path');
-      path.setAttribute('d', `M${x1} ${y1} C${c1}, ${c2}, ${x2} ${y2}`);
-      link.appendChild(path);
-      path.style.setProperty('--len', path.getTotalLength());
-      src.classList.add('is-linked');
-      requestAnimationFrame(() => path.classList.add('is-in'));
+        wallPlane.style.transform = `translate3d(0, ${p * -34}px, 0) scale(1.06)`;
+
+        // ours rises in the cleared middle and then holds. A thing you are being
+        // handed should not still be moving while you look at it.
+        const up = clamp01((r - 0.36) / 0.26);
+        cal.style.opacity = String(up);
+        cal.style.transform =
+          `translate3d(0, ${(1 - up) * 44}px, 0) scale(${0.964 + up * 0.036})`;
+
+        say(r < 0.44 ? 0 : 1);
+        pin.style.opacity = String(clamp01(1 - (r - 0.93) / 0.07));
+      },
     };
-
-    const actTwo = () => {
-      ptr.classList.remove('is-on');      // the old way's hand is done here
-      $('#before-eyebrow').textContent = 'AND THE SAME THREE, OURS';
-      $('#before-title').innerHTML = 'One panel.<br />Once.';
-      // the second sentence is dropped on a phone: down there the plate has to
-      // stay short enough that the card standing open on the grid clears it
-      step.innerHTML = 'Colour, time, tag, repeat, reminder — fields, not words. ' +
-        '<span class="on-wide">Nothing about an appointment has to be spelled ' +
-        'into its own name.</span>';
-      ours = true;
-      tally();
-      nw.innerHTML = oursHTML();
-      nw.classList.add('is-open');
-    };
-
-    // The end state, reachable from anywhere: whether the demo finished or the
-    // reader scrolled straight through it, the stage is left in one settled
-    // shape — three days written on, the last card still open. That shape is
-    // what the shatter takes apart, and the shard travel is measured off it.
-    const settle = () => {
-      if (api.done) return;
-      api.done = true;
-      stopped = true;
-      ptr.classList.remove('is-on', 'is-click');
-      SCRIPT.forEach((sc, i) => jotInto(PICK[i], sc.text));
-      // the count has to describe what is on the grid, not how far the demo
-      // happened to get before the reader scrolled out of it
-      windows = SCRIPT.length;
-      keys = SCRIPT.reduce((n, sc) => n + sc.text.length, 0);
-      tally();
-      noteDate.textContent = `${M.month} ${PICK[2].dataset.d}, ${M.y}`;
-      noteText.textContent = SCRIPT[2].text;
-      note.classList.remove('is-typing', 'is-collapsing');
-      note.style.transform = '';
-      note.style.opacity = '';
-      place(PICK[2]);
-      note.classList.add('is-open');
-      note.style.transition = 'none';    // from here its transform is the scrub's
-      if (api.onSettle) api.onSettle();
-    };
-    api.settle = settle;
-
-    const type = async (text) => {
-      for (let i = 1; i <= text.length; i++) {
-        noteText.textContent = text.slice(0, i);
-        keys++;
-        tally();
-        await wait(text[i - 1] === ' ' ? 92 : 50);
-      }
-    };
-
-    async function play() {
-      await wait(560);
-      for (let i = 0; i < SCRIPT.length; i++) {
-        const cell = PICK[i];
-        step.textContent = i === 0
-          ? 'Double-click the day. A window opens — one window, one day.'
-          : 'Next day. Next window. Nothing carries over.';
-        pointAt(cell, 0.5, 0.35);
-        ptr.classList.add('is-on');
-        await wait(640);
-        click();
-        await wait(170);
-        click();                              // it is a double-click
-        await wait(230);
-        windows++;
-        tally();
-        noteDate.textContent = `${M.month} ${cell.dataset.d}, ${M.y}`;
-        noteText.textContent = '';
-        place(cell);
-        note.classList.add('is-open', 'is-typing');
-        await wait(320);
-        pointAt(note, 0.16, 0.42);
-        await type(SCRIPT[i].text);
-        note.classList.remove('is-typing');
-        step.textContent = SCRIPT[i].loses;
-        await wait(1500);
-        jotInto(cell, SCRIPT[i].text);
-        // the last one is left standing open on its day — it is the thing this
-        // whole screen is about, and the shatter drops it last
-        if (i < SCRIPT.length - 1) {
-          pointAt(noteX);
-          await wait(440);
-          click();
-          collapseInto(cell);
-          await wait(460);
-          resetNote();
-          await wait(300);
-        }
-      }
-
-      actTwo();
-      await wait(320);
-      // each old line is answered one at a time: the line is drawn, then the
-      // thing on the other end of it arrives
-      const rows = [...nw.querySelectorAll('.day-event-row')];
-      for (let i = 0; i < rows.length; i++) {
-        linkTo(i);
-        await wait(230);
-        rows[i].classList.add('is-in');
-        await wait(280);
-      }
-      await wait(1100);
-      settle();
-    }
-
-    api.start = () => {
-      if (REDUCED()) {
-        // nothing plays: the end state is drawn at once
-        actTwo();
-        nw.querySelectorAll('.day-event-row').forEach((r) => r.classList.add('is-in'));
-        settle();
-        SCRIPT.forEach((_, i) => linkTo(i));
-        return;
-      }
-      play().catch((e) => { if (e !== HALT) throw e; });
-    };
-    tally();
-    return api;
   }
 
   // ---------- 0. loader — this month draws itself, day by day ----------
@@ -730,16 +694,20 @@
   }
 
   // ---------- 2. the tour — the calendar uses itself ----------
-  // The hero leaves ours standing there. This picks it up and works it: a
-  // pointer walks to a day and clicks it, writes an event into it, drags it,
-  // ticks it off, turns the month.
+  // The wall leaves ours standing on the desktop. This picks it up and works
+  // it: QuickAdd writes an event out of one sentence, the hand drags it, the
+  // daily planner takes a day apart, a tag empties the month down to one
+  // project, the decorate layer marks it up, a second device agrees with it,
+  // and then the hand leaves and an agent writes one while nobody is there.
   //
-  // Everything a step touches is the app's: the panel is SchedulePanel, the
-  // composer is EventPopup down to the PRO badges its own icon row carries,
-  // and the pill that lands is drawn by the same eventHTML as every other pill
-  // on the grid. Nothing here is a video and nothing is a mock-up — the DOM
-  // really changes, which is the whole reason a step also has to know how to
-  // put itself back.
+  // Everything a step touches is the app's: the bar is QuickAdd.tsx, the window
+  // is DailyPlanner.tsx, the pills are TagFilterBar.tsx, the stickers are
+  // FreeStickerItem.tsx, the side panel is SchedulePanel, and every event on
+  // the grid is drawn by the same eventHTML as every other one. The English on
+  // them is the app's own en locale, not a paraphrase.
+  //
+  // Nothing here is a video and nothing is a mock-up — the DOM really changes,
+  // which is the whole reason a step also has to know how to put itself back.
   //
   // Scroll picks the step; arriving at one plays it. Three entry points into
   // the same state, and they must agree:
@@ -789,99 +757,166 @@
     '</div>';
   }
 
-  // The app's EventPopup. Its icon row is split into two groups by the app
-  // itself — the free fields, a divider, then the ones that carry a PRO badge.
-  // That division is the product's, not ours, so the page shows it rather than
-  // describing it, and the tour presses the PRO button before it picks a colour
-  // instead of demonstrating a paid field as though it were free.
-  const composeHTML = (when) =>
-    '<div class="app dark blue event-modal-popup">' +
-      '<div class="popup-header"><span class="popup-title">New event</span><span class="popup-close">×</span></div>' +
-      '<div class="popup-content">' +
-        '<div class="popup-field">' +
-          `<span class="popup-label">${when}</span>` +
-          '<span class="popup-input" id="tc-title"><i></i><span class="tc-caret"></span></span>' +
+  // ---- the app's QuickAdd ----
+  // QuickAdd.tsx: one bar, and under it what the parser made of the line. The
+  // confidence is not decorative — utils/quickParse.ts scores 0.3 for a title,
+  // +0.25 for a date and +0.25 for a time, so a line carrying all three comes
+  // out at 80%. Typing a different line here would make that number a lie.
+  const QUICK_TEXT = 'Lunch with Sam';
+  const QUICK_TIME = '13:00';
+  const quickHTML = (when) =>
+    '<div class="app dark blue">' +
+      '<div class="quick-add-container">' +
+        '<div class="quick-add-bar">' +
+          `<span class="quick-add-date">${when}</span>` +
+          '<span class="quick-add-input" id="qa-in"><i></i><span class="type-caret"></span></span>' +
+          '<span class="quick-add-counter" id="qa-n">0/50</span>' +
+          '<span class="quick-add-hint">↵</span>' +
         '</div>' +
-        '<div class="popup-field"><span class="popup-label">Time</span>' +
-          '<span class="popup-input is-empty" id="tc-time">--:--</span></div>' +
-        '<div class="icon-row">' +
-          '<div class="icon-group">' +
-            '<span class="icon-btn-wrapper"><span class="icon-btn">↻</span><span class="icon-btn-label">Repeat</span></span>' +
-            '<span class="icon-btn-wrapper"><span class="icon-btn">◔</span><span class="icon-btn-label">Remind</span></span>' +
-            '<span class="icon-btn-wrapper"><span class="icon-btn">◷</span><span class="icon-btn-label">Buffer</span></span>' +
-            '<span class="icon-btn-wrapper"><span class="icon-btn">D</span><span class="icon-btn-label">D-Day</span></span>' +
+        '<div class="quick-add-preview" id="qa-prev">' +
+          '<div class="quick-add-preview-header">' +
+            '<span class="quick-add-preview-label">Parsed result</span>' +
+            '<span class="quick-add-preview-confidence">80%</span>' +
           '</div>' +
-          '<span class="icon-row-divider"></span>' +
-          '<div class="icon-group">' +
-            '<span class="icon-btn-wrapper premium" id="tc-colour-btn"><span class="icon-btn">◉<span class="icon-btn-pro-badge">PRO</span></span><span class="icon-btn-label">Colour</span></span>' +
-            '<span class="icon-btn-wrapper premium"><span class="icon-btn">#<span class="icon-btn-pro-badge">PRO</span></span><span class="icon-btn-label">Tag</span></span>' +
-            '<span class="icon-btn-wrapper premium"><span class="icon-btn">▤<span class="icon-btn-pro-badge">PRO</span></span><span class="icon-btn-label">Template</span></span>' +
-            '<span class="icon-btn-wrapper premium"><span class="icon-btn">G<span class="icon-btn-pro-badge">PRO</span></span><span class="icon-btn-label">Google</span></span>' +
+          '<div class="quick-add-preview-fields">' +
+            `<div class="quick-add-preview-row"><span class="quick-add-preview-icon">📅</span><span>${when}</span></div>` +
+            `<div class="quick-add-preview-row"><span class="quick-add-preview-icon">⏰</span><span>${QUICK_TIME}</span></div>` +
+            `<div class="quick-add-preview-row"><span class="quick-add-preview-icon">📝</span><span>${QUICK_TEXT}</span></div>` +
+          '</div>' +
+          '<div class="quick-add-preview-actions">' +
+            '<span class="quick-add-btn quick-add-btn-cancel">Cancel</span>' +
+            '<span class="quick-add-btn quick-add-btn-confirm" id="qa-ok">Create event</span>' +
           '</div>' +
         '</div>' +
-        `<div class="colour-drop" id="tc-colours">${PALETTE.map((c) =>
-          `<span class="compose-swatch" style="background:${c};color:${c}" data-c="${c}"></span>`).join('')}</div>` +
       '</div>' +
-      '<div class="popup-footer"><span class="popup-save" id="tc-save">Save</span></div>' +
     '</div>';
+
+  // ---- the app's DailyPlanner ----
+  // DailyPlanner.tsx, on its Review tab: the day, how much of it is done, then
+  // what is scheduled and what is finished. The strings are the app's en
+  // locale, down to the shape of "{{completed}}/{{total}} done ({{percent}}%)".
+  const plannerHTML = (cell, events) => {
+    const done = events.filter((e) => e.done).length;
+    const pct = events.length ? Math.round((done / events.length) * 100) : 0;
+    const d = +cell.dataset.day;
+    const row = (e) =>
+      `<div class="dp-event-item${e.done ? ' completed' : ''}">` +
+        `<span class="dp-check-btn${e.done ? ' checked' : ''}">${e.done ? '☑' : '☐'}</span>` +
+        (e.color ? `<span class="dp-event-color" style="background:${e.color}"></span>` : '') +
+        '<span class="dp-event-info">' +
+          `<span class="dp-event-title">${e.t}</span>` +
+          (e.time ? `<span class="dp-event-time">${e.time}</span>` : '') +
+        '</span>' +
+      '</div>';
+    const open = events.filter((e) => !e.done);
+    const shut = events.filter((e) => e.done);
+    return '<div class="app dark blue"><div class="daily-planner">' +
+      '<div class="daily-planner-header">' +
+        '<span class="daily-planner-title">Daily Planner</span>' +
+        '<span class="dp-close-btn">×</span>' +
+      '</div>' +
+      '<div class="daily-planner-date">' +
+        `<span class="dp-day-name">${DOW_LONG[new Date(M.y, M.m, d).getDay()]}</span>` +
+        `<span class="dp-date-label">${cell.dataset.when}</span>` +
+      '</div>' +
+      '<div class="dp-progress-section">' +
+        `<div class="dp-progress-bar"><div class="dp-progress-fill" style="width:${pct}%"></div></div>` +
+        `<div class="dp-progress-text">${done}/${events.length} done (${pct}%)</div>` +
+      '</div>' +
+      '<div class="dp-tabs">' +
+        '<span class="dp-tab active">Review</span>' +
+        '<span class="dp-tab">Timeline</span>' +
+        '<span class="dp-tab">Summary</span>' +
+      '</div>' +
+      '<div class="daily-planner-body">' +
+        '<div class="dp-section">' +
+          `<div class="dp-section-header">Scheduled (${open.length})</div>` +
+          `<div class="dp-event-list">${open.map(row).join('') ||
+            '<div class="dp-empty">No scheduled events</div>'}</div>` +
+        '</div>' +
+        (shut.length ? '<div class="dp-section">' +
+          `<div class="dp-section-header completed">Completed (${shut.length})</div>` +
+          `<div class="dp-event-list">${shut.map(row).join('')}</div>` +
+        '</div>' : '') +
+      '</div>' +
+    '</div></div>';
+  };
+
+  // ---- the app's mood sticker picker ----
+  // constants/stickers.ts MOOD_EMOJIS, all twenty of them, five to a row the
+  // way MoodStickerPicker lays them out.
+  const MOOD_EMOJIS = [
+    '😊', '😄', '🥰', '😎', '🤩',
+    '😐', '😴', '🤔', '😤', '😢',
+    '😡', '🤒', '💪', '🎉', '☕',
+    '📚', '🏃', '🎵', '✨', '❤️',
+  ];
+  const moodHTML = (pick) =>
+    '<div class="app dark blue"><div class="mood-sticker-picker">' +
+      `<div class="mood-sticker-picker-grid">${MOOD_EMOJIS.map((e) =>
+        `<span class="mood-sticker-option${e === pick ? '' : ''}" data-e="${e}">${e}</span>`).join('')}</div>` +
+      '<div class="mood-sticker-remove">Remove</div>' +
+    '</div></div>';
 
   function initTour() {
     const pin = $('.tour-pin');
     const stage = $('#tour-stage');
     const panel = $('#tour-panel');
-    const compose = $('#tour-compose');
+    const quick = $('#tour-quick');
+    const planner = $('#tour-planner');
+    const mood = $('#tour-mood');
+    const agent = $('#tour-agent');
+    const mirror = $('#tour-mirror');
     const ptr = $('#tour-ptr');
     const rail = $('#tour-rail');
 
-    let cal = buildCalendar();
+    const cal = buildCalendar();
     stage.appendChild(cal);
 
     const cells = () => [...cal.querySelectorAll('.day-cell[data-day]')];
-    // Days are held as NUMBERS, never as nodes. The last step replaces the whole
-    // grid to turn the month, and any node a step was holding dies with it — a
-    // day number survives, so every step reaches for its cell through here.
+    // Days are held as NUMBERS, never as nodes: the grid outlives no step by
+    // accident, and a number survives anything a step does to the DOM.
     const cellFor = (d) => cal.querySelector(`.day-cell[data-day="${d}"]`);
 
-    // ---- the event the tour writes ----
-    // It is one of the month's own, taken back out of the grid before the
-    // reader gets here, so its day starts empty and step 2 writing it in is
-    // what puts the month back together. Without this the hand would be typing
-    // out an appointment that is already sitting two cells away.
-    //
-    // It comes out of the GRID, not out of DEAL: the hero's calendar is built
-    // from the same deal and should still show a whole month. Which means every
-    // rebuild has to take it out again — hence hold(), called from swap().
-    const HELD = FEATURES.find((f) => f.name === 'Ten event colours');
-    const WRITTEN = HELD.events[0];
-    const heldDay = ([...DEAL.byDay].find(([, f]) => f === HELD) || [])[0];
-    const hold = () => {
-      const c = heldDay && cellFor(heldDay);
-      const box = c && c.querySelector('.day-events-detail:not([data-written])');
-      if (box) box.remove();
-    };
-    hold();
+    // ---- the two events the tour writes ----
+    // Held off every calendar on the page — see HELD/holdFrom above.
+    holdFrom(cal);
+    const WRITTEN = HELD[0].ev;   // step 1 writes it back in with QuickAdd
+    const SYNCED = HELD[1].ev;    // step 6 syncs it in from Google
 
     // ---- the days each step works on ----
-    // The written event needs an empty day, and the drag needs an empty one two
-    // columns along in the same week, so the pair is read off the grid rather
-    // than assumed. The held day is tried first — writing the event back where
-    // it came from is the tidiest version of this — and the fallbacks are there
-    // so an awkward month degrades instead of throwing.
+    // Read off the grid rather than assumed: the month is a different shape
+    // every time somebody opens the page.
     const free = cells().filter((c) => !c.querySelector('.day-events-detail') &&
       !c.querySelector('.day-spanning-spacer'));
-    if (heldDay) free.sort((a, b) => (+b.dataset.day === heldDay) - (+a.dataset.day === heldDay));
-    const pairFrom = free.find((c) => {
+    // QuickAdd's parser (utils/quickParse.ts) reads relative days and named
+    // dates. It does NOT read weekday names, so the day is chosen first and the
+    // sentence is written to match — never the other way round.
+    const pair = free.find((c) => {
       const to = cellFor(+c.dataset.day + 2);
       return to && to.closest('.week-row') === c.closest('.week-row') && free.includes(to);
     });
-    const FROM = +(pairFrom || free[0] || cells()[0]).dataset.day;
-    const TO = pairFrom ? FROM + 2 : +(free[1] || cells()[1]).dataset.day;
+    const FROM = +(pair || free[0] || cells()[0]).dataset.day;
+    const TO = pair ? FROM + 2 : +(free[1] || cells()[1]).dataset.day;
+    const qPhrase = FROM === M.today + 1
+      ? `${QUICK_TEXT} tomorrow 1pm`
+      : `${QUICK_TEXT} ${M.month} ${FROM} 1pm`;
 
-    // the day the first step opens: one that is actually carrying something
-    const OPEN = +(cells().find((c) => c.querySelector('.day-event-row') &&
-      +c.dataset.day !== FROM) || cells()[0]).dataset.day;
-    const OPEN_EVENTS = (DEAL.byDay.get(OPEN) || { events: [] })
-      .events.filter((e) => !e.more);
+    // the day the planner takes apart: the overcommitted one, which is the only
+    // day in the month carrying more than the grid can show
+    const PLAN_F = FEATURES.find((f) => f.name === 'Overcommit warning');
+    const PLAN = ([...DEAL.byDay].find(([, v]) => v === PLAN_F) || [])[0];
+    const PLAN_EVENTS = [...PLAN_F.events.filter((e) => !e.more), ...(PLAN_F.extra || [])];
+
+    // the day the sync lands on, and the day the agent writes on — two
+    // different days, or the last two steps would pile onto one cell
+    const SYNC_DAY = +(free[free.length - 1] || cells()[cells().length - 1]).dataset.day;
+    const AGENT_DAY = +(free[free.length - 2] || free[free.length - 1] ||
+      cells()[cells().length - 1]).dataset.day;
+    const AGENT = [
+      { call: 'create_event', ev: { t: 'Sprint retro', time: '16:00', color: '#5856D6' } },
+      { call: 'create_event', ev: { t: 'Write the recap', time: '17:30' } },
+    ];
 
     // ---- the hand ----
     // left/top rather than a transform, so the two axes can carry different
@@ -901,142 +936,207 @@
     };
     const hand = (on) => ptr.classList.toggle('is-on', !!on);
 
-    // ---- panels ----
-    const openPanel = (cell, events) => {
-      $('#tour-panel-when').textContent = cell.dataset.when;
-      $('#tour-panel-list').innerHTML = scheduleDay(cell, events);
-      panel.classList.add('is-open');
-      panel.setAttribute('aria-hidden', 'false');
-      pin.classList.add('is-panel-open');
+    // ---- the overlays ----
+    const show = (el, on, squeeze) => {
+      el.classList.toggle('is-open', on);
+      el.setAttribute('aria-hidden', on ? 'false' : 'true');
+      if (squeeze) pin.classList.toggle('is-panel-open', on);
     };
-    const shutPanel = () => {
-      panel.classList.remove('is-open');
-      panel.setAttribute('aria-hidden', 'true');
-      pin.classList.remove('is-panel-open');
-    };
-    const openCompose = (cell) => {
-      compose.innerHTML = composeHTML(cell.dataset.when);
-      compose.classList.add('is-open');
-      compose.setAttribute('aria-hidden', 'false');
-      pin.classList.add('is-panel-open');
-    };
-    const shutCompose = () => {
-      compose.classList.remove('is-open', 'is-typing');
-      compose.setAttribute('aria-hidden', 'true');
-      pin.classList.remove('is-panel-open');
+    const shutAll = () => {
+      show(panel, false, true);
+      show(quick, false);
+      show(planner, false);
+      show(mood, false);
+      quick.classList.remove('is-typing');
     };
 
-    // ---- the written event, on the grid ----
-    const putEvent = (cell, done) => {
-      // a month that does not have that day simply has nowhere to put it
+    // ---- what a step puts on the grid ----
+    // Everything is marked with the step that put it there, so undo takes back
+    // exactly its own things and leaves the month it found alone.
+    const putEvent = (day, ev, mark, root = cal) => {
+      const cell = root.querySelector(`.day-cell[data-day="${day}"]`);
       if (!cell) return null;
       let box = cell.querySelector('.day-events-detail');
       if (!box) {
         box = document.createElement('div');
         box.className = 'day-events-detail';
+        box.dataset.made = mark;
         cell.querySelector('.day-cell-content').appendChild(box);
       }
-      box.innerHTML = eventHTML({ ...WRITTEN, done });
-      box.dataset.written = '1';
-      return box;
+      box.insertAdjacentHTML('beforeend', eventHTML(ev));
+      const row = box.lastElementChild;
+      row.dataset.put = mark;
+      return row;
     };
-    const clearEvent = () => {
-      const box = cal.querySelector('.day-events-detail[data-written]');
-      if (box) box.remove();
+    const dropEvents = (mark, root = cal) => {
+      root.querySelectorAll(`.day-event-row[data-put="${mark}"]`).forEach((r) => r.remove());
+      root.querySelectorAll(`.day-events-detail[data-made="${mark}"]`).forEach((b) => {
+        if (!b.children.length) b.remove();
+      });
     };
     const lit = (d, on) => {
       const c = cellFor(d);
       if (c) c.classList.toggle('is-lit', on);
     };
+    // ticking something off in the planner has to reach the month, because the
+    // two are not two views of the appointment — they are the appointment
+    const strike = (day, title, on) => {
+      const cell = cellFor(day);
+      if (!cell) return;
+      [...cell.querySelectorAll('.day-event-row')]
+        .filter((r) => r.textContent.indexOf(title) === 0)
+        .forEach((r) => {
+          r.classList.toggle('completed', on);
+          const t = r.querySelector('.day-event-title');
+          if (t) t.classList.toggle('completed', on);
+        });
+    };
+
+    // ---- the app's tag filter bar, in the app's own place ----
+    // TagFilterBar renders inside the calendar, under its header, whenever the
+    // month has tags — so it is built once and lives there, rather than being
+    // conjured for one step.
+    const bar = document.createElement('div');
+    bar.className = 'tag-filter-bar';
+    bar.innerHTML = TAGS.map((t) =>
+      `<span class="tag-filter-pill" data-c="${t.color}">` +
+        `<span class="tag-filter-dot" style="background:${t.color}"></span>` +
+        `<span class="tag-filter-label">${t.name}</span></span>`).join('') +
+      '<span class="tag-filter-clear">×</span>';
+    cal.querySelector('.calendar-header').after(bar);
+
+    // The app FILTERS: an event without the tag leaves the day (App.tsx
+    // getFilteredEventsForDate). It is not dimmed, so nothing here dims it.
+    const filter = (colour) => {
+      bar.classList.toggle('has-filter', !!colour);
+      bar.querySelectorAll('.tag-filter-pill').forEach((p) =>
+        p.classList.toggle('active', p.dataset.c === colour));
+      cal.querySelectorAll('.day-event-row').forEach((r) =>
+        r.classList.toggle('is-filtered',
+          !!colour && !(r.dataset.tags || '').split(' ').includes(colour)));
+      cal.querySelectorAll('.day-event-more, .spanning-bar').forEach((el) =>
+        el.classList.toggle('is-filtered', !!colour));
+    };
+
+    // ---- the decorate layer, where the app puts it ----
+    const layer = document.createElement('div');
+    layer.className = 'free-stickers-layer';
+    cal.querySelector('.days-grid-container').appendChild(layer);
+    // Sized against the month it is being stuck on, not in absolute pixels: 78px
+    // is a sticker on a desktop and a blot across four days on a handset.
+    const STICKER = { emoji: '✨', x: 74, y: 32, rot: -17 };
+    const stickerPx = () =>
+      Math.round(Math.max(42, Math.min(78, stage.getBoundingClientRect().width * 0.058)));
+    // `editing` is the mode, not the sticker: the play turns it on to show the
+    // handles and the dashed layer, and settle leaves it — because edit mode is
+    // something you come out of, and the later steps should not be looking at
+    // a selection nobody is holding.
+    const decorate = (on, turned, editing) => {
+      const px = stickerPx();
+      layer.classList.toggle('edit-mode', on && editing);
+      layer.innerHTML = on
+        ? `<div class="free-sticker-item${editing ? ' editable selected' : ''}" style="left:${STICKER.x}%;top:${STICKER.y}%;` +
+            `width:${px}px;height:${px}px;` +
+            `transform:translate(-50%,-50%) rotate(${turned ? STICKER.rot : 0}deg)">` +
+            '<div class="free-sticker-content">' +
+              `<span class="free-sticker-emoji" style="font-size:${Math.round(px * 0.75)}px">${STICKER.emoji}</span>` +
+            '</div>' +
+            // the app shows these only on the selected sticker, in edit mode
+            (editing
+              ? '<span class="free-sticker-delete">×</span>' +
+                '<span class="free-sticker-rotate-stem"></span>' +
+                '<span class="free-sticker-rotate-handle"></span>' +
+                '<span class="free-sticker-resize-handle"></span>'
+              : '') +
+          '</div>'
+        : '';
+      return layer.firstElementChild;
+    };
+    const MOOD = '💪';
+    const setMood = (day, on) => {
+      const head = cellFor(day) && cellFor(day).querySelector('.day-cell-header');
+      if (!head) return;
+      const had = head.querySelector('.day-mood-sticker[data-tour]');
+      if (had) had.remove();
+      if (!on) return;
+      const s = document.createElement('span');
+      s.className = 'day-mood-sticker';
+      s.dataset.tour = '1';
+      s.textContent = MOOD;
+      head.appendChild(s);
+    };
+
+    // ---- the second device ----
+    let twin = null;
+    const split = (on) => {
+      if (on && !twin) {
+        // The same account, so it is the same month — held the same way, and
+        // already carrying what this tour has written and moved. Two devices
+        // that disagree about anything but the thing being synced would make
+        // the step say the opposite of what it means.
+        twin = buildCalendar();
+        holdFrom(twin);
+        putEvent(TO, WRITTEN, 'q', twin);
+        // the same tags too — without the bar its grid starts 20px higher than
+        // ours, and two months that do not line up read as two months
+        twin.querySelector('.calendar-header').after(bar.cloneNode(true));
+        $('#tour-mirror-stage').appendChild(twin);
+      }
+      pin.classList.toggle('is-split', on);
+      mirror.setAttribute('aria-hidden', on ? 'false' : 'true');
+    };
 
     // ---- the steps ----
-    // Each one owns three ways into the same state. If they ever disagree, a
-    // reader who scrolls quickly sees a different calendar from one who reads.
     const STEPS = [
       {
-        title: 'Click a day.',
-        lead: 'The panel that opens is the app’s own — the day grouped with what it is ' +
-          'carrying, and every event as a row you can tick, not a line of text.',
+        title: 'Say it in one line.',
+        tier: 'FREE',
+        lead: 'QuickAdd pulls the date, the time and the title out of a sentence — with a ' +
+          'regular expression, on your machine. Nothing is sent anywhere and there is no ' +
+          'model to wait for.',
         async play(w) {
           hand(true);
-          pointAt(cellFor(OPEN), 0.5, 0.35);
-          await w(700);
-          click();
-          await w(240);
-          this.settle();
-        },
-        settle() { openPanel(cellFor(OPEN), OPEN_EVENTS); lit(OPEN, true); },
-        undo() { shutPanel(); lit(OPEN, false); },
-      },
-      {
-        title: 'Write one in.',
-        lead: 'Double-click an empty day and everything about the appointment is a field. ' +
-          'The row of them splits itself where the paid ones start — that divider is the ' +
-          'product’s, so the hand presses the PRO button before it picks a colour.',
-        async play(w) {
-          shutPanel();
-          lit(OPEN, false);
-          hand(true);
-          pointAt(cellFor(FROM), 0.5, 0.4);
-          await w(620);
-          click(); await w(160); click();          // it is a double-click
-          await w(240);
-          openCompose(cellFor(FROM));
-          await w(520);
-
-          const title = $('#tc-title');
-          pointAt(title, 0.12, 0.5);
-          compose.classList.add('is-typing');
-          await w(320);
-          for (let i = 1; i <= WRITTEN.t.length; i++) {
-            title.querySelector('i').textContent = WRITTEN.t.slice(0, i);
-            await w(WRITTEN.t[i - 1] === ' ' ? 88 : 46);
-          }
-          compose.classList.remove('is-typing');
-          await w(320);
-
-          const time = $('#tc-time');
-          pointAt(time, 0.12, 0.5);
+          quick.innerHTML = quickHTML(cellFor(FROM).dataset.when);
+          $('#qa-prev').classList.add('is-hidden');
+          show(quick, true);
           await w(420);
-          click(); await w(170);
-          time.textContent = WRITTEN.time;
-          time.classList.remove('is-empty');
+          const box = $('#qa-in');
+          pointAt(box, 0.1, 0.5);
+          quick.classList.add('is-typing');
+          await w(340);
+          for (let i = 1; i <= qPhrase.length; i++) {
+            box.querySelector('i').textContent = qPhrase.slice(0, i);
+            $('#qa-n').textContent = `${i}/50`;
+            await w(qPhrase[i - 1] === ' ' ? 84 : 44);
+          }
+          quick.classList.remove('is-typing');
+          await w(260);
+          $('#qa-prev').classList.remove('is-hidden');
+          await w(900);
+          pointAt($('#qa-ok'));
           await w(520);
-
-          const cBtn = $('#tc-colour-btn');
-          pointAt(cBtn, 0.5, 0.3);
-          await w(520);
           click();
-          cBtn.querySelector('.icon-btn').classList.add('active');
-          $('#tc-colours').classList.add('is-open');
-          await w(480);
-          const sw = compose.querySelector(`.compose-swatch[data-c="${WRITTEN.color}"]`);
-          pointAt(sw);
-          await w(430);
-          click();
-          sw.classList.add('is-on');
-          title.querySelector('i').style.color = WRITTEN.color;
-          await w(620);
-
-          const save = $('#tc-save');
-          pointAt(save);
-          await w(460);
-          click();
-          save.classList.add('is-press');
           await w(220);
           this.settle();
         },
-        settle() { shutPanel(); shutCompose(); lit(OPEN, false); putEvent(cellFor(FROM), false); },
-        undo() { shutCompose(); clearEvent(); },
+        settle() {
+          shutAll();
+          dropEvents('q');
+          const row = putEvent(FROM, WRITTEN, 'q');
+          if (row) row.parentElement.classList.add('is-landed');
+        },
+        undo() { shutAll(); dropEvents('q'); },
       },
       {
-        title: 'Drag it somewhere else.',
+        title: 'Then move it with your hand.',
+        tier: 'FREE',
         lead: 'It is a desktop calendar, so an appointment moves the way anything on a ' +
           'desktop moves. Pick it up, drop it on another day; the day you dropped it on is ' +
           'the day it is on.',
         async play(w) {
+          shutAll();
           const from = cellFor(FROM), to = cellFor(TO);
-          const row = from && from.querySelector('.day-event-row');
+          const row = from && from.querySelector('.day-event-row[data-put="q"]');
           if (!row || !to) { this.settle(); return; }
           hand(true);
           pointAt(row, 0.4, 0.5);
@@ -1054,7 +1154,7 @@
           g.style.left = `${a.left - p.left}px`;
           g.style.top = `${a.top - p.top}px`;
           g.style.width = `${a.width}px`;
-          from.querySelector('.day-events-detail').style.opacity = '0.25';
+          row.style.opacity = '0.25';
           await w(60);
           g.style.left = `${b.left - p.left + 8}px`;
           g.style.top = `${b.top - p.top + 34}px`;
@@ -1065,103 +1165,203 @@
           await w(120);
         },
         settle() {
-          shutPanel(); shutCompose();
-          clearEvent();
-          const box = putEvent(cellFor(TO), false);
-          if (box) box.classList.add('is-landed');
+          shutAll();
+          dropEvents('q');
+          const row = putEvent(TO, WRITTEN, 'q');
+          if (row) row.parentElement.classList.add('is-landed');
         },
-        undo() { clearEvent(); putEvent(cellFor(FROM), false); },
+        undo() { dropEvents('q'); putEvent(FROM, WRITTEN, 'q'); },
       },
       {
-        title: 'Tick it off where you are.',
-        lead: 'The grid and the panel are not two views of the appointment. They are the ' +
-          'appointment — check it in one and it strikes through in the other, in place.',
+        title: 'Take one day apart.',
+        tier: 'FREE',
+        lead: 'P opens the planner on a day: what is scheduled, what is done, and how far ' +
+          'through it you are. Tick something there and the month agrees with you — they ' +
+          'are not two views of the appointment, they are the appointment.',
         async play(w) {
-          const cell = cellFor(TO);
-          if (!cell) { this.settle(); return; }
+          shutAll();
+          const cell = cellFor(PLAN);
+          if (!cell || !PLAN_EVENTS.length) { this.settle(); return; }
           hand(true);
-          pointAt(cell, 0.5, 0.4);
-          await w(520);
+          planner.innerHTML = plannerHTML(cell, PLAN_EVENTS);
+          show(planner, true);
+          lit(PLAN, true);
+          await w(900);
+          pointAt(planner.querySelector('.dp-check-btn'));
+          await w(620);
+          click();
+          await w(220);
+          this.settle();
+        },
+        settle() {
+          shutAll();
+          const cell = cellFor(PLAN);
+          if (!cell || !PLAN_EVENTS.length) return;
+          const marked = PLAN_EVENTS.map((e, i) => (i ? e : { ...e, done: true }));
+          planner.innerHTML = plannerHTML(cell, marked);
+          show(planner, true);
+          lit(PLAN, true);
+          strike(PLAN, PLAN_EVENTS[0].t, true);
+        },
+        undo() {
+          shutAll();
+          lit(PLAN, false);
+          if (PLAN_EVENTS.length) strike(PLAN, PLAN_EVENTS[0].t, false);
+        },
+      },
+      {
+        title: 'Keep one project, lose the rest.',
+        tier: 'PRO',
+        lead: 'Tag the month, then press a tag. What does not carry it leaves the day — the ' +
+          'filter takes events out rather than greying them down, so what is left is a ' +
+          'month you can actually read.',
+        async play(w) {
+          shutAll();
+          lit(PLAN, false);
+          hand(true);
+          const pill = bar.querySelector(`.tag-filter-pill[data-c="${TAG.Client}"]`);
+          pointAt(pill);
+          await w(760);
           click();
           await w(200);
-          openPanel(cell, [WRITTEN]);
-          lit(TO, true);
-          await w(760);
-          pointAt(panel.querySelector('.schedule-item-checkbox'));
-          await w(520);
+          this.settle();
+        },
+        settle() { shutAll(); lit(PLAN, false); filter(TAG.Client); },
+        undo() { filter(null); },
+      },
+      {
+        title: 'Then make it yours.',
+        tier: 'PRO',
+        lead: 'One emoji on a day for how it went, and a layer over the whole month you can ' +
+          'put anything on — drag it, size it, turn it. It is a calendar you are allowed to ' +
+          'decorate.',
+        async play(w) {
+          filter(null);
+          hand(true);
+          const cell = cellFor(TO);
+          mood.innerHTML = moodHTML(MOOD);
+          const p = pin.getBoundingClientRect();
+          const r = (cell || cells()[0]).getBoundingClientRect();
+          mood.style.left = `${Math.min(r.left - p.left, p.width - 230)}px`;
+          mood.style.top = `${r.bottom - p.top + 6}px`;
+          show(mood, true);
+          await w(560);
+          const opt = mood.querySelector(`.mood-sticker-option[data-e="${MOOD}"]`);
+          pointAt(opt);
+          await w(620);
           click();
-          await w(180);
+          opt.classList.add('active');
+          setMood(TO, true);
+          await w(520);
+          show(mood, false);
+
+          const item = decorate(true, false, true);
+          await w(520);
+          pointAt(item.querySelector('.free-sticker-rotate-handle'));
+          await w(560);
+          click();
+          item.style.transform = `translate(-50%,-50%) rotate(${STICKER.rot}deg)`;
+          await w(900);
           this.settle();
         },
         settle() {
-          shutCompose();
-          const cell = cellFor(TO);
-          if (!cell) return;
-          openPanel(cell, [{ ...WRITTEN, done: true }]);
-          lit(TO, true);
-          clearEvent();
-          putEvent(cell, true);
+          shutAll();
+          filter(null);
+          setMood(TO, true);
+          decorate(true, true, false);
+        },
+        undo() { shutAll(); setMood(TO, false); decorate(false, false, false); filter(TAG.Client); },
+      },
+      {
+        title: 'Two of them, agreeing.',
+        tier: 'PRO',
+        lead: 'Cloud sync carries events, memos, settings and tags between your machines, ' +
+          'and the push is live rather than on a timer. Google Calendar and CalDAV go both ' +
+          'ways on the same wire.',
+        async play(w) {
+          shutAll();
+          hand(false);
+          split(true);
+          await w(900);
+          const there = putEvent(SYNC_DAY, SYNCED, 'g', twin);
+          if (there) there.parentElement.classList.add('is-landed');
+          await w(1000);
+          const here = putEvent(SYNC_DAY, SYNCED, 'g');
+          if (here) here.parentElement.classList.add('is-landed');
+          await w(400);
+        },
+        settle() {
+          shutAll();
+          split(true);
+          dropEvents('g'); dropEvents('g', twin);
+          putEvent(SYNC_DAY, SYNCED, 'g', twin);
+          putEvent(SYNC_DAY, SYNCED, 'g');
         },
         undo() {
-          shutPanel();
-          lit(TO, false);
-          clearEvent();
-          putEvent(cellFor(TO), false);
+          dropEvents('g');
+          if (twin) dropEvents('g', twin);
+          split(false);
         },
       },
       {
-        title: 'Turn the page, and come back.',
-        lead: 'Next month is empty because you have not been there yet — and the ring is ' +
-          'gone with it. It only ever sits on today, which this calendar had to go and look ' +
-          'up. Today takes you back.',
+        title: 'And you do not have to be here.',
+        tier: 'FREE',
+        lead: 'Turn on MCP and an agent works the calendar over a local socket — a named ' +
+          'pipe, not a port, and nothing leaves the machine. It writes the event; you find ' +
+          'it already there, in the app’s own panel, with everything filled in.',
         async play(w) {
-          shutPanel(); shutCompose();
-          lit(TO, false);
-          hand(true);
-          pointAt(cal.querySelector('.nav-next'));
-          await w(620);
-          click();
-          await w(180);
-          swap(monthAt(1), EMPTY_DEAL);
-          await w(1600);
-          pointAt(cal.querySelector('.today-btn'));
-          await w(620);
-          click();
-          await w(180);
+          shutAll();
+          split(false);
+          hand(false);                       // this one happens without a hand
+          agent.innerHTML = '';
+          agent.setAttribute('aria-hidden', 'false');
+          await w(500);
+          for (const a of AGENT) {
+            const line = document.createElement('p');
+            line.className = 'tour-agent-line';
+            line.innerHTML = `<b>${a.call}</b> ${cellFor(AGENT_DAY).dataset.when} · ` +
+              `${a.ev.time} · “${a.ev.t}”`;
+            agent.appendChild(line);
+            await w(120);
+            line.classList.add('is-in');
+            await w(680);
+            const row = putEvent(AGENT_DAY, a.ev, 'a');
+            if (row) row.parentElement.classList.add('is-landed');
+            await w(700);
+          }
+          await w(500);
           this.settle();
         },
         settle() {
-          shutPanel(); shutCompose();
-          swap(M, DEAL);
-          lit(TO, false);
-          putEvent(cellFor(TO), true);
+          shutAll();
+          split(false);
+          agent.setAttribute('aria-hidden', 'false');
+          agent.innerHTML = AGENT.map((a) =>
+            `<p class="tour-agent-line is-in"><b>${a.call}</b> ${cellFor(AGENT_DAY).dataset.when} · ` +
+            `${a.ev.time} · “${a.ev.t}”</p>`).join('');
+          dropEvents('a');
+          AGENT.forEach((a) => putEvent(AGENT_DAY, a.ev, 'a'));
+          const cell = cellFor(AGENT_DAY);
+          $('#tour-panel-when').textContent = cell.dataset.when;
+          $('#tour-panel-list').innerHTML = scheduleDay(cell, AGENT.map((a) => a.ev));
+          show(panel, true, true);
+          lit(AGENT_DAY, true);
         },
         undo() {
-          swap(M, DEAL);
-          const cell = cellFor(TO);
-          if (!cell) return;
-          putEvent(cell, true);
-          openPanel(cell, [{ ...WRITTEN, done: true }]);
-          lit(TO, true);
+          shutAll();
+          agent.setAttribute('aria-hidden', 'true');
+          agent.innerHTML = '';
+          dropEvents('a');
+          lit(AGENT_DAY, false);
+          split(true);
         },
       },
     ];
 
-    // Swapping the month throws the whole grid away, which is why no step holds
-    // a cell — they hold day numbers and ask cellFor() each time. Whatever the
-    // written event was doing has to be re-drawn by the caller afterwards; a
-    // grid that has just been rebuilt is a grid with nothing written on it.
-    function swap(mm, deal) {
-      const next = buildCalendar(mm, deal);
-      cal.replaceWith(next);
-      cal = next;
-      hold();
-    }
-
     // ---- the rail: where you are, and how much is left ----
     // Numbers only. The step's title is already on the plate to the left, and a
     // rail that carried it too came out ragged — an `opacity: 0` title still
-    // takes its width, so five right-aligned ticks sat on five different lines.
+    // takes its width, so the ticks sat on different lines.
     rail.innerHTML = STEPS.map((_, i) => `<li class="tour-tick">${pad2(i + 1)}</li>`).join('');
     const ticks = [...rail.querySelectorAll('.tour-tick')];
 
@@ -1173,6 +1373,8 @@
     const say = (i) => {
       const s = STEPS[i];
       $('#tour-n').textContent = `${pad2(i + 1)} / ${pad2(STEPS.length)}`;
+      $('#tour-tier').textContent = s ? s.tier : '';
+      $('#tour-tier').className = `tour-tier${s && s.tier === 'PRO' ? ' is-pro' : ''}`;
       $('#tour-title').textContent = s ? s.title : '';
       $('#tour-lead').textContent = s ? s.lead : '';
       ticks.forEach((t, k) => t.classList.toggle('is-at', k === i));
@@ -1187,6 +1389,7 @@
       token++;
       const mine = token;
       pin.querySelectorAll('.tour-ghost').forEach((g) => g.remove());
+      cal.querySelectorAll('.day-event-row[style]').forEach((r) => { r.style.opacity = ''; });
       const w = (ms) => new Promise((r) => setTimeout(r, ms))
         .then(() => { if (token !== mine) throw HALT; });
 
@@ -1218,7 +1421,7 @@
       // p is 0..1 across the section, and it is 0 both above the section and at
       // the instant the pin sticks. So p === 0 means "not here yet" and winds
       // the calendar all the way back — otherwise the scrub's very first frame,
-      // which runs at load while the reader is still in the hero, would play
+      // which runs at load while the reader is still on the wall, would play
       // step one to an empty room.
       at: (p) => {
         if (p <= 0) { goTo(-1, false); return; }
@@ -1228,23 +1431,13 @@
   }
 
   // ---------- scroll scrub — one rAF-throttled pass drives every section ----------
-  function initScrub(demo, tour) {
-    const hero = $('#hero');
+  // Two sections, two pins, one pass. Each is told a position between 0 and 1
+  // and works out for itself what that means; neither is ever told a direction,
+  // which is why scrolling up puts things back instead of replaying them.
+  function initScrub(wall, tour) {
+    const wallSec = $('#wall');
     const tourSec = $('#tour');
-    const wall = $('#plane-wall');
-    const cal = $('#plane-cal');
-    const pin = $('.hero-pin');
-    const stage = $('#before-stage');
-    const frame = $('#oldcal-frame');
-    const copy = $('#before-copy');
-    const bin = $('#bin');
-    const binLid = $('.bin-lid');
-    const nw = $('#newway');
-    const beatBreak = $('#beat-break');
-    const beatBuilt = $('#beat-built');
     const cue = $('#cue-label');
-    const link = $('#demo-link');
-    const shards = collectShards();
 
     // progress of a tall section behind its sticky pin, 0 → 1
     const prog = (el) => {
@@ -1257,102 +1450,33 @@
 
     function run() {
       queued = false;
-      const vh = innerHeight;
 
-      // 1. hero — one pinned sequence in three beats:
-      //    BEFORE 0 → .30 · SHATTER .30 → .62 · REVEAL .62 → 1
-      //
-      //    The hero used to carry a fourth beat, a clickable tour of the month.
-      //    It is gone: the first screen states the difference and section 2
-      //    proves it, so the reveal is the last thing the pin has to do.
-      const p = prog(hero);
-      const seg = (a, b) => clamp01((p - a) / (b - a));
-      wall.style.transform = `translate3d(0, ${p * -40}px, 0) scale(1.06)`;
+      const p = prog(wallSec);
+      wall.at(p);
 
-      const qBreak = seg(0.30, 0.62);
-      const qUp = seg(0.62, 0.80);
-
-      // The demo plays at p = 0, so its narration is up from the first frame
-      // rather than fading in on a scroll that has not happened yet. Leaving
-      // the screen is what ends it.
-      if (p > 0.12) demo.settle();
-      copy.style.opacity = String(1 - seg(0.24, 0.32));
-      // ours leaves with the copy; the shatter is not the place to already be
-      // holding a piece of the answer
-      if (p > 0.14) {
-        const k = String(1 - seg(0.14, 0.28));
-        nw.style.opacity = k;
-        link.style.opacity = k;
-      } else if (nw.style.opacity) {
-        nw.style.opacity = '';
-        link.style.opacity = '';
-      }
-      frame.style.opacity = String(1 - seg(0.30, 0.42));
-      stage.style.opacity = String(1 - seg(0.62, 0.68));
-      bin.style.opacity = String(seg(0.20, 0.30) * (1 - seg(0.62, 0.68)));
-      bin.style.transform = `scale(${1 + 0.1 * Math.sin(qBreak * Math.PI)})`;
-      binLid.style.transform = `rotate(${-22 * qBreak}deg) translateY(${-2 * qBreak}px)`;
-
-      // Each piece hangs, then goes — its own delay, its own spin, all of them
-      // aimed at the bin. dx/dy were measured once, so this is transform only.
-      shards.list.forEach((s) => {
-        const t = clamp01((qBreak - s.delay) / (1 - s.delay));
-        const e = t * t;
-        const hop = -Math.sin(t * Math.PI) * 46 * s.hop;
-        s.el.style.transform = t
-          ? `translate3d(${s.dx * e}px, ${s.dy * e + hop}px, 0) rotate(${s.rot * e}deg) scale(${1 - 0.94 * e})`
-          : 'none';
-        s.el.style.opacity = String(1 - t * 0.85);
-      });
-
-      beatBreak.style.opacity = String(seg(0.34, 0.41) * (1 - seg(0.55, 0.62)));
-      beatBuilt.style.opacity = String(seg(0.68, 0.74) * (1 - seg(0.84, 0.90)));
-
-      // ours rises in its place and then holds. A thing you are being handed
-      // should not still be sliding while you look at it.
-      cal.style.opacity = String(qUp);
-      cal.style.transform =
-        `translate3d(0, ${(1 - qUp) * 46}px, 0) scale(${0.962 + qUp * 0.038})`;
-
-      const label = !demo.isDone() ? 'SCROLL WHEN READY'
-        : p < 0.30 ? 'SCROLL TO BREAK IT'
-        : p < 0.86 ? 'SCROLL'
+      const label = p < 0.30 ? 'SCROLL'
+        : p < 0.62 ? 'KEEP GOING'
         : 'NOW WATCH IT WORK';
       if (cue.textContent !== label) cue.textContent = label;
 
-      // the pin dims on the way out, so nothing outlives the calendar
-      pin.style.opacity = String(clamp01(1 - (p - 0.93) / 0.07));
-
-      // 2. the tour — scroll picks the step and the step plays itself. The
-      //    engine is told a position, never a direction: it works out for
-      //    itself what to play, what to snap past, and what to put back.
+      // the tour — scroll picks the step and the step plays itself. The engine
+      // is told a position, never a direction: it works out for itself what to
+      // play, what to snap past, and what to put back.
       tour.at(prog(tourSec));
     }
 
-    // While the cue reads as an instruction it must not do the opposite of
-    // what it says: clicking it advances THROUGH the sequence to the reveal,
-    // and only once ours is standing does it go back to being the link past
-    // the section.
-    $('.scroll-cue').addEventListener('click', (e) => {
-      if (prog(hero) >= 0.80) return;
-      e.preventDefault();
-      const top = hero.offsetTop + (hero.offsetHeight - innerHeight) * 0.84;
-      scrollTo({ top, behavior: REDUCED() ? 'auto' : 'smooth' });
-    });
-
     const request = () => { if (!queued) { queued = true; requestAnimationFrame(run); } };
-    // Where each shard has to travel is measured once, at rest — never per
-    // frame. Layout can move under it twice: on resize, and when the web
-    // fonts land, so it is re-measured on both.
-    const remeasure = () => { shards.measure(); request(); };
-    // The demo moves the card around the grid, so where the shards travel from
-    // is only true once it has settled.
-    demo.onSettle = remeasure;
+    // The wall is a block of type: how tall it is, and therefore how far it has
+    // to pan before it can come apart, changes when the window is resized and
+    // once more when the web fonts land.
+    const remeasure = () => { wall.measure(); request(); };
     addEventListener('scroll', request, { passive: true });
     addEventListener('resize', remeasure);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure);
-    requestAnimationFrame(remeasure);
     run();
+    // handed back so the loader can ask for one more frame on its way out: the
+    // wall is measured behind a full-screen cover until then
+    return request;
   }
 
   // ---------- custom cursor ----------
@@ -1427,12 +1551,12 @@
   // ---------- start ----------
   function init() {
     scrollTo(0, 0);
-    buildOldCalendar($('#oldcal'));
-    $('#plane-cal').appendChild(buildCalendar());
+    const plane = buildCalendar();
+    holdFrom(plane);           // the month the wall hands over is the month the tour picks up
+    $('#plane-cal').appendChild(plane);
+    const wall = initWall();
     const tour = initTour();
-    const demo = initOldDemo();
-    runLoader(demo.start);
-    initScrub(demo, tour);
+    runLoader(initScrub(wall, tour));
     initCursor();
     initGet();
 

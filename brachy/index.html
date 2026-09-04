@@ -10,7 +10,7 @@
   <title>BRACHY CALENDAR — DINOVERSE</title>
   <link rel="icon" href="../image/brachy-icon.png" />
   <link rel="preload" href="assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/style.css?v=10" />
+  <link rel="stylesheet" href="assets/style.css?v=11" />
 </head>
 <body>
   <!-- ============ LOADER — this actual month draws itself ============
@@ -35,81 +35,58 @@
 
   <h1 class="sr-only">Brachy Calendar — a desktop calendar that is your wallpaper</h1>
 
-  <!-- ============ 1. HERO — one pinned sequence, three beats ============
-       FIRST the desktop calendar this app was built on, rebuilt in DOM on the
-       same month as ours, writing three appointments the only way it can. It
-       then comes apart at its own seams and goes into the bin. THEN ours rises
-       in its place, full screen, the way it actually sits on a desktop.
+  <!-- ============ 1. THE WALL — everything it does, then where it lives ====
+       The first screen is the whole feature list at once, set on a wallpaper.
+       The words are the product's, counted rather than claimed: the eyebrow
+       reads its numbers off the same array the wall is built from, so the
+       count cannot drift from the list.
 
-       The hero states the difference. Section 2 hands ours over and works
-       it. -->
-  <section class="hero" id="hero">
-    <div class="hero-pin">
+       Scroll scatters them — the small ones first — and what is left standing
+       in the cleared middle is the calendar itself, with no window around it.
+       That transition IS the demonstration of desktop mode; the tour does not
+       spend a step on it. -->
+  <section class="wall" id="wall">
+    <div class="wall-pin">
       <div class="plane plane--wall" id="plane-wall" aria-hidden="true"></div>
 
-      <!-- where this started -->
-      <div class="before" id="before" aria-hidden="true">
-        <div class="before-stage" id="before-stage">
-          <div class="oldcal" id="oldcal"></div>
-          <div class="oldcal-frame" id="oldcal-frame"></div>
-
-          <!-- the window the old way opens: one day, one card, plain text.
-               It is a child of the stage, not of a cell, because the demo
-               walks it from day to day. -->
-          <div class="old-note" id="old-note">
-            <div class="old-note-bar"><span id="old-note-date">—</span><span class="old-note-x">×</span></div>
-            <div class="old-note-body"><span id="old-note-text"></span><span class="old-caret"></span></div>
-            <div class="old-note-foot"><span>◍</span><span>◢</span></div>
-          </div>
-
-          <!-- drawn from each plain-text line to the pill that replaced it -->
-          <svg class="demo-link" id="demo-link" aria-hidden="true"></svg>
-
-          <!-- the same three appointments, ours -->
-          <div class="newway" id="newway"></div>
-
-          <span class="demo-ptr" id="demo-ptr">
-            <svg width="17" height="20" viewBox="0 0 17 20" fill="#fff" stroke="#0b0e11"
-                 stroke-width="1.1" stroke-linejoin="round">
-              <path d="M1 1 1 15.4 5 11.6 7.8 17.8 10.6 16.5 7.9 10.5 12.9 10.2Z" />
-            </svg>
-          </span>
-        </div>
-        <div class="bin" id="bin">
-          <svg viewBox="0 0 48 52" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round" color="#cfd4d7">
-            <g class="bin-lid"><path d="M4 12h40M18 12V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5" /></g>
-            <path d="M8 12l2.6 34a3 3 0 0 0 3 2.8h20.8a3 3 0 0 0 3-2.8L40 12" />
-            <path d="M19 21v20M29 21v20" opacity=".55" />
-          </svg>
-        </div>
-        <!-- the demo narrates itself here: the plate's lines and the tally
-             below are written by the script as it runs -->
-        <div class="before-copy" id="before-copy">
-          <p class="eyebrow" id="before-eyebrow">WHERE THIS STARTED</p>
-          <h2 class="before-title" id="before-title">The same month,<br />drawn the old way.</h2>
-          <p class="before-lead" id="demo-step">Three appointments. Watch what it takes.</p>
-          <div class="demo-tally" id="demo-tally"></div>
-        </div>
-        <p class="before-beat" id="beat-break">SO WE BROKE IT.</p>
-        <p class="before-beat" id="beat-built">AND BUILT IT AGAIN.</p>
+      <!-- the shortcuts sit inside the block rather than beside it, so they pan
+           and scatter with everything else -->
+      <div class="wall-words" id="wall-words" aria-hidden="true">
+        <div class="wall-keys" id="wall-keys"></div>
       </div>
 
       <div class="plane plane--cal" id="plane-cal"></div>
 
+      <div class="wall-copy" id="wall-copy">
+        <p class="eyebrow" id="wall-eyebrow"></p>
+        <h2 class="wall-title" id="wall-title">All of it, at once.</h2>
+        <p class="wall-lead" id="wall-lead"></p>
+      </div>
+
       <a class="scroll-cue" href="#tour">
         <span id="cue-label">SCROLL</span><span class="scroll-cue-arrow" aria-hidden="true">↓</span>
       </a>
+      <a class="wall-skip" href="#get">[ SKIP TO DOWNLOAD ]</a>
     </div>
   </section>
 
   <!-- ============ 2. THE TOUR — it uses itself ============
-       The hero ends with our calendar standing there. This section picks it up
-       and works it: a pointer walks to a day and clicks it, writes an event
-       into it, drags it, ticks it off, turns the month. Every step is the
-       app's own UI doing the thing — the panel is SchedulePanel, the composer
-       is EventPopup, the pill that lands is drawn by the same markup as every
-       other pill on the grid.
+       The wall leaves our calendar standing on the desktop. This section picks
+       it up and works it: a pointer writes an event with QuickAdd, drags it,
+       plans the day, filters the month down to one project, decorates it,
+       syncs it to a second device, and finally steps away and lets an agent
+       put one in.
+
+       Every step is the app's own UI doing the thing — QuickAdd is QuickAdd.tsx,
+       the planner is DailyPlanner.tsx, the filter bar is TagFilterBar.tsx, the
+       stickers are FreeStickerItem.tsx, and the pill that lands is drawn by the
+       same markup as every other pill on the grid.
+
+       Two steps have no UI of their own to show: desktop mode is something the
+       OS does, and MCP is a socket. Neither is drawn as a fake screen — the
+       first is the real calendar standing on a real wallpaper, and the second
+       is the real pill arriving with no hand on it, narrated in the PAGE's own
+       type rather than in a window the app does not have.
 
        Scroll moves between steps; arriving at one plays it. Nothing here is a
        video and nothing is a mock-up: the DOM really changes, which is why
@@ -117,6 +94,12 @@
   <section class="tour" id="tour">
     <div class="tour-pin">
       <div class="tour-stage" id="tour-stage"></div>
+
+      <!-- the second device, for the step where two of them agree -->
+      <div class="tour-mirror" id="tour-mirror" aria-hidden="true">
+        <p class="tour-mirror-label">ANOTHER DEVICE</p>
+        <div class="tour-mirror-stage" id="tour-mirror-stage"></div>
+      </div>
 
       <!-- the app's own side panel, when a step opens a day -->
       <aside class="tour-panel" id="tour-panel" aria-hidden="true">
@@ -132,8 +115,18 @@
         </div>
       </aside>
 
-      <!-- the app's own composer, when a step writes one -->
-      <aside class="tour-compose" id="tour-compose" aria-hidden="true"></aside>
+      <!-- QuickAdd, and the daily planner: both are windows the app opens over
+           the month rather than beside it, so they sit on the stage -->
+      <div class="tour-quick" id="tour-quick" aria-hidden="true"></div>
+      <div class="tour-planner" id="tour-planner" aria-hidden="true"></div>
+
+      <!-- the mood sticker picker hangs off the day it was opened on -->
+      <div class="tour-mood" id="tour-mood" aria-hidden="true"></div>
+
+      <!-- MCP has no window. What the agent asked for is said in the PAGE's
+           type, outside the app's frame, so nothing here can be mistaken for
+           a screen the product has. -->
+      <div class="tour-agent" id="tour-agent" aria-hidden="true"></div>
 
       <span class="demo-ptr" id="tour-ptr" aria-hidden="true">
         <svg width="17" height="20" viewBox="0 0 17 20" fill="#fff" stroke="#0b0e11"
@@ -143,7 +136,7 @@
       </span>
 
       <div class="tour-copy" id="tour-copy">
-        <p class="eyebrow" id="tour-n">01 / 05</p>
+        <p class="eyebrow"><span id="tour-n">01 / 07</span><span class="tour-tier" id="tour-tier"></span></p>
         <h2 class="tour-title" id="tour-title"></h2>
         <p class="tour-lead" id="tour-lead"></p>
       </div>
@@ -177,6 +170,6 @@
   <script src="../assets/vendor/lenis.min.js"></script>
   <script src="../assets/crypto.js"></script>
   <script src="../data.js"></script>
-  <script src="assets/app.js?v=10"></script>
+  <script src="assets/app.js?v=11"></script>
 </body>
 </html>

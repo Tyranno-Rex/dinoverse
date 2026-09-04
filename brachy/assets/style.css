@@ -293,259 +293,335 @@ img { max-width: 100%; display: block; }
 .day-event-more { font-size: 0.72em; font-weight: 500; letter-spacing: 0.1px; color: var(--text-muted); padding: 2px 6px; }
 
 /* ============================================================
-   THE APP'S OWN COMPOSER
+   THE APP'S OWN PANELS
 
-   EventPopup.tsx / Popup.css is what a new event is written in, ported from
-   the product rather than designed here. Class names and values are the app's,
-   so what this page shows and what the app shows cannot drift apart. The tour's
-   second step fills one in.
+   QuickAdd.css, DailyPlanner.css, Calendar.css (tag filter bar, mood sticker
+   picker, free stickers) — ported from the product rather than designed here.
+   Class names and values are the app's, so what this page shows and what the
+   app shows cannot drift apart.
+
+   ONE deviation, and it is positional only: in the app the QuickAdd overlay,
+   the planner and the mood picker are fixed to the viewport. Here they are
+   placed inside the tour's pin instead, because the pin IS the app's window on
+   this page. Nothing about how they look changes.
    ============================================================ */
 
-/* ---------- EventPopup ---------- */
-.popup-header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 20px 11px; border-bottom: 1px solid var(--border-color);
-}
-.popup-title { font-size: 13px; font-weight: 600; color: var(--text-color); }
-.popup-close { color: var(--text-muted); font-size: 17px; line-height: 1; }
-.popup-content { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
-.popup-field { display: flex; flex-direction: column; gap: 6px; }
-.popup-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
-.popup-input {
-  width: 100%; padding: 10px 14px; min-height: 38px;
-  background: var(--bg-primary); border: 1px solid var(--border-color);
-  border-radius: 8px; color: var(--text-color); font-size: 13px;
-  box-sizing: border-box; transition: border-color 0.15s;
-}
-.popup-input.is-empty { color: var(--text-muted); }
-.popup-input i { font-style: normal; transition: color 0.3s; }
 /* it blinks only while something is actually being typed into it */
-.tc-caret {
+.type-caret {
   display: none; width: 1px; height: 1em; margin-left: 1px;
   background: var(--text-color); vertical-align: -2px;
 }
-.tour-compose.is-typing .tc-caret { display: inline-block; animation: oldblink 1.06s step-end infinite; }
+.is-typing .type-caret { display: inline-block; animation: blink 1.06s step-end infinite; }
+@keyframes blink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+.is-hidden { display: none; }
 
-.icon-row { display: flex; gap: 4px; align-items: flex-start; flex-wrap: wrap; }
-.icon-group { display: flex; gap: 4px; }
-.icon-row-divider {
-  width: 1px; height: 28px; background: var(--border-color);
-  margin: 6px 4px 0; flex-shrink: 0;
+/* ---------- QuickAdd ---------- */
+.quick-add-container { width: 380px; max-width: 100%; }
+.quick-add-bar {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; height: 44px; padding: 0 16px;
+  border: 1px solid var(--border-color); border-radius: 12px;
+  background: rgba(44, 44, 46, 0.92);
+  backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
 }
-.icon-btn-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.icon-btn {
+.quick-add-date { font-size: 12px; font-weight: 600; color: var(--accent-color); white-space: nowrap; flex-shrink: 0; }
+.quick-add-input { flex: 1; min-width: 0; font-size: 14px; color: var(--text-color); overflow: hidden; white-space: nowrap; }
+.quick-add-input i { font-style: normal; }
+.quick-add-counter { font-size: 11px; color: var(--text-muted); opacity: 0.5; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.quick-add-hint { font-size: 12px; color: var(--text-muted); opacity: 0.6; flex-shrink: 0; }
+
+.quick-add-preview {
+  margin-top: 6px; padding: 14px 16px;
+  border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;
+  background: rgba(44, 44, 46, 0.92);
+  backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  animation: qapop 0.28s cubic-bezier(0.2, 0, 0, 1);
+}
+@keyframes qapop { from { opacity: 0; transform: translateY(-6px); } }
+.quick-add-preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.quick-add-preview-label {
+  font-size: 11px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.quick-add-preview-confidence {
+  font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px;
+  background: var(--accent-color); color: #fff; font-variant-numeric: tabular-nums;
+}
+.quick-add-preview-fields { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.quick-add-preview-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-color); }
+.quick-add-preview-icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
+.quick-add-preview-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.quick-add-btn { padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+.quick-add-btn-cancel { color: var(--text-muted); }
+.quick-add-btn-confirm { background: var(--accent-color); color: #fff; }
+
+/* ---------- DailyPlanner ---------- */
+.daily-planner {
+  width: 380px; max-width: 100%; max-height: 100%;
+  background: var(--bg-primary); border: 1px solid var(--border-color);
+  border-radius: 12px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.daily-planner-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid var(--border-color);
+}
+.daily-planner-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text-color); }
+.dp-close-btn {
   display: flex; align-items: center; justify-content: center;
-  width: 36px; height: 36px; position: relative;
-  background: var(--bg-secondary); border: 1px solid var(--border-color);
-  border-radius: 8px; color: var(--text-secondary); font-size: 14px;
-  transition: all 0.15s;
+  width: 28px; height: 28px; border-radius: 50%; color: var(--text-secondary);
 }
-.icon-btn.active { background: var(--accent-light); border-color: var(--accent-color); color: var(--accent-color); }
-.icon-btn-label { font-size: 9px; color: var(--text-tertiary); white-space: nowrap; line-height: 1; }
-.icon-btn-wrapper.premium .icon-btn-label { color: var(--text-muted); opacity: 0.5; }
-.icon-btn-pro-badge {
-  position: absolute; top: -5px; right: -5px;
-  font-size: 7px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase;
-  background: linear-gradient(135deg, #a78bfa, #7c3aed); color: #fff;
-  padding: 1px 4px; border-radius: 4px; line-height: 1.3;
+.daily-planner-date { display: flex; flex-direction: column; align-items: center; padding: 12px 16px 8px; gap: 2px; }
+.dp-day-name { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+.dp-date-label { font-size: 18px; font-weight: 600; color: var(--text-color); }
+.dp-progress-section { padding: 0 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+.dp-progress-bar { height: 4px; background: var(--bg-secondary); border-radius: 2px; overflow: hidden; }
+.dp-progress-fill { height: 100%; background: var(--accent-color); border-radius: 2px; transition: width 0.3s ease; }
+.dp-progress-text { font-size: 11px; color: var(--text-secondary); text-align: right; }
+.dp-tabs { display: flex; border-bottom: 1px solid var(--border-color); padding: 0 16px; }
+.dp-tab {
+  flex: 1; padding: 8px 4px; text-align: center;
+  border-bottom: 2px solid transparent; color: var(--text-secondary);
+  font-size: 12px; font-weight: 500;
+}
+.dp-tab.active { color: var(--accent-color); border-bottom-color: var(--accent-color); }
+.daily-planner-body { flex: 1; overflow-y: auto; padding: 12px 16px 16px; }
+.dp-section { margin-bottom: 16px; }
+.dp-section-header {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px;
+}
+.dp-section-header.completed { color: var(--text-muted); }
+.dp-empty { font-size: 12px; color: var(--text-muted); padding: 8px 0; font-style: italic; }
+.dp-event-list { display: flex; flex-direction: column; gap: 4px; }
+.dp-event-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 8px; background: var(--bg-secondary);
+}
+/* the app lowers the title only, not the whole row: at full opacity in dark
+   theme the body would sit at the brightness of its own background */
+.dp-event-item.completed .dp-event-title { color: var(--text-secondary); text-decoration: line-through; }
+.dp-check-btn { color: var(--text-muted); flex-shrink: 0; display: flex; align-items: center; font-size: 15px; line-height: 1; }
+.dp-check-btn.checked { color: var(--accent-color); }
+.dp-event-color { width: 3px; height: 20px; border-radius: 2px; flex-shrink: 0; }
+.dp-event-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.dp-event-title { font-size: 13px; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dp-event-time { font-size: 11px; color: var(--text-secondary); }
+
+/* ---------- TagFilterBar ---------- */
+/* It lives inside the calendar, under its header, whenever the month has tags. */
+.tag-filter-bar { display: flex; align-items: center; gap: 4px; padding: 4px 12px; flex-shrink: 0; }
+.tag-filter-pill {
+  display: flex; align-items: center; gap: 4px; padding: 3px 8px;
+  border: 1px solid var(--border-color); color: var(--text-secondary);
+  border-radius: 12px; font-size: 11px; white-space: nowrap;
+  transition: all 0.15s; opacity: 0.6;
+}
+.tag-filter-pill.active {
+  opacity: 1; background: var(--bg-cell-hover);
+  border-color: var(--accent-color); color: var(--text-color);
+}
+.tag-filter-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.tag-filter-label { max-width: 60px; overflow: hidden; text-overflow: ellipsis; }
+/* the app renders the clear button only while something is filtered */
+.tag-filter-clear {
+  display: none; align-items: center; justify-content: center;
+  width: 20px; height: 20px; background: var(--bg-secondary);
+  color: var(--text-secondary); border-radius: 50%; flex-shrink: 0; margin-left: 2px;
+  font-size: 12px; line-height: 1;
+}
+.tag-filter-bar.has-filter .tag-filter-clear { display: flex; }
+/* The app FILTERS: what does not carry the tag leaves the day. It is not
+   dimmed — App.tsx getFilteredEventsForDate drops it from the list. */
+.is-filtered { display: none !important; }
+
+/* ---------- mood stickers, and the decorate layer ---------- */
+.mood-sticker-picker {
+  background: rgba(44, 44, 46, 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.mood-sticker-picker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.mood-sticker-option {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; border-radius: 8px;
+  transition: all 0.15s cubic-bezier(0.2, 0, 0, 1);
+}
+.mood-sticker-option.active { background: var(--accent-light); box-shadow: inset 0 0 0 2px var(--accent-color); }
+.mood-sticker-remove {
+  display: block; width: 100%; margin-top: 6px; padding: 6px; text-align: center;
+  border: 1px solid var(--border-color); border-radius: 8px;
+  color: var(--text-secondary); font-size: 12px;
 }
 
-/* the colour picker only exists once its button has been pressed */
-.colour-drop {
-  display: flex; gap: 7px; flex-wrap: wrap;
-  padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px;
-  background: var(--bg-primary);
-  opacity: 0; transform: translateY(-5px); visibility: hidden;
-  transition: opacity 0.24s, transform 0.24s cubic-bezier(0.2, 0, 0, 1), visibility 0.24s;
+.free-stickers-layer { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.free-stickers-layer.edit-mode { outline: 2px dashed var(--accent-color); outline-offset: -2px; border-radius: 4px; }
+.free-sticker-item {
+  position: absolute; display: flex; align-items: center; justify-content: center;
+  transition: transform 0.5s cubic-bezier(0.2, 0, 0, 1);
 }
-.colour-drop.is-open { opacity: 1; transform: none; visibility: visible; }
-.compose-swatch {
-  width: 16px; height: 16px; border-radius: 50%; opacity: 0.55;
-  transition: opacity 0.25s, box-shadow 0.25s, transform 0.25s;
+.free-sticker-content { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.free-sticker-emoji { line-height: 1; text-align: center; }
+.free-sticker-item.selected::after {
+  content: ''; position: absolute; inset: -3px;
+  border: 1.5px solid var(--accent-color); border-radius: 4px;
 }
-.compose-swatch.is-on {
-  opacity: 1; transform: scale(1.14);
-  box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 3.5px currentColor;
+.free-sticker-delete {
+  position: absolute; top: -10px; right: -10px; width: 20px; height: 20px;
+  border-radius: 50%; border: 2px solid white; background: #ef4444; color: white;
+  font-size: 14px; font-weight: bold; line-height: 1;
+  display: flex; align-items: center; justify-content: center; z-index: 2;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
-.popup-footer {
-  display: flex; align-items: center; justify-content: flex-end;
-  gap: 10px; padding: 14px 20px 18px;
+.free-sticker-resize-handle {
+  position: absolute; bottom: -5px; right: -5px; width: 12px; height: 12px;
+  background: var(--accent-color); border: 2px solid white; border-radius: 2px; z-index: 2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
-.popup-save {
-  padding: 9px 22px; border-radius: 8px;
-  background: var(--accent-color); color: #fff; font-size: 13px; font-weight: 500;
-  transition: filter 0.2s, transform 0.12s;
+.free-sticker-rotate-stem {
+  position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+  width: 1.5px; height: 14px; background: var(--accent-color); z-index: 2;
 }
-.popup-save.is-press { transform: scale(0.97); filter: brightness(1.25); }
+.free-sticker-rotate-handle {
+  position: absolute; top: -34px; left: 50%; transform: translateX(-50%);
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent-color); border: 2px solid white; z-index: 2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
 
-/* ---------- 1. hero ---------- */
-/* Three beats live inside this one pin — before, shatter, reveal — so it needs
-   the scroll to spend on them. It used to carry a fourth (a clickable tour of
-   the month) and ran 340vh for it; the argument moved to section 2. */
-.hero { height: 260vh; position: relative; }
-.hero-pin {
+/* ============================================================
+   1. THE WALL — everything it does, and then where it lives.
+
+   The whole catalogue at once, set on a wallpaper. Scroll takes the words
+   apart and what is left standing in the cleared middle is the calendar,
+   with no window around it. That transition is the demonstration of desktop
+   mode, which is why the tour does not spend a step on it.
+   ============================================================ */
+.wall { height: 300vh; position: relative; }
+.wall-pin {
+  /* the same band as the tour's, so the calendar that walks from one section
+     into the next does not change size on the way */
+  --band: clamp(150px, 22vh, 210px);
   position: sticky; top: 0; height: 100vh;
   overflow: hidden;
-  display: grid; place-items: center;
 }
 .plane { position: absolute; will-change: transform; }
 .plane--wall {
   inset: -6%;
-  /* PLACEHOLDER WALLPAPER — swap for data/brachy/desktop.png when it exists */
+  /* PLACEHOLDER WALLPAPER — swap for data/brachy/desktop.png when it exists.
+     Built in CSS rather than shipped as a photograph: this page carries no
+     images at all, and a licensed wallpaper would be the first. */
   background:
     radial-gradient(120% 90% at 30% 20%, #1b2530 0%, #0b0e11 55%, #07080a 100%),
     linear-gradient(200deg, rgba(10, 132, 255, 0.16), transparent 60%);
 }
 /* Desktop mode: the calendar is not a panel sitting on the wallpaper, it is
    the full surface with every background transparent. So it gets the whole
-   viewport, and the wordmark behind it shows through the cells. */
+   viewport, and the wallpaper shows through the cells. */
 .plane--cal {
   z-index: 2; inset: 0;
   /* the top inset has to clear the fixed topbar, which is 56px tall and would
      otherwise sit across the calendar's own header */
-  padding: clamp(56px, 7vh, 88px) clamp(12px, 3vw, 44px) 14vh;
-  /* it does not exist until the old one has gone; the scrub raises it */
+  padding: clamp(56px, 7vh, 88px) clamp(12px, 3vw, 44px) var(--band);
+  /* it does not exist until the wall has come apart; the scrub raises it */
   opacity: 0; pointer-events: none;
 }
 .plane--cal > .app { height: 100%; }
+
+/* ---------- the words ---------- */
+.wall-words {
+  position: absolute; z-index: 4;
+  top: clamp(58px, 8vh, 92px); left: clamp(14px, 5vw, 80px);
+  right: clamp(14px, 5vw, 80px); bottom: calc(var(--band) + 8px);
+  display: flex; flex-wrap: wrap; align-content: center; justify-content: center;
+  gap: 5px 13px;
+  /* a block taller than this box cannot stay centred — centred overflow spills
+     past both ends and the top half is unreachable, so initWall aligns a tall
+     block to the top and pans it through with scrollTop instead */
+  overflow: hidden;
+}
+.wall-words.is-tall { align-content: flex-start; }
+.wall-word {
+  font-family: var(--mono); font-size: 10.5px;
+  letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--steel); white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+/* the eight the tour is about to perform, so the wall has a rhythm rather
+   than being an even paste */
+.wall-word.is-big {
+  font-family: var(--display); font-weight: 600;
+  font-size: clamp(18px, 2.1vw, 31px); letter-spacing: -0.02em;
+  text-transform: none; color: var(--chalk);
+}
+.wall-pro {
+  font-style: normal; font-family: var(--mono);
+  font-size: 7px; font-weight: 700; letter-spacing: 0.3px;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed); color: #fff;
+  padding: 1px 4px; border-radius: 4px; line-height: 1.3;
+}
+.wall-word.is-big .wall-pro { font-size: 9px; padding: 2px 5px; }
+
+/* the shortcuts get their own band and their own number: the matrix counts
+   them among its rows, but each one is a second way into a feature that is
+   already up on the wall */
+.wall-keys {
+  width: 100%; margin-top: 12px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 7px 11px;
+}
+.wall-keys-n {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.2em;
+  color: var(--steel-dim); margin-right: 5px;
+}
+.wall-key {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--steel-dim);
+}
+.wall-key b {
+  font-weight: 500; color: var(--steel);
+  border: 1px solid var(--line); border-radius: 3px; padding: 2px 5px;
+}
+
+/* ---------- the band ---------- */
+.wall-copy {
+  position: absolute; z-index: 6;
+  left: clamp(16px, 5vw, 64px); bottom: 0; height: var(--band);
+  right: clamp(200px, 26vw, 380px);
+  display: grid; align-content: center; gap: 9px;
+  padding: 0 0 0 20px; border-left: 2px solid var(--accent);
+}
+.wall-copy .eyebrow { margin: 0; color: var(--accent-lit); }
+.wall-title {
+  margin: 0; font-family: var(--display); font-weight: 500;
+  font-size: clamp(24px, 2.7vw, 40px); line-height: 1.06; letter-spacing: -0.03em;
+  color: var(--chalk);
+}
+.wall-lead { margin: 0; max-width: 60ch; font-size: clamp(15px, 1.2vw, 18px); line-height: 1.5; color: var(--steel); }
+
 .scroll-cue {
-  position: absolute; z-index: 5; bottom: 2.5vh; left: 50%; transform: translateX(-50%);
+  position: absolute; z-index: 7; bottom: 2.5vh; left: 50%; transform: translateX(-50%);
   display: grid; gap: 8px; justify-items: center;
   color: var(--steel); text-decoration: none;
 }
 .scroll-cue-arrow { animation: nudge 1.8s ease-in-out infinite; }
 @keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
-
-/* ============================================================
-   1a. WHERE THIS STARTED — the desktop calendar this app was built on.
-
-   Rebuilt in DOM rather than screenshotted, so it can come apart at its own
-   seams. It runs on the SAME month as ours, so the two are the same subject
-   drawn twice. Nothing is exaggerated: an empty grid and one plain white
-   note is what the reference actually shows. The original product is not
-   named — the point is where this started, not whose it was.
-   ============================================================ */
-.before { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
-.before-stage {
-  position: absolute;
-  /* the same frame as .plane--cal, to the pixel: the two calendars are the
-     same subject drawn twice, so they have to occupy the same rectangle */
-  inset: clamp(56px, 7vh, 88px) clamp(12px, 3vw, 44px) 14vh;
+/* the page runs to about eleven screens now, so there is a way out of it */
+.wall-skip {
+  position: absolute; z-index: 7; right: clamp(16px, 4vw, 48px); bottom: 2.5vh;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+  color: var(--steel-dim); text-decoration: none; transition: color 0.25s;
 }
-.oldcal {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  /* the period stack — this is what the reference is set in */
-  font-family: Tahoma, "Segoe UI", Geneva, Verdana, sans-serif;
-  color: #fff;
-}
-.oldcal-frame { position: absolute; inset: 0; border: 1px solid rgba(255, 255, 255, 0.45); }
-.oldcal-title {
-  position: relative; flex-shrink: 0;
-  padding: 7px 0; text-align: center;
-  font-family: Georgia, "Times New Roman", serif; font-size: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.05);
-}
-.oldcal-btns {
-  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-  display: flex; gap: 15px; opacity: 0.85; font-size: 13px;
-}
-.oldcal-dow { flex-shrink: 0; display: grid; grid-template-columns: 34px repeat(7, 1fr); }
-.oldcal-dow span {
-  text-align: center; padding: 4px 0;
-  font-family: Georgia, "Times New Roman", serif; font-size: 13px;
-  /* on the cells, not on the row: the row is not a shard, and a strip of it
-     would outlive the calendar it belongs to */
-  background: rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-  will-change: transform, opacity;
-}
-.oldcal-dow em { display: none; }          /* the short form, for narrow screens */
-.oldcal-body { flex: 1; display: grid; grid-template-columns: 34px 1fr; min-height: 0; }
-.oldcal-weeks { display: grid; }
-.oldcal-week {
-  display: grid; place-items: center; font-size: 11px; opacity: 0.8;
-  border-right: 1px solid rgba(255, 255, 255, 0.4);
-}
-/* minmax(0, ...), not 1fr: a 1fr track takes its minimum from its content, so
-   a day carrying a long note would widen its own column and push the week out
-   of line. The note is meant to be clipped by the day, not to move it. */
-.oldcal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
-.old-cell {
-  position: relative;
-  border-right: 1px solid rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.05);
-  padding: 4px 7px; font-size: 12px;
-  will-change: transform, opacity;
-}
-.old-cell.is-other { opacity: 0.5; }
-.old-cell.is-today { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.95); }
-.old-hol { color: #ff6a6a; margin-left: 7px; }
-
-/* ============================================================
-   1b. THE DEMO — three appointments, written twice, without a scroll.
-
-   The old way is one double-click, one window and one line of plain text per
-   day. Ours is one panel. Both sides render for real: the card below is the
-   reference's window, the pills on the right are the app's own event markup.
-   ============================================================ */
-
-/* the card: it walks from day to day, so it is positioned on the stage and
-   must paint over every cell, not only the one it was opened on */
-.old-note {
-  position: absolute; z-index: 6; left: 0; top: 0; width: 152px;
-  background: #fff; color: #000;
-  border: 1px solid #9aa2a8; box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
-  font-family: Tahoma, "Segoe UI", sans-serif; font-size: 11px;
-  transform-origin: 16px 0;
-  transform: scale(0.9); opacity: 0;
-  /* a window that lands rather than eases in: the overshoot is what makes the
-     double-click read as a double-click */
-  transition: opacity 0.16s, transform 0.3s cubic-bezier(0.34, 1.5, 0.64, 1);
-  will-change: transform, opacity;
-}
-.old-note.is-open { transform: none; opacity: 1; }
-/* Saving does not make the window vanish and a grey line appear somewhere
-   else. The window collapses INTO the day it was written on, and the line is
-   what is left of it — the causality is the animation. */
-.old-note.is-collapsing {
-  transform-origin: 50% 50%;
-  transition: transform 0.42s cubic-bezier(0.5, 0, 0.85, 0.4), opacity 0.42s ease-in;
-}
-.old-note-bar {
-  position: relative; padding: 3px 0; text-align: center;
-  background: linear-gradient(#f4f4f4, #e2e2e2); border-bottom: 1px solid #c4c4c4;
-}
-.old-note-x { position: absolute; right: 6px; top: 2px; color: #555; }
-.old-note-body { min-height: 122px; padding: 5px 7px; word-break: break-word; }
-.old-caret {
-  display: inline-block; width: 1px; height: 11px; margin-left: 1px;
-  background: #000; vertical-align: -1px; opacity: 0;
-}
-/* it blinks only while something is actually being typed into it */
-.old-note.is-typing .old-caret { animation: oldblink 1.06s step-end infinite; }
-@keyframes oldblink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
-.old-note-foot {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 3px 6px; border-top: 1px solid #ececec; color: #9a9a9a; font-size: 10px;
-}
-
-/* what a saved note leaves on the day: the text, and nothing else */
-.old-jot {
-  display: block; margin-top: 3px; font-size: 10px; line-height: 1.25;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  transition: color 0.35s;
-  animation: jotin 0.34s cubic-bezier(0.2, 0, 0, 1);
-}
-@keyframes jotin { from { opacity: 0; transform: scale(1.35); } }
-/* lit while the line to its replacement is being drawn */
-.old-jot.is-linked { color: var(--accent-lit); }
+.wall-skip:hover { color: var(--accent-lit); }
 
 /* the hand doing the work — every click it costs is shown */
 .demo-ptr {
-  position: absolute; z-index: 7; left: 0; top: 0; opacity: 0;
+  position: absolute; z-index: 11; left: 0; top: 0; opacity: 0;
   /* x and y are eased differently on purpose: the two together bend the travel
      into an arc. A hand crossing a screen does not go in a straight line. */
   transition: left 0.6s cubic-bezier(0.25, 0, 0, 1),
@@ -569,105 +645,17 @@ img { max-width: 100%; display: block; }
   to { opacity: 0; transform: scale(1.3); }
 }
 
-/* the running cost, counted rather than claimed */
-.demo-tally {
-  display: grid; grid-template-columns: auto 1fr; gap: 5px 14px;
-  margin-top: 3px; padding-top: 13px; border-top: 1px solid var(--line);
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.13em;
-  text-transform: uppercase; color: var(--steel); line-height: 1.5;
-}
-.demo-tally b { color: var(--steel-dim); font-weight: 400; }
-.demo-tally .is-ours { color: var(--accent-lit); }
-/* the count is rewritten on every keystroke, so a fresh element replays this
-   each time: the number visibly costs something */
-.demo-tally .k {
-  display: inline-block; color: var(--chalk);
-  animation: tick 0.19s cubic-bezier(0.2, 0, 0, 1);
-}
-@keyframes tick { from { transform: translateY(-2px) scale(1.18); color: #fff; } }
-
-/* from each plain-text line to the pill that replaced it */
-.demo-link { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: visible; }
-.demo-link path {
-  fill: none; stroke: var(--accent-lit); stroke-width: 1; opacity: 0.7;
-  stroke-dasharray: var(--len); stroke-dashoffset: var(--len);
-  transition: stroke-dashoffset 0.52s cubic-bezier(0.2, 0, 0, 1);
-}
-.demo-link path.is-in { stroke-dashoffset: 0; }
-
-/* the same three, ours — the app's own pill markup, so this is a comparison
-   between two real renderings and not between two drawings */
-.newway {
-  position: absolute; z-index: 6;
-  right: 3.5%; top: 50%; width: min(320px, 31%);
-  padding: 15px 17px 17px;
-  background: rgba(14, 16, 18, 0.94);
-  border: 1px solid var(--line); border-left: 2px solid var(--accent);
-  backdrop-filter: blur(14px);
-  transform: translate(16px, -50%); opacity: 0;
-  transition: opacity 0.4s, transform 0.5s cubic-bezier(0.2, 0, 0, 1);
-}
-.newway.is-open { transform: translate(0, -50%); opacity: 1; }
-.newway-head {
-  margin: 0 0 13px; font-family: var(--mono); font-size: 10px;
-  letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-lit);
-}
-.newway .app { height: auto; }
-.newway .day-events-detail { gap: 9px; margin: 0; font-size: 15px; }
-.newway .day-event-row {
-  opacity: 0; transform: translateY(7px);
-  transition: opacity 0.3s, transform 0.36s cubic-bezier(0.2, 0, 0, 1);
-}
-.newway .day-event-row.is-in { opacity: 1; transform: none; }
-.newway-foot {
-  margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line);
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.13em;
-  text-transform: uppercase; color: var(--steel); line-height: 1.6;
-}
-
-/* the bin the whole thing goes into */
-.bin {
-  position: absolute; z-index: 4; left: clamp(16px, 4vw, 54px); bottom: 7vh;
-  width: 72px; opacity: 0; will-change: transform, opacity;
-}
-.bin svg { width: 100%; height: auto; display: block; }
-.bin-lid { transform-origin: 84% 90%; will-change: transform; }
-
-/* the copy over the before-stage */
-.before-copy {
-  position: absolute; z-index: 5; left: clamp(16px, 5vw, 64px); bottom: 15vh;
-  max-width: 36ch; display: grid; gap: 11px;
-  padding: 22px 26px 24px;
-  /* it sits over a live grid, so it needs a ground of its own to be read on */
-  background: rgba(8, 9, 10, 0.88);
-  backdrop-filter: blur(8px);
-  border-left: 2px solid var(--accent);
-}
-.before-title {
-  font-family: var(--display); font-weight: 500;
-  font-size: clamp(24px, 2.7vw, 40px); line-height: 1.08; letter-spacing: -0.03em;
-  margin: 0; color: var(--chalk);
-}
-.before-lead { margin: 0; font-size: var(--t-body); line-height: 1.5; color: var(--steel); }
-
-/* the two beats: it breaks, it is rebuilt */
-.before-beat {
-  position: absolute; z-index: 6; inset: auto 0 50%; margin: 0;
-  text-align: center; opacity: 0;
-  font-family: var(--display); font-weight: 900; text-transform: uppercase;
-  letter-spacing: -0.045em; line-height: 0.9;
-  font-size: clamp(34px, 6.4vw, 96px); color: var(--chalk);
-}
-
 /* ============================================================
    2. THE TOUR — ours, being used.
 
-   One pin holding one live calendar. A pointer walks to a day and clicks it,
-   writes an event in, drags it, ticks it off, turns the month; scroll picks
-   which step is on. The panel and the composer below are the app's own
-   components, ported the same way the calendar was.
+   One pin holding one live calendar. QuickAdd writes an event out of a
+   sentence, the hand drags it, the planner takes a day apart, a tag empties
+   the month, the decorate layer marks it up, a second device agrees with it,
+   and an agent writes one with nobody there; scroll picks which step is on.
+   Every panel below is the app's own component, ported the way the calendar
+   was — see "THE APP'S OWN PANELS" above.
    ============================================================ */
-.tour { height: 520vh; position: relative; }
+.tour { height: 740vh; position: relative; }
 .tour-pin {
   --panel-w: min(380px, 32vw);
   --gut: clamp(12px, 3vw, 44px);
@@ -707,8 +695,8 @@ img { max-width: 100%; display: block; }
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.6));
 }
 
-/* ---------- the two app panels ---------- */
-.tour-panel, .tour-compose {
+/* ---------- the app's side panel ---------- */
+.tour-panel {
   position: absolute; z-index: 8;
   top: 0; right: 0; bottom: var(--band); width: var(--panel-w);
   padding: 56px 0 0;              /* clears the fixed topbar */
@@ -721,8 +709,8 @@ img { max-width: 100%; display: block; }
   opacity: 0; visibility: hidden;
   transition: transform 0.42s cubic-bezier(0.2, 0, 0, 1), opacity 0.3s, visibility 0.42s;
 }
-.tour-panel.is-open, .tour-compose.is-open { transform: none; opacity: 1; visibility: visible; }
-.tour-panel .app, .tour-compose .app { height: auto; display: block; }
+.tour-panel.is-open { transform: none; opacity: 1; visibility: visible; }
+.tour-panel .app { height: auto; display: block; }
 
 /* ---------- SchedulePanel ---------- */
 /* apps/brachy/src/components/SchedulePanel — class names and values are the
@@ -823,6 +811,98 @@ img { max-width: 100%; display: block; }
 .tour-tick { color: var(--steel-dim); transition: color 0.3s; }
 .tour-tick.is-at { color: var(--accent-lit); }
 
+/* ---------- the windows the app opens over the month ---------- */
+/* QuickAdd and the planner are not beside the month, they are over it — which
+   is where the app puts them too. */
+.tour-quick, .tour-planner {
+  position: absolute; z-index: 9;
+  left: var(--gut); right: var(--gut);
+  top: clamp(56px, 7vh, 88px); bottom: var(--band);
+  pointer-events: none;
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+.tour-quick.is-open, .tour-planner.is-open { opacity: 1; visibility: visible; }
+.tour-quick > .app, .tour-planner > .app {
+  height: 100%; display: flex; justify-content: center; align-items: flex-start;
+  padding-top: 42px;
+  transform: translateY(-10px);
+  transition: transform 0.36s cubic-bezier(0.2, 0, 0, 1);
+}
+.tour-planner > .app { align-items: center; padding: 0; }
+.tour-quick.is-open > .app, .tour-planner.is-open > .app { transform: none; }
+
+/* the mood picker hangs off the day it was opened on, so the script places it */
+.tour-mood {
+  position: absolute; z-index: 10;
+  opacity: 0; visibility: hidden; transform: scale(0.94);
+  transform-origin: top left;
+  transition: opacity 0.24s, transform 0.24s cubic-bezier(0.2, 0, 0, 1), visibility 0.24s;
+}
+.tour-mood.is-open { opacity: 1; visibility: visible; transform: none; }
+.tour-mood > .app { height: auto; }
+
+/* ---------- the second device ---------- */
+.tour-mirror {
+  position: absolute; z-index: 6;
+  top: clamp(56px, 7vh, 88px); bottom: var(--band);
+  left: calc(50% + 6px); right: var(--gut);
+  display: flex; flex-direction: column; gap: 7px;
+  opacity: 0; visibility: hidden; transform: translateX(28px);
+  transition: opacity 0.4s, transform 0.46s cubic-bezier(0.2, 0, 0, 1), visibility 0.46s;
+}
+.tour-pin.is-split .tour-mirror { opacity: 1; visibility: visible; transform: none; }
+.tour-mirror-label {
+  margin: 0; font-family: var(--mono); font-size: 9.5px;
+  letter-spacing: 0.2em; color: var(--steel-dim);
+}
+.tour-mirror-stage { flex: 1; min-height: 0; }
+.tour-mirror-stage > .app { height: 100%; }
+/* after .is-panel-open on purpose: when both could apply, the split wins */
+.tour-pin.is-split .tour-stage { right: calc(50% + 6px); }
+
+/* ---------- the agent, speaking in the page's type ---------- */
+/* MCP is a socket. There is no window to port, so what it asked for is said
+   in the PAGE's own mono, outside the app's frame — never dressed up as a
+   screen the product does not have. */
+.tour-agent {
+  position: absolute; z-index: 9;
+  left: 50%; transform: translateX(-50%);
+  top: clamp(92px, 12vh, 146px);
+  display: grid; gap: 6px; justify-items: center;
+  max-width: calc(100% - var(--gut) * 2 - 16px);
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+.tour-agent[aria-hidden="false"] { opacity: 1; visibility: visible; }
+/* it is centred over the MONTH, not over the pin — the last step opens the
+   side panel, and the stage moves out from under it */
+.tour-pin.is-panel-open .tour-agent {
+  transform: translateX(calc(-50% - (var(--panel-w) + var(--gut)) / 2));
+}
+.tour-agent-line {
+  margin: 0; padding: 8px 14px; max-width: 100%;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.09em;
+  color: var(--steel); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: rgba(8, 9, 10, 0.92); border: 1px solid var(--line);
+  border-left: 2px solid var(--accent-lit);
+  opacity: 0; transform: translateY(-6px);
+  transition: opacity 0.3s, transform 0.34s cubic-bezier(0.2, 0, 0, 1);
+}
+.tour-agent-line.is-in { opacity: 1; transform: none; }
+.tour-agent-line b { color: var(--accent-lit); font-weight: 500; }
+
+/* ---------- free or paid, said on every step ---------- */
+/* The old page made this point once, inside the composer's icon row. Saying it
+   on all seven is more use to a reader deciding whether to pay. */
+.tour-copy .eyebrow { display: flex; align-items: center; gap: 10px; }
+.tour-tier {
+  padding: 1px 6px; border-radius: 3px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.16em;
+  background: var(--steel-dim); color: var(--void);
+}
+.tour-tier.is-pro { background: linear-gradient(135deg, #a78bfa, #7c3aed); color: #fff; }
+
 /* ---------- 3. get ---------- */
 /* ---------- 3. get ---------- */
 .get {
@@ -867,49 +947,60 @@ img { max-width: 100%; display: block; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .scroll-cue-arrow { animation: none; }
-  /* the tour does not play here either: each step is snapped to its end state,
-     so nothing may be caught mid-transition on the way to it */
-  .tour-panel, .tour-compose { transition: opacity 0.2s, visibility 0.2s; }
-  .tour-stage, .colour-drop, .tour-ghost, .schedule-item, .schedule-item-checkbox { transition: none; }
-  .tour-compose.is-typing .tc-caret { animation: none; }
-  .day-events-detail.is-landed { animation: none; }
-  /* the demo does not play here: the script draws its end state at once, so
-     nothing should be caught mid-transition on the way to it */
-  .old-note.is-typing .old-caret { animation: none; opacity: 1; }
-  .old-note, .newway, .newway .day-event-row, .demo-ptr { transition: none; }
-  .old-jot, .demo-tally .k { animation: none; }
-  .demo-link path { transition: none; stroke-dashoffset: 0; }
+  /* the tour does not play here: each step is snapped to its end state, so
+     nothing may be caught mid-transition on the way to it */
+  .tour-panel, .tour-quick, .tour-planner, .tour-mood, .tour-mirror {
+    transition: opacity 0.2s, visibility 0.2s;
+  }
+  .tour-stage, .tour-ghost, .demo-ptr, .schedule-item, .schedule-item-checkbox,
+  .free-sticker-item, .dp-progress-fill, .tag-filter-pill, .mood-sticker-option,
+  .tour-quick > .app, .tour-planner > .app, .tour-agent-line { transition: none; }
+  .is-typing .type-caret { animation: none; opacity: 1; }
+  .day-events-detail.is-landed, .quick-add-preview { animation: none; }
 }
 
 /* ---------- narrow screens ---------- */
 @media (max-width: 720px) {
-  :root { --cell: 34px; --cell-gap: 4px; }
-  .hero { height: 240vh; }
-
-  /* EVERY calendar tweak below is scoped to the hero (.plane--cal for ours,
-     .before-stage for the reference), and must stay that way.
-
-     The hero draws its two calendars at whatever the viewport is, so on a phone
-     they have to give things up to fit. Section 2 does not: its stages are a
-     fixed 900×560 box that gets scaled into the frame, so they need no
-     adaptation — and if one reaches them, the spec line reads it back and
-     reports THIS PAGE'S phone tweak as the product's value. An unscoped
-     `.old-jot { font-size: 8px }` had the line saying 8PX for a note the
-     reference sets at 10, and `.day-event-title { padding: 2px 4px }` had it
+  /* EVERY calendar tweak below is scoped to the section it belongs to —
+     .plane--cal on the wall, .tour-stage in the tour — and must stay that way.
+     Both sections draw a live month at whatever the viewport is, so on a phone
+     they have to give things up to fit; an unscoped rule would be read back by
+     anything measuring the app's own values and reported as the product's.
+     An unscoped `.day-event-title { padding: 2px 4px }` once had a spec line
      saying 2PX 4PX for a pill the app pads 2px 6px. */
 
-  /* On a phone the month grid is tight enough that a clock beside every label
-     costs more than it gives: seven columns leave no room for both. */
+  .wall { height: 280vh; }
+  .wall-pin { --band: 176px; }
   .plane--cal { padding-left: 4px; padding-right: 4px; }
   .plane--cal .day-cell { padding: 5px 3px; }
   .plane--cal .day-event-time { display: none; }
   .plane--cal .day-event-title { padding: 2px 4px; }
-  .popup-content { padding: 14px 16px; gap: 12px; }
-  .popup-footer { padding: 12px 16px 16px; }
 
-  /* The tour's calendar gives up the same things the hero's does, and for the
-     same reason — it is a live month at whatever the viewport is. */
-  .tour-pin { --gut: 4px; --band: 172px; }
+  /* a hundred names at desktop size do not fit a phone, and shrinking them is
+     the right answer here: the point of this screen is the SIZE of the list */
+  .wall-words { left: 10px; right: 10px; gap: 4px 9px; }
+  .wall-word { font-size: 8.5px; letter-spacing: 0.09em; gap: 4px; }
+  .wall-word.is-big { font-size: 14px; }
+  .wall-pro { font-size: 6px; padding: 1px 3px; }
+  .wall-word.is-big .wall-pro { font-size: 7px; padding: 1px 4px; }
+  .wall-keys { gap: 4px 7px; margin-top: 10px; }
+  .wall-keys-n { font-size: 8px; }
+  .wall-key { font-size: 7.5px; gap: 4px; }
+  .wall-key b { padding: 1px 4px; }
+  /* down here the plate is the full width, so the cue and the skip cannot sit
+     over the middle of it: the plate gives up the bottom strip and the two of
+     them share it, one at each end */
+  .wall-copy { right: 14px; padding-left: 14px; bottom: 30px; height: calc(var(--band) - 30px); }
+  .wall-title { font-size: 21px; }
+  .wall-lead { font-size: 13px; line-height: 1.45; }
+  .scroll-cue {
+    left: 18px; right: auto; bottom: 7px; transform: none;
+    grid-auto-flow: column; align-items: center; gap: 7px;
+    font-size: 9px; letter-spacing: 0.14em;
+  }
+  .wall-skip { right: 18px; bottom: 7px; font-size: 9px; letter-spacing: 0.14em; }
+
+  .tour-pin { --gut: 4px; --band: 176px; }
   .tour-stage .day-cell { padding: 5px 3px; }
   .tour-stage .day-event-time { display: none; }
   .tour-stage .day-event-title { padding: 2px 4px; }
@@ -918,11 +1009,10 @@ img { max-width: 100%; display: block; }
      be worse than covering its lower weeks */
   .tour-pin.is-panel-open .tour-stage { right: var(--gut); }
   .tour-copy { right: var(--gut); padding-left: 14px; }
-  .tour-panel, .tour-compose {
-    /* A sheet, because a 32vw column is unreadable down here — but it stops at
-       the copy band rather than at the bottom of the screen. Run it to 0 and it
-       covers the band, and the step's own words are the one thing on this
-       screen a reader cannot do without. */
+  .tour-panel {
+    /* it stops at the copy band rather than at the bottom of the screen. Run it
+       to 0 and it covers the band, and the step's own words are the one thing
+       on this screen a reader cannot do without. */
     top: auto; bottom: var(--band); width: 100%; height: auto; max-height: 50%;
     /* down here the sheet lies over a full month rather than beside it, and at
        0.94 the grid ghosts straight through it */
@@ -931,7 +1021,7 @@ img { max-width: 100%; display: block; }
     transform: translateY(calc(100% + var(--band)));
     padding-top: 0;               /* no topbar to clear down here */
   }
-  .tour-panel.is-open, .tour-compose.is-open { transform: none; }
+  .tour-panel.is-open { transform: none; }
   .schedule-header { padding: 13px 18px; }
   .schedule-list { padding: 12px 18px; }
   .schedule-item { padding: 11px 13px; }
@@ -939,43 +1029,32 @@ img { max-width: 100%; display: block; }
   .tour-lead { font-size: 13px; line-height: 1.45; }
   .tour-rail { display: none; }
 
-  /* The old calendar was drawn for a desktop; in the hero at 390px it has to
-     give up the long weekday names and the long title or it runs off its own
-     frame. Scoped to .before-stage — see the note above. */
-  .before-stage .oldcal-title { font-size: 11px; padding: 5px 0; }
-  .before-stage .oldcal-title-long { display: none; }
-  .before-stage .oldcal-btns { gap: 8px; font-size: 10px; right: 6px; }
-  .before-stage .oldcal-dow { grid-template-columns: 20px repeat(7, 1fr); }
-  .before-stage .oldcal-dow span { font-size: 10px; }
-  .before-stage .oldcal-dow i { display: none; }
-  .before-stage .oldcal-dow em { display: inline; font-style: normal; }
-  .before-stage .oldcal-body { grid-template-columns: 20px 1fr; }
-  .before-stage .oldcal-week { font-size: 9px; }
-  .before-stage .old-cell { padding: 3px 4px; font-size: 10px; }
-  .before-stage .old-note { width: 124px; font-size: 10px; }
-  .before-stage .old-note-body { min-height: 76px; }
-  .before-stage .old-jot { font-size: 8px; margin-top: 2px; }
-  /* ours sits at the top of the stage here, not on the right: the plate is
-     already holding the bottom, and a card between them would cover the grid
-     the whole comparison is about */
-  .newway {
-    left: 6px; right: 6px; top: 6px; width: auto; padding: 11px 13px 13px;
-    transform: translateY(-12px);
-  }
-  .newway.is-open { transform: none; }
-  .newway-head { margin-bottom: 9px; font-size: 9px; }
-  .newway .day-events-detail { gap: 6px; font-size: 13px; }
-  /* the month grid drops the time down here to keep its pills legible — but
-     the time being a field rather than a word is half of what this card is
-     saying, so it keeps it */
-  .newway .day-event-time { display: block; }
-  .newway-foot { margin-top: 10px; padding-top: 9px; font-size: 9px; }
-  .demo-tally { gap: 4px 10px; padding-top: 10px; font-size: 9px; }
-  /* the plate sits lower here, so the card standing open on the third week
-     has somewhere to be */
-  .before-copy { bottom: 8vh; padding: 16px 18px 18px; gap: 9px; }
-  .before-title { font-size: 23px; }
-  .before-lead { font-size: 13px; }
-  .on-wide { display: none; }
-  .bin { width: 52px; }
+  /* The two devices stack instead of standing side by side: half of 390px is
+     not a month, it is a column of clipped numbers. Stacked, they split what
+     the pin actually has — measured off the viewport rather than guessed as a
+     percentage, because a percentage of the pin includes the band and the
+     topbar and neither of them is available. */
+  .tour-pin { --half: calc((100vh - clamp(56px, 7vh, 88px) - var(--band)) / 2); }
+  .tour-pin.is-split .tour-stage { right: var(--gut); bottom: calc(var(--band) + var(--half) + 5px); }
+  .tour-mirror { left: var(--gut); right: var(--gut); top: auto; height: var(--half); transform: translateY(24px); }
+  .tour-mirror-label { font-size: 8px; }
+  /* Even then, 300px is only a month if each one gives up the chrome it does
+     not need to make this particular point. Scoped to the split state on a
+     phone, and nowhere else — these are the page fitting two calendars on a
+     handset, not the product's own values. */
+  .tour-pin.is-split .calendar-header { padding: 7px 12px; }
+  .tour-pin.is-split .tag-filter-bar { display: none; }
+  .tour-pin.is-split .weekday-row { margin-bottom: 3px; }
+  .tour-pin.is-split .weekday-cell { padding: 3px 0; font-size: 0.7em; }
+  .tour-pin.is-split .day-cell { padding: 3px 2px; }
+  .tour-pin.is-split .day-number { width: 17px; height: 17px; font-size: 10px; }
+  .tour-pin.is-split .day-events-detail { margin-top: 2px; gap: 2px; }
+  .tour-pin.is-split .day-event-title { padding: 1px 3px; }
+  .tour-pin.is-split .spanning-bar { font-size: 9px; }
+
+  .tour-quick > .app { padding-top: 16px; }
+  .tour-agent { top: clamp(72px, 10vh, 110px); }
+  .tour-agent-line { font-size: 8.5px; padding: 6px 10px; letter-spacing: 0.06em; }
+  .daily-planner-body { padding: 10px 14px 12px; }
+  .dp-event-item { padding: 7px 9px; }
 }
