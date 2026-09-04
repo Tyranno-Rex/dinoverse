@@ -10,7 +10,7 @@
   <title>BRACHY CALENDAR — DINOVERSE</title>
   <link rel="icon" href="../image/brachy-icon.png" />
   <link rel="preload" href="assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/style.css?v=8" />
+  <link rel="stylesheet" href="assets/style.css?v=9" />
 </head>
 <body>
   <!-- ============ LOADER — this actual month draws itself ============
@@ -35,11 +35,14 @@
 
   <h1 class="sr-only">Brachy Calendar — a desktop calendar that is your wallpaper</h1>
 
-  <!-- ============ 1. HERO — one pinned sequence, two screens ============
+  <!-- ============ 1. HERO — one pinned sequence, three beats ============
        FIRST the desktop calendar this app was built on, rebuilt in DOM on the
-       same month as ours. It comes apart at its own seams and goes into the
-       bin. THEN ours rises in its place, and the month becomes the menu:
-       every event on it is a feature you can click. -->
+       same month as ours, writing three appointments the only way it can. It
+       then comes apart at its own seams and goes into the bin. THEN ours rises
+       in its place, full screen, the way it actually sits on a desktop.
+
+       The hero states the difference. Section 2 proves it, one part at a
+       time. -->
   <section class="hero" id="hero">
     <div class="hero-pin">
       <div class="plane plane--wall" id="plane-wall" aria-hidden="true"></div>
@@ -94,146 +97,35 @@
 
       <div class="plane plane--cal" id="plane-cal"></div>
 
-      <!-- every event on the grid is a feature; this line names the one under
-           the cursor, and the panel below explains the one you click -->
-      <p class="feat-read" id="feat-read"></p>
-
-      <!-- The panel a day opens is the app's own SchedulePanel, down to the
-           class names: a header, the day grouped with its count, and the event
-           as a schedule-item — checkbox, colour dot, tag dots, D-day badge, and
-           a meta row. The page's own words come after it, under a rule. -->
-      <aside class="feat-panel" id="feat-panel" aria-hidden="true" aria-live="polite">
-        <div class="app dark blue" id="feat-panel-app">
-          <div class="schedule-header">
-            <div class="schedule-header-content">
-              <h2 class="schedule-title">Schedule</h2>
-              <p class="schedule-date" id="feat-panel-when"></p>
-            </div>
-            <button class="schedule-close" id="feat-close" type="button" tabindex="-1" aria-label="close">×</button>
-          </div>
-          <div class="schedule-list" id="feat-panel-list"></div>
-        </div>
-        <div class="feat-note">
-          <p class="feat-plan" id="feat-panel-plan"></p>
-          <h3 class="feat-note-title" id="feat-panel-title"></h3>
-          <p class="feat-note-body" id="feat-panel-body"></p>
-          <p class="feat-note-foot">FEATURE <span id="feat-panel-n"></span></p>
-        </div>
-      </aside>
-
-      <!-- the composer: Brachy opens a panel on the day you double-click, and
-           what goes in it is fields. The tour demo fills this in before it
-           hands the month over to the reader. -->
-      <!-- The composer is the app's EventPopup. Its icon row is split into two
-           groups by the app itself — the free fields, a divider, then the ones
-           that carry a PRO badge. That division is the product's, not ours, so
-           the page shows it rather than describing it. -->
-      <aside class="compose" id="compose" aria-hidden="true">
-        <div class="app dark blue event-modal-popup">
-          <div class="popup-header">
-            <span class="popup-title">New event</span>
-            <span class="popup-close">×</span>
-          </div>
-          <div class="popup-content">
-            <div class="popup-field">
-              <span class="popup-label" id="compose-when">Date</span>
-              <span class="popup-input" id="compose-title"><i id="compose-text"></i><span class="compose-caret"></span></span>
-            </div>
-            <div class="popup-field">
-              <span class="popup-label">Time</span>
-              <span class="popup-input is-empty" id="compose-time">--:--</span>
-            </div>
-
-            <div class="icon-row">
-              <div class="icon-group">
-                <span class="icon-btn-wrapper"><span class="icon-btn">↻</span><span class="icon-btn-label">Repeat</span></span>
-                <span class="icon-btn-wrapper"><span class="icon-btn">◔</span><span class="icon-btn-label">Remind</span></span>
-                <span class="icon-btn-wrapper"><span class="icon-btn">◷</span><span class="icon-btn-label">Buffer</span></span>
-                <span class="icon-btn-wrapper"><span class="icon-btn">D</span><span class="icon-btn-label">D-Day</span></span>
-              </div>
-              <span class="icon-row-divider"></span>
-              <div class="icon-group">
-                <span class="icon-btn-wrapper premium" id="ib-colour">
-                  <span class="icon-btn">◉<span class="icon-btn-pro-badge">PRO</span></span>
-                  <span class="icon-btn-label">Colour</span>
-                </span>
-                <span class="icon-btn-wrapper premium">
-                  <span class="icon-btn">#<span class="icon-btn-pro-badge">PRO</span></span>
-                  <span class="icon-btn-label">Tag</span>
-                </span>
-                <span class="icon-btn-wrapper premium">
-                  <span class="icon-btn">▤<span class="icon-btn-pro-badge">PRO</span></span>
-                  <span class="icon-btn-label">Template</span>
-                </span>
-                <span class="icon-btn-wrapper premium">
-                  <span class="icon-btn">G<span class="icon-btn-pro-badge">PRO</span></span>
-                  <span class="icon-btn-label">Google</span>
-                </span>
-              </div>
-            </div>
-
-            <div class="colour-drop" id="compose-colours"></div>
-          </div>
-          <div class="popup-footer">
-            <span class="popup-save" id="compose-save">Save</span>
-          </div>
-        </div>
-      </aside>
-
-      <span class="demo-ptr" id="use-ptr" aria-hidden="true">
-        <svg width="17" height="20" viewBox="0 0 17 20" fill="#fff" stroke="#0b0e11"
-             stroke-width="1.1" stroke-linejoin="round">
-          <path d="M1 1 1 15.4 5 11.6 7.8 17.8 10.6 16.5 7.9 10.5 12.9 10.2Z" />
-        </svg>
-      </span>
-
-      <a class="scroll-cue" href="#claim">
+      <a class="scroll-cue" href="#versus">
         <span id="cue-label">SCROLL</span><span class="scroll-cue-arrow" aria-hidden="true">↓</span>
       </a>
     </div>
   </section>
 
-  <!-- ============ 2. THE CLAIM ============ -->
-  <section class="claim" id="claim">
-    <div class="claim-pin">
-      <h2 class="display claim-lines">
-        <span class="claim-line" data-claim="0.00 0.24">A CALENDAR</span>
-        <span class="claim-line" data-claim="0.14 0.40">MADE LIKE</span>
-        <span class="claim-line" data-claim="0.28 0.56">A LUXURY GOOD<img class="stamp" src="../image/brachy-mascot.png" alt="" /></span>
-      </h2>
-    </div>
-  </section>
+  <!-- ============ 2. ONE PART AT A TIME ============
+       The hero shows two calendars. This section takes them apart and holds
+       the same part of each up against the other — the typeface, the header,
+       the weekday row, the date, an appointment, the grid line, the window you
+       write in.
 
-  <!-- ============ 3. THE DETAIL AUDIT — the page's own grid, magnified ============
-       Every crop below is a live, scaled clone of the calendar this page
-       renders, so each caption states something you can verify on screen.
-       When app screenshots land these crops swap to the app itself; the
-       captions are then re-measured from it. See docs/…-brachy-site-design.md §7. -->
-  <section class="audit" id="audit">
-    <header class="audit-head">
-      <p class="eyebrow">THE DETAIL AUDIT</p>
-      <h2 class="display section-title">EVERY<br />LAST<br />PIXEL</h2>
+       Both sides are live DOM. The left is the reference rebuilt from its own
+       measurements; the right is Brachy's own markup under Brachy's own
+       stylesheet. Every spec line under a frame is read off that frame with
+       getComputedStyle, so a caption here cannot drift from what is on
+       screen — change the app's CSS and the sentence changes with it. -->
+  <section class="versus" id="versus">
+    <header class="versus-head">
+      <p class="eyebrow">ONE PART AT A TIME</p>
+      <h2 class="display section-title">HELD<br />AGAINST<br />IT</h2>
+      <p class="versus-lead">Seven parts of the same calendar, drawn twice. Nothing below is a
+        picture of either one — both sides are running, and every measurement is read off the
+        screen it is printed under.</p>
     </header>
-    <div class="audit-steps" id="audit-steps"></div>
+    <div class="versus-steps" id="versus-steps"></div>
   </section>
 
-  <!-- ============ 4. LIFE ON THE DESKTOP ============ -->
-  <section class="life" id="life">
-    <div class="life-pin">
-      <div class="life-stage" id="life-stage">
-        <div class="life-shot life-shot--a" id="life-a" aria-hidden="true"></div>
-        <div class="life-shot life-shot--b" id="life-b" aria-hidden="true"></div>
-        <div class="life-cal" id="life-cal"></div>
-      </div>
-      <div class="life-copy">
-        <p class="eyebrow">ANY WALLPAPER</p>
-        <p class="life-lead">It is not a window sitting on your desktop. It is the desktop —
-          behind everything, in front of nothing, always already there.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ 5. GET — the page ends quiet ============ -->
+  <!-- ============ 3. GET — the page ends quiet ============ -->
   <section class="get" id="get">
     <div class="get-inner">
       <img class="get-stamp" src="../image/brachy-mascot.png" alt="" />
@@ -258,6 +150,6 @@
   <script src="../assets/vendor/lenis.min.js"></script>
   <script src="../assets/crypto.js"></script>
   <script src="../data.js"></script>
-  <script src="assets/app.js?v=8"></script>
+  <script src="assets/app.js?v=9"></script>
 </body>
 </html>

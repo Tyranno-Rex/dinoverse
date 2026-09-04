@@ -1,13 +1,23 @@
 // BRACHY CALENDAR — page logic.
 //
-// The page runs on the visitor's real date, and the calendar it shows is the
-// app's: the DOM below is Brachy's own markup (CalendarGrid.tsx, DayCell.tsx)
-// and style.css carries Brachy's own stylesheet, in desktop mode. The loader
-// draws this actual month and stops on today; the audit section quotes the
-// computed style of the very element in the crop beside it.
+// Two screens, and the second one is the argument.
 //
-// The month is also the manual: each of the app's features is dealt onto a
-// random day, rendered the way the app renders it.
+//   1. HERO   — the desktop calendar this app was built on, rebuilt in DOM on
+//               the visitor's real month. It writes three appointments the only
+//               way it can, comes apart at its own seams, and ours rises in its
+//               place, full screen, the way it sits on a desktop.
+//   2. VERSUS — the same seven parts of each, held against each other. Typeface,
+//               header, weekday row, date, appointment, run of days, the window
+//               you write in.
+//
+// Nothing here is a drawing of either product. The right-hand side is Brachy's
+// own markup (CalendarGrid.tsx, DayCell.tsx, EventPopup.tsx) under Brachy's own
+// stylesheet, in desktop mode; the left is the reference rebuilt from its own
+// measurements. Every spec line in section 2 is read off the screen with
+// getComputedStyle, so no caption can drift from what is in the frame above it.
+//
+// The page runs on the visitor's real date throughout — the loader draws this
+// actual month and stops on today, and section 2 closes by saying so.
 //
 // Stage one is CSS only. The two WebGL moments (hero sheen, wallpaper
 // displacement dissolve) wait on real app screenshots — see
@@ -59,107 +69,73 @@
   // apps/brachy/src/utils/colors.ts — Apple system colours, and its getColorLight
   const light = (hex) => `rgba(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)}, 0.15)`;
 
-  // Every entry is a real feature, graded the way the product grades it.
-  // docs/spec/FEATURE_MATRIX.md (mesozoic) is the code-checked reference and
-  // `plan` is read straight off it — four of these are premium, and the panel
-  // says so. A month that shows paid features as if they were free is a month
-  // that misleads you before you have downloaded anything.
+  // Every entry is a real feature of the app, and what it puts on the grid is
+  // what the app would put there — a repeat icon, a tag dot, one of the ten
+  // Apple system colours it ships. docs/spec/FEATURE_MATRIX.md (mesozoic) is
+  // the code-checked reference; where it and this page disagreed, this page
+  // was wrong.
   //
-  // Nothing here is claimed that the matrix does not describe, and where the
-  // matrix and this page disagreed, this page was wrong.
+  // The month is dressed with these so that section 2 has a real month to take
+  // apart. Which of them are paid is not asserted here — the composer in
+  // section 2 shows the app's own icon row, and the product has already drawn
+  // that line itself.
   const FEATURES = [
-    { plan: 'free',
-      events: [{ t: 'Weekly standup', time: '09:30', repeat: true }],
-      name: 'Repeating events',
-      body: 'Daily, weekly, monthly or yearly, on an interval — every second week, every third day. End it on a date or after a count. Edit one occurrence or that one and everything after it; the ones you cancelled stay cancelled.' },
+    { events: [{ t: 'Weekly standup', time: '09:30', repeat: true }],
+      name: 'Repeating events' },
 
-    { plan: 'premium',
-      events: [{ t: 'Design review', time: '14:00', color: '#FF3B30' }],
-      name: 'Ten event colours',
-      body: 'The ten Apple system colours. The pill takes the colour at 15%, the label at full. Turning on the colourblind palette remaps all ten to Wong’s universal set — safe for protanopia, deuteranopia and tritanopia — and that part is free.' },
+    { events: [{ t: 'Design review', time: '14:00', color: '#FF3B30' }],
+      name: 'Ten event colours' },
 
-    { plan: 'free',
-      events: [{ t: 'Launch', dday: 'D-7', color: '#FF2D55' }],
-      name: 'D-day countdown',
-      body: 'Mark an event as a D-day and it carries the number. The panel counts with the cell, so the days remaining are never something you work out on your fingers.' },
+    { events: [{ t: 'Launch', dday: 'D-7', color: '#FF2D55' }],
+      name: 'D-day countdown' },
 
-    { plan: 'premium',
-      events: [{ t: 'Client call', time: '11:00', tags: ['#34C759', '#AF52DE'] }],
-      name: 'Tags, and a filter that dims',
-      body: 'Any number of tags per event, each a dot on the pill. The filter bar appears once a tag exists; filter by one and the rest of the month dims rather than disappears, so you read a project without losing the shape of the month.' },
+    { events: [{ t: 'Client call', time: '11:00', tags: ['#34C759', '#AF52DE'] }],
+      name: 'Tags, and a filter that dims' },
 
-    { plan: 'free',
-      events: [{ t: 'Renew domain', done: true }],
-      name: 'Completion',
-      body: 'Tick it off and it strikes through in place. On a repeating event completion is stored per occurrence, so last week being done does not mark this week done.' },
+    { events: [{ t: 'Renew domain', done: true }],
+      name: 'Completion' },
 
-    { plan: 'free', sticker: '🎉',
+    { sticker: '🎉',
       events: [{ t: 'Ship v1.2', time: '17:00', color: '#34C759' }],
-      name: 'Mood stickers',
-      body: 'One sticker per day, from the cell’s right-click menu, and you can register your own images alongside the emoji. The fastest way to make a month readable — a shape lands before a word does.' },
+      name: 'Mood stickers' },
 
-    { plan: 'free', overcommit: true, dayCount: 5,
+    { overcommit: true,
       events: [{ t: 'All-hands', time: '10:00' }, { t: '+4 more', more: true }],
-      name: 'Overcommit warning',
-      body: 'When a day is carrying more than it should, the cell says so while the day is still ahead of you. The threshold is yours, and it can be a number of events or a number of hours.' },
+      name: 'Overcommit warning' },
 
-    { plan: 'free',
-      events: [{ t: 'Dentist', time: '15:00', color: '#5856D6', remind: '15 min before' }],
-      name: 'Reminders, and snooze',
-      body: 'Five, ten, fifteen or thirty minutes, an hour, or a day ahead — several at once on the same event. It arrives as a real system notification, snoozes for ten minutes, and if the event has a meeting link the notification opens it.' },
+    { events: [{ t: 'Dentist', time: '15:00', color: '#5856D6', remind: '15 min before' }],
+      name: 'Reminders, and snooze' },
 
-    { plan: 'premium',
-      events: [{ t: 'Synced · Google', time: '08:00', color: '#8E8E93' }],
-      name: 'Google Calendar, CalDAV, iCal feeds',
-      body: 'Google and CalDAV sync both ways; an .ics feed subscribes read-only. Syncing runs thirty seconds after launch and every fifteen minutes after that. Authorisation is OAuth PKCE and the credentials live in the operating system’s keychain — never in a file of ours.' },
+    { events: [{ t: 'Synced · Google', time: '08:00', color: '#8E8E93' }],
+      name: 'Google Calendar, CalDAV, iCal feeds' },
 
-    { plan: 'free',
-      events: [{ t: 'Pomodoro ×4', color: '#FF9500' }],
-      name: 'Pomodoro timer',
-      body: 'Start it from the event it belongs to. Finished sessions are logged against the day they ran on, so the month ends up holding a record of the work and not only the plan.' },
+    { events: [{ t: 'Pomodoro ×4', color: '#FF9500' }],
+      name: 'Pomodoro timer' },
 
-    { plan: 'free',
-      events: [{ t: 'Memo · passport', color: '#FFCC00' }],
-      name: 'Memo windows',
-      body: 'Free-standing notes in their own desktop window, outside the grid. Pin one and it stays above every other window until you unpin it.' },
+    { events: [{ t: 'Memo · passport', color: '#FFCC00' }],
+      name: 'Memo windows' },
 
-    { plan: 'free',
-      events: [{ t: 'Focus · 2h', time: '09:00', color: '#5AC8FA' }],
-      name: 'Focus-time suggestions',
-      body: 'It reads the day you already have, finds the gaps inside your working hours that are long enough to be worth anything, and offers them. Take one and it becomes an event. It suggests; it never books over you.' },
+    { events: [{ t: 'Focus · 2h', time: '09:00', color: '#5AC8FA' }],
+      name: 'Focus-time suggestions' },
 
-    { plan: 'premium', weather: true,
+    { weather: true,
       events: [{ t: 'Picnic', time: '12:00', color: '#34C759' }],
-      name: 'Weather in the day',
-      body: 'The forecast sits in the day header, so an outdoor plan tells you what it is walking into. Your coordinates are rounded to two decimal places and sent straight to Open-Meteo — the request never passes through our server.' },
+      name: 'Weather in the day' },
 
-    { plan: 'free',
-      events: [{ t: 'Backup written', done: true }],
-      name: 'Backup, import, export',
-      body: 'A backup is written on launch and again on quit, the last five are kept, and the operating system encrypts them. Import and export are JSON or plain .ics, and a month prints to PDF. Nothing you put in here is trapped in here.' },
+    { events: [{ t: 'Backup written', done: true }],
+      name: 'Backup, import, export' },
 
-    { plan: 'free',
-      events: [{ t: 'Planner · 8 blocks', time: '08:00', color: '#007AFF' }],
-      name: 'The daily planner',
-      body: 'Press P and the day opens hour by hour. Add straight into an hour, tick things off there, and what you planned and what you kept sit in the same column.' },
+    { events: [{ t: 'Planner · 8 blocks', time: '08:00', color: '#007AFF' }],
+      name: 'The daily planner' },
 
-    { plan: 'free',
-      events: [{ t: 'Lunch w/ sam fri 1pm', time: '13:00' }],
-      name: 'QuickAdd, on the device',
-      body: 'Press Q and write the sentence — "lunch w/ sam fri 1pm" — and it becomes that event. The parser is regular expressions running on your machine. There is no server call and no model behind it.' },
+    { events: [{ t: 'Lunch w/ sam fri 1pm', time: '13:00' }],
+      name: 'QuickAdd, on the device' },
 
-    { plan: 'free',
-      events: [{ t: 'Interview', time: '16:00', buffer: '10 min either side', color: '#AF52DE' }],
-      name: 'Conflicts and buffer time',
-      body: 'Two events on the same hour are flagged as they are made. Give an event five to thirty minutes of buffer before or after and the time it really costs you is the time the day accounts for.' },
+    { events: [{ t: 'Interview', time: '16:00', buffer: '10 min either side', color: '#AF52DE' }],
+      name: 'Conflicts and buffer time' },
   ];
 
-  const SPAN = {
-    plan: 'free',
-    title: 'Sprint 12 · multi-day',
-    name: 'Multi-day events',
-    body: 'An event running across days is drawn once, as a single bar over the week — not as seven copies of itself. Every cell it crosses reserves the height, so the bar never lands on a word.',
-  };
+  const SPAN = { title: 'Sprint 12 · multi-day' };
 
   // apps/brachy/src/utils/colors.ts — the ten Apple system colours it ships
   const PALETTE = ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#5AC8FA',
@@ -183,9 +159,12 @@
     FEATURES.forEach((f, i) => byDay.set(days[i], f));
 
     // The spanning bar needs a run of days inside one week row, so it is placed
-    // on the grid rather than on a day.
+    // on the grid rather than on a day. Its length is fixed: section 2 crops
+    // both calendars on this run and says how many days it is, and a length
+    // that changed per load would make that sentence right only some of the
+    // time. Where it falls is still this month's business.
     const weeks = Math.ceil((M.first + M.days) / 7);
-    const len = 3 + Math.floor(Math.random() * 2);
+    const len = 3;
     const span = {
       week: Math.floor(Math.random() * Math.max(1, weeks - 1)),
       col: Math.floor(Math.random() * (8 - len)),
@@ -220,9 +199,9 @@
       '</div>';
   }
 
-  function buildCalendar(small) {
+  function buildCalendar() {
     const app = document.createElement('div');
-    app.className = 'app dark blue bg-only-opacity' + (small ? ' calendar--sm' : '');
+    app.className = 'app dark blue bg-only-opacity';
 
     const weeks = Math.ceil((M.first + M.days) / 7);
     let rows = '';
@@ -233,7 +212,7 @@
         const other = d < 1 || d > M.days;
         const shown = other ? new Date(M.y, M.m, d).getDate() : d;
         const f = other ? null : DEAL.byDay.get(d);
-        const evs = f && !small ? f.events : (f ? f.events.slice(0, 1) : null);
+        const evs = f ? f.events : null;
 
         const cls = ['day-cell'];
         if (other) cls.push('other-month');
@@ -241,11 +220,10 @@
         if (c === 6) cls.push('saturday');
         if (!other && d === M.today) cls.push('today');
 
-        const spanned = !small && w === DEAL.span.week &&
+        const spanned = w === DEAL.span.week &&
           c >= DEAL.span.col && c < DEAL.span.col + DEAL.span.len;
 
-        cells += `<div class="${cls.join(' ')}"` +
-          `${f ? ` data-feat="${FEATURES.indexOf(f)}" data-when="${dateLabel(d)}" data-day="${d}"` : ''}>` +
+        cells += `<div class="${cls.join(' ')}">` +
           '<div class="day-cell-content"><div class="day-cell-header">' +
             `<span class="day-number${!other && d === M.today ? ' today-badge' : ''}">${shown}</span>` +
             (f && f.overcommit ? `<span class="day-overcommit-badge">${ICON.warn}</span>` : '') +
@@ -260,11 +238,9 @@
       // spanning bar — absolutely placed over the week's columns, app geometry:
       // SPANNING_TOP_OFFSET 36, height 18 (CalendarGrid.tsx)
       let bar = '';
-      if (!small && w === DEAL.span.week) {
+      if (w === DEAL.span.week) {
         const { col, len } = DEAL.span;
-        const d0 = w * 7 + col - M.first + 1;
-        bar = `<div class="spanning-bar start end" data-feat="span" ` +
-          `data-when="${dateLabel(d0)} – ${dateLabel(d0 + len - 1)}" ` +
+        bar = '<div class="spanning-bar start end" ' +
           `style="left:calc(${(col / 7) * 100}% + 4px);width:calc(${(len / 7) * 100}% - 8px);top:${SPAN_TOP}px;height:${SPAN_H}px">` +
           `<span class="spanning-bar-title">${SPAN.title}</span></div>`;
       }
@@ -313,8 +289,21 @@
   // visitor's own calendar. Most months show none, which is correct.
   const OLD_HOL = { '11-24': 'Christmas Eve', '11-25': 'Christmas', '11-31': "New Year's Eve", '0-1': 'New Year' };
 
-  function buildOldCalendar() {
-    const root = $('#oldcal');
+  // The three appointments, and what the old format cannot hold about each.
+  // The hero types them; section 2 shows one of them again, next to the pill
+  // that replaced it. Both read from here, so the two screens cannot drift.
+  const SCRIPT = [
+    { text: 'Design review 2pm',
+      loses: 'The 2pm is a word, not a time. Nothing will ring.' },
+    { text: 'Client call - jamie',
+      loses: 'No tag and no colour, so the project has to go inside the sentence.' },
+    { text: 'Standup 9:30 every mon',
+      loses: 'No repeat. You will type this again next Monday, and the one after that.' },
+  ];
+
+  // Fills `root` — the hero owns one of these, and section 2 builds one per
+  // comparison so that each crop is of a live calendar rather than a picture.
+  function buildOldCalendar(root) {
     const weeks = Math.ceil((M.first + M.days) / 7);
     const long = new Date(M.y, M.m, M.today).toLocaleString('en-US', { weekday: 'long' });
 
@@ -344,6 +333,28 @@
       '</div>' +
       `<div class="oldcal-body"><div class="oldcal-weeks">${gutter}</div>` +
         `<div class="oldcal-grid">${cells}</div></div>`;
+  }
+
+  // Where a note can stand: the middle columns of the second and third weeks.
+  // The card hangs off the day it was opened on, so where it can be opened is
+  // decided by where it will then be standing — clear of the copy plate on the
+  // left and of ours on the right. Those two rows are in this month whatever
+  // weekday it starts on, so there is always somewhere to write.
+  function oldNoteCells(root) {
+    const room = [...root.querySelectorAll('.old-cell')].filter((el, i) => {
+      const row = Math.floor(i / 7), col = i % 7;
+      return col >= 3 && col <= 4 && row >= 1 && row <= 2 && el.dataset.d;
+    });
+    return [0.16, 0.5, 0.84].map((f) => room[Math.round((room.length - 1) * f)]);
+  }
+
+  // what a saved note leaves on the day: the text, and nothing else
+  function jotInto(cell, text) {
+    if (!cell || cell.querySelector('.old-jot')) return;
+    const el = document.createElement('span');
+    el.className = 'old-jot';
+    el.textContent = text;
+    cell.appendChild(el);
   }
 
   // Every piece that can fall. The grid lines are the cells' own borders, so
@@ -398,32 +409,15 @@
     const tallyEl = $('#demo-tally');
     const nw = $('#newway');
 
-    const SCRIPT = [
-      { text: 'Design review 2pm',
-        loses: 'The 2pm is a word, not a time. Nothing will ring.' },
-      { text: 'Client call - jamie',
-        loses: 'No tag and no colour, so the project has to go inside the sentence.' },
-      { text: 'Standup 9:30 every mon',
-        loses: 'No repeat. You will type this again next Monday, and the one after that.' },
-    ];
     // the three the app draws for those same three appointments
     const OURS = ['Ten event colours', 'Tags, and a filter that dims', 'Repeating events']
       .map((n) => FEATURES.find((f) => f.name === n))
       .filter(Boolean)
       .map((f) => f.events[0]);
 
-    // The middle columns, the second and third weeks. The card hangs off the
-    // day it was opened on, so where it can be opened is decided by where it
-    // will then be standing: clear of the copy plate on the left, clear of
-    // ours on the right, and inside the frame. Those two rows are in this
-    // month whatever weekday it starts on, so there is always somewhere to
-    // write.
-    const cells = [...$('#oldcal').querySelectorAll('.old-cell')];
-    const room = cells.filter((el, i) => {
-      const row = Math.floor(i / 7), col = i % 7;
-      return col >= 3 && col <= 4 && row >= 1 && row <= 2 && el.dataset.d;
-    });
-    const PICK = [0.16, 0.5, 0.84].map((f) => room[Math.round((room.length - 1) * f)]);
+    // the three days it writes on — the same rule section 2 uses, so both
+    // screens write in the same places
+    const PICK = oldNoteCells($('#oldcal'));
 
     const api = { done: false, onSettle: null, isDone: () => api.done };
     let stopped = false;
@@ -482,15 +476,6 @@
       note.classList.remove('is-collapsing', 'is-open');
       note.style.transform = '';
       note.style.opacity = '';
-    };
-
-    // what a saved note leaves on the day: the text, and nothing else
-    const jot = (cell, text) => {
-      if (cell.querySelector('.old-jot')) return;
-      const el = document.createElement('span');
-      el.className = 'old-jot';
-      el.textContent = text;
-      cell.appendChild(el);
     };
 
     const oursHTML = () =>
@@ -573,7 +558,7 @@
       api.done = true;
       stopped = true;
       ptr.classList.remove('is-on', 'is-click');
-      SCRIPT.forEach((sc, i) => jot(PICK[i], sc.text));
+      SCRIPT.forEach((sc, i) => jotInto(PICK[i], sc.text));
       // the count has to describe what is on the grid, not how far the demo
       // happened to get before the reader scrolled out of it
       windows = SCRIPT.length;
@@ -626,7 +611,7 @@
         note.classList.remove('is-typing');
         step.textContent = SCRIPT[i].loses;
         await wait(1500);
-        jot(cell, SCRIPT[i].text);
+        jotInto(cell, SCRIPT[i].text);
         // the last one is left standing open on its day — it is the thing this
         // whole screen is about, and the shatter drops it last
         if (i < SCRIPT.length - 1) {
@@ -720,73 +705,435 @@
     setTimeout(tick, 320);
   }
 
-  // ---------- 3. the audit — the page magnifies the app's own grid ----------
-  // Every caption is written from the computed style of the element in the
-  // crop beside it. A caption here cannot drift from what is on screen,
-  // because it is read off the screen. Change the app's CSS and the sentence
-  // changes with it.
-  function buildAudit() {
-    const box = $('#audit-steps');
+  // ---------- 2. one part at a time ----------
+  // The hero shows two calendars. This section takes them apart and holds the
+  // same part of each up against the other.
+  //
+  // Both sides are live DOM. The left is the reference rebuilt from its own
+  // measurements; the right is the app's own markup under the app's own
+  // stylesheet. Every spec line is written from the computed style of the
+  // element in the frame above it, so a line here cannot drift from what is on
+  // screen — change the app's CSS and the sentence changes with it. Nothing is
+  // typed in by hand that the browser can be asked for.
+  //
+  // The rule the whole section is held to: A CROP MAY NOT CLAIM WHAT IT DOES
+  // NOT SHOW. Where the reference simply has no equivalent, the crop is of the
+  // same days with nothing on them — the absence is the thing being shown, and
+  // it is in frame.
+
+  // The family the browser actually rendered in — not the first name in the
+  // stack it was offered.
+  //
+  // getComputedStyle returns the whole stack verbatim, so reading its first
+  // entry names a font that may not exist here: the app's stack opens with
+  // -apple-system, and on Windows the face on screen is Segoe UI. A section
+  // about typography cannot print the name of a font it is not showing.
+  //
+  // There is no API for "which face won", so it is measured: a family the
+  // browser does not have falls through to whatever generic follows it, and
+  // then two different generics give the same width. The first candidate that
+  // moves either measurement is the one being drawn.
+  const CANVAS = document.createElement('canvas').getContext('2d');
+  const widthIn = (stack) => {
+    CANVAS.font = `72px ${stack}`;
+    return CANVAS.measureText('mmmwwwiii0123 Wednesday').width;
+  };
+  const RESOLVED = new Map();
+  const resolves = (fam) => {
+    if (!RESOLVED.has(fam)) {
+      const q = /^[a-z-]+$/i.test(fam) ? fam : `"${fam}"`;   // generics unquoted
+      RESOLVED.set(fam,
+        widthIn(`${q}, monospace`) !== widthIn('monospace') ||
+        widthIn(`${q}, serif`) !== widthIn('serif'));
+    }
+    return RESOLVED.get(fam);
+  };
+  const famOf = (el) => {
+    const stack = getComputedStyle(el).fontFamily
+      .split(',').map((f) => f.replace(/["']/g, '').trim()).filter(Boolean);
+    return (stack.find(resolves) || stack[stack.length - 1] || '—').toUpperCase();
+  };
+  // rgb(79, 195, 247) -> #4FC3F7, so the line prints what the app's CSS says
+  const hexOf = (el, prop) => {
+    const n = (getComputedStyle(el)[prop] || '').match(/\d+/g);
+    return n ? `#${n.slice(0, 3).map((v) => (+v).toString(16).padStart(2, '0')).join('').toUpperCase()}` : '—';
+  };
+  // "rgb(10, 132, 255) 0px 0px 0px 1.5px inset" — the fourth length is the ring
+  const ringOf = (el) => (getComputedStyle(el).boxShadow.match(/-?[\d.]+px/g) || [])[3] || '—';
+
+  // The old calendar's window, as the hero's demo leaves it: a white card with
+  // one free-text body. Markup and values are the reference's own.
+  const OLD_WINDOW = () =>
+    '<div class="old-note is-open">' +
+      `<div class="old-note-bar"><span>${M.month} ${M.today}, ${M.y}</span><span class="old-note-x">×</span></div>` +
+      `<div class="old-note-body">${SCRIPT[0].text}</div>` +
+      '<div class="old-note-foot"><span>◍</span><span>◢</span></div>' +
+    '</div>';
+
+  // The app's EventPopup. Its icon row is split into two groups by the app
+  // itself — the free fields, a divider, then the ones that carry a PRO badge.
+  // That division is the product's, not ours, so the page shows it rather than
+  // describing it.
+  const OUR_WINDOW = () =>
+    '<div class="app dark blue event-modal-popup">' +
+      '<div class="popup-header"><span class="popup-title">New event</span><span class="popup-close">×</span></div>' +
+      '<div class="popup-content">' +
+        '<div class="popup-field">' +
+          `<span class="popup-label">${dateLabel(M.today)}</span>` +
+          '<span class="popup-input">Design review</span>' +
+        '</div>' +
+        '<div class="popup-field"><span class="popup-label">Time</span>' +
+          '<span class="popup-input">14:00</span></div>' +
+        '<div class="icon-row">' +
+          '<div class="icon-group">' +
+            '<span class="icon-btn-wrapper"><span class="icon-btn">↻</span><span class="icon-btn-label">Repeat</span></span>' +
+            '<span class="icon-btn-wrapper"><span class="icon-btn">◔</span><span class="icon-btn-label">Remind</span></span>' +
+            '<span class="icon-btn-wrapper"><span class="icon-btn">◷</span><span class="icon-btn-label">Buffer</span></span>' +
+            '<span class="icon-btn-wrapper"><span class="icon-btn">D</span><span class="icon-btn-label">D-Day</span></span>' +
+          '</div>' +
+          '<span class="icon-row-divider"></span>' +
+          '<div class="icon-group">' +
+            '<span class="icon-btn-wrapper premium"><span class="icon-btn active">◉<span class="icon-btn-pro-badge">PRO</span></span><span class="icon-btn-label">Colour</span></span>' +
+            '<span class="icon-btn-wrapper premium"><span class="icon-btn">#<span class="icon-btn-pro-badge">PRO</span></span><span class="icon-btn-label">Tag</span></span>' +
+            '<span class="icon-btn-wrapper premium"><span class="icon-btn">▤<span class="icon-btn-pro-badge">PRO</span></span><span class="icon-btn-label">Template</span></span>' +
+            '<span class="icon-btn-wrapper premium"><span class="icon-btn">G<span class="icon-btn-pro-badge">PRO</span></span><span class="icon-btn-label">Google</span></span>' +
+          '</div>' +
+        '</div>' +
+        `<div class="colour-drop is-open">${PALETTE.map((c) =>
+          `<span class="compose-swatch${c === '#FF3B30' ? ' is-on' : ''}" style="background:${c};color:${c}"></span>`).join('')}</div>` +
+      '</div>' +
+      '<div class="popup-footer"><span class="popup-save">Save</span></div>' +
+    '</div>';
+
+  function buildVersus() {
+    const box = $('#versus-steps');
+
+    // A live reference calendar, written on the way the hero leaves it: the
+    // same three appointments, in the only format that grid can hold.
+    const oldStage = () => {
+      const stage = document.createElement('div');
+      stage.className = 'vs-cal';
+      const cal = document.createElement('div');
+      cal.className = 'oldcal';
+      stage.appendChild(cal);
+      buildOldCalendar(cal);
+      const cells = oldNoteCells(cal);
+      SCRIPT.forEach((s, i) => jotInto(cells[i], s.text));
+      return stage;
+    };
+
+    // The run of days the multi-day bar covers, so step 6 crops the SAME days
+    // on both sides. The left crop is centred on the run's middle by taking the
+    // run's FIRST cell and walking half a run to the right — every cell in a
+    // week is the same width, so len/2 cell-widths lands exactly where the bar
+    // is centred on the other side, whether the run is odd or even.
+    const runStart = DEAL.span.week * 7 + DEAL.span.col;
+    const RUN = DEAL.span.len;
+
     const STEPS = [
-      { zoom: 6.0, find: (c) => c.querySelector('.day-cell.today .day-number'),
-        cap: (el) => {
-          // "rgb(10, 132, 255) 0px 0px 0px 1.5px inset" — the fourth length is the ring
-          const w = (getComputedStyle(el).boxShadow.match(/-?[\d.]+px/g) || [])[3] || '—';
-          return `TODAY'S RING — <b>${w}</b>, INSET. A SHADOW, NOT A BORDER: THE RING COSTS THE CELL NO LAYOUT.`;
-        } },
-      { zoom: 4.4, find: (c) => c.querySelectorAll('.day-cell:not(.other-month) .day-number')[9],
-        cap: (el) => {
-          const s = getComputedStyle(el);
-          return `EVERY NUMERAL SITS IN THE SAME <b>${s.width} × ${s.height}</b> CIRCLE — SO NOTHING MOVES WHEN ONE OF THEM IS RINGED.`;
-        } },
-      { zoom: 4.8, find: (c) => c.querySelector('.day-event-title'),
-        cap: (el) => {
-          const s = getComputedStyle(el);
-          return `THE EVENT PILL — RADIUS <b>${s.borderTopLeftRadius}</b>, PADDING <b>${s.paddingTop} ${s.paddingLeft}</b>, WEIGHT <b>${s.fontWeight}</b>.`;
-        } },
-      // A crop must show what its caption claims. This one is the multi-day
-      // bar, because the reservation it forces on the cells below is a thing
-      // you can see happening in the frame.
-      { zoom: 2.4, find: (c) => c.querySelector('.spanning-bar'),
-        cap: (el) => {
-          const h = getComputedStyle(el).height;
-          const cell = el.closest('.week-row').querySelector('.day-spanning-spacer');
-          const gap = getComputedStyle(el.closest('.calendar').querySelector('.week-cells')).columnGap;
-          return `THE MULTI-DAY BAR IS <b>${h}</b> TALL AND EVERY DAY IT CROSSES RESERVES <b>${cell ? getComputedStyle(cell).height : '—'}</b>. IT NEVER LANDS ON A WORD. GRID LINES ARE <b>${gap}</b> OF GAP, NOT BORDERS — SO NO TWO CAN DOUBLE UP.`;
-        } },
+      {
+        title: 'The typeface',
+        kind: 'type',
+        // Two live components per side; the specimen is then set in whatever
+        // family each of them actually resolved to.
+        old: {
+          probe: (s) => [s.querySelector('.oldcal-title'), s.querySelector('.old-cell')],
+          words: ['November', '24'],
+        },
+        ours: {
+          probe: (s) => [s.querySelector('.month-year span'), s.querySelector('.day-number')],
+          words: ['November', '24'],
+        },
+        note: 'Two families inside one grid — a serif for the labels, a sans for the numbers ' +
+          'you actually read. Ours sets the whole month in one, so nothing on it is spoken in ' +
+          'a voice the rest of it does not use.',
+      },
+      {
+        title: 'The month’s name',
+        span: 200,
+        // Both lines count characters, because the length of each title is the
+        // thing the two frames actually show. "centred" would be true of the
+        // left one and unshowable — the crop runs off both its edges.
+        old: {
+          find: (s) => s.querySelector('.oldcal-title'),
+          spec: (el) => {
+            const c = getComputedStyle(el);
+            // the glyph buttons live in this element too; they are not title
+            const words = [...el.childNodes]
+              .filter((n) => !(n.classList && n.classList.contains('oldcal-btns')))
+              .map((n) => n.textContent).join('').trim();
+            return `<b>${famOf(el)}</b> ${c.fontSize} · <b>${words.length} CHARACTERS</b> — ` +
+              'THE MONTH, THE YEAR, AND THEN THE WHOLE OF TODAY’S DATE AGAIN';
+          },
+        },
+        ours: {
+          find: (s) => s.querySelector('.month-year'),
+          spec: (el) => {
+            const t = el.querySelector('span');
+            const arrow = el.parentNode.querySelector('.nav-arrow');
+            return `<b>${famOf(t)}</b> ${getComputedStyle(t).fontSize} · ` +
+              `<b>${el.textContent.trim().length} CHARACTERS</b> — THE MONTH AND THE YEAR · ` +
+              `THE TWO ARROWS BESIDE IT ARE ${hexOf(arrow, 'color')}`;
+          },
+        },
+        note: 'A serif, and a sentence: the month, the year, and then today’s full date welded ' +
+          'on after a slash. Ours puts the month and the year in the same stack as the days, ' +
+          'and the only things standing next to them are the two arrows that move them.',
+      },
+      {
+        title: 'The weekend',
+        span: 164,
+        // Both lines name the label AND the date sitting under it, because both
+        // of them are inside the crop. "the same as every other weekday" would
+        // be true and unshowable — the frame holds one column.
+        old: {
+          find: (s) => s.querySelectorAll('.oldcal-dow span')[7],
+          spec: (el, s) => {
+            const c = getComputedStyle(el);
+            const num = s.querySelectorAll('.old-cell')[6];
+            return `<b>${famOf(el)}</b> ${c.fontSize} · LABEL ${hexOf(el, 'color')}, ` +
+              `THE DATE UNDER IT ${num ? hexOf(num, 'color') : '—'} — NOTHING MARKS THE COLUMN`;
+          },
+        },
+        ours: {
+          find: (s) => s.querySelector('.weekday-cell.saturday'),
+          spec: (el, s) => {
+            const c = getComputedStyle(el);
+            const num = s.querySelector('.day-cell.saturday:not(.other-month) .day-number');
+            return `<b>${famOf(el)}</b> ${c.fontSize} · TRACKING ${c.letterSpacing} · ` +
+              `LABEL <b>${hexOf(el, 'color')}</b>, THE DATE UNDER IT <b>${num ? hexOf(num, 'color') : '—'}</b> — THE WHOLE COLUMN CARRIES IT`;
+          },
+        },
+        note: 'Every weekday at one weight and one colour, so the shape of a week has to be ' +
+          'counted out. Ours colours both ends of it: you find Saturday without reading a word.',
+      },
+      {
+        title: 'Today',
+        span: 146,
+        old: {
+          find: (s) => s.querySelector('.old-cell.is-today'),
+          spec: (el) => {
+            const c = getComputedStyle(el);
+            const w = (c.boxShadow.match(/-?[\d.]+px/g) || [])[3] || '—';
+            return `${c.fontSize} · TODAY IS A <b>${w}</b> BOX DRAWN ROUND THE WHOLE DAY`;
+          },
+        },
+        ours: {
+          find: (s) => s.querySelector('.day-cell.today .day-number'),
+          spec: (el) => {
+            const c = getComputedStyle(el);
+            return `EVERY NUMERAL IN THE SAME <b>${c.width} × ${c.height}</b> CIRCLE · RING <b>${ringOf(el)}</b>, INSET — ` +
+              'A SHADOW, NOT A BORDER, SO IT COSTS THE CELL NO LAYOUT';
+          },
+        },
+        note: 'A box drawn round the whole day. Ours rings the numeral instead, and rings it ' +
+          'with a shadow — so nothing in the cell has to move aside to make room for today.',
+      },
+      {
+        // The same appointment on both sides: the hero types "Design review 2pm"
+        // into the reference, and this is what the app makes of it.
+        title: 'An appointment',
+        span: 154,
+        old: {
+          find: (s) => s.querySelector('.old-jot'),
+          // Only what the frame shows. It says nowrap rather than "clipped",
+          // because on a short note like this one nothing is clipped and the
+          // crop would be claiming something it does not show.
+          spec: (el) => {
+            const c = getComputedStyle(el);
+            return `${c.fontSize} PLAIN TEXT · <b>WHITE-SPACE ${c.whiteSpace.toUpperCase()}</b> — ONE LINE, WHATEVER FITS · ` +
+              'NO TIME FIELD, NO COLOUR, NO REPEAT: THE 2PM IS A WORD';
+          },
+        },
+        ours: {
+          find: (s) => [...s.querySelectorAll('.day-event-row')]
+            .find((r) => r.textContent.indexOf('Design review') === 0),
+          spec: (row) => {
+            const p = row.querySelector('.day-event-title');
+            const c = getComputedStyle(p);
+            const t = row.querySelector('.day-event-time');
+            return `PILL — RADIUS <b>${c.borderTopLeftRadius}</b>, PADDING ${c.paddingTop} ${c.paddingLeft}, WEIGHT ${c.fontWeight} · ` +
+              `LABEL <b>${hexOf(p, 'color')}</b> ON THE SAME COLOUR AT 15% · ` +
+              `THE TIME IS ITS OWN ELEMENT, ${t ? getComputedStyle(t).fontSize : '—'}`;
+          },
+        },
+        note: 'The same appointment, twice. On the left the time is four characters inside a ' +
+          'sentence, and the colour and the repeat have nowhere to go. On the right each of ' +
+          'them is a field, and the title is only what is left over.',
+      },
+      {
+        // Nothing is added to the reference to lose this comparison. The crop
+        // is of the same days, and what it shows is that they are only days.
+        title: 'A run of days',
+        // The whole run has to be inside both frames: three cells of a 900px
+        // month is 372px, and a little over that leaves a margin. Any tighter
+        // and the left crop shows two days while its line says three.
+        span: 392,
+        old: {
+          find: (s) => s.querySelectorAll('.old-cell')[runStart],
+          ax: RUN / 2,
+          spec: (el) => {
+            const c = getComputedStyle(el);
+            return `THE SAME ${RUN} DAYS · ${c.borderRightWidth} BORDERS AND NOTHING ELSE — ` +
+              'NO BAR, NO JOIN, NOTHING SAYING THESE BELONG TO ONE THING';
+          },
+        },
+        ours: {
+          find: (s) => s.querySelector('.spanning-bar'),
+          spec: (el) => {
+            const spacer = el.closest('.week-row').querySelector('.day-spanning-spacer');
+            return `ONE BAR OVER ${RUN} DAYS, <b>${getComputedStyle(el).height}</b> TALL, DRAWN ONCE · ` +
+              `EVERY DAY IT CROSSES RESERVES <b>${spacer ? getComputedStyle(spacer).height : '—'}</b>, ` +
+              'SO IT NEVER LANDS ON A WORD';
+          },
+        },
+        note: `${RUN === 3 ? 'Three' : RUN} days that belong to one thing, and the grid on the ` +
+          'left has no way to say so — you would write it out again on each of them. Ours draws ' +
+          'it once, and every day underneath keeps the room for it.',
+      },
+      {
+        title: 'Writing it down',
+        kind: 'window',
+        old: {
+          html: OLD_WINDOW,
+          find: (s) => s.querySelector('.old-note-body'),
+          spec: (el) => {
+            const c = getComputedStyle(el);
+            return `<b>${famOf(el)}</b> ${c.fontSize} · ONE FREE-TEXT BOX, ${c.minHeight} OF IT · ` +
+              'ONE WINDOW PER DAY, AND NOTHING CARRIES OVER';
+          },
+        },
+        ours: {
+          html: OUR_WINDOW,
+          find: (s) => s.querySelector('.icon-row'),
+          spec: (el) => {
+            const all = el.querySelectorAll('.icon-btn-wrapper').length;
+            const pro = el.querySelectorAll('.icon-btn-wrapper.premium').length;
+            const sw = el.parentNode.querySelectorAll('.compose-swatch').length;
+            return `<b>${all}</b> FIELD BUTTONS — ${all - pro} FREE, <b>${pro} PRO</b> · ${sw} COLOURS · ` +
+              'THE DIVIDER IS THE APP’S OWN, NOT THIS PAGE’S';
+          },
+        },
+        note: 'One box, and whatever fits on a line of it. Ours asks for the parts separately — ' +
+          'and the row splits itself exactly where the paid fields start. That line is drawn ' +
+          'by the product, so the page shows it rather than making a claim about it.',
+      },
     ];
 
-    const mounted = [];
-    STEPS.forEach((s) => {
-      const step = document.createElement('div');
-      step.className = 'audit-step';
-      const frame = document.createElement('div');
-      frame.className = 'audit-frame';
-      const cal = buildCalendar(false);
-      frame.appendChild(cal);
-      const cap = document.createElement('p');
-      cap.className = 'audit-cap';
-      step.append(frame, cap);
+    const cropped = [];   // re-placed on resize and once the web fonts land
+    const total = pad2(STEPS.length);
+
+    STEPS.forEach((s, i) => {
+      const step = document.createElement('article');
+      step.className = `vs-step vs-step--${s.kind || 'crop'}`;
+      step.innerHTML =
+        `<p class="vs-n">${pad2(i + 1)} / ${total}</p>` +
+        `<h3 class="vs-title">${s.title}</h3>` +
+        '<div class="vs-pair">' +
+          '<figure class="vs-side vs-side--old">' +
+            '<figcaption class="vs-tag">WHERE THIS STARTED</figcaption>' +
+            '<div class="vs-box"></div><p class="vs-spec"></p></figure>' +
+          '<figure class="vs-side vs-side--ours">' +
+            '<figcaption class="vs-tag is-ours">BRACHY</figcaption>' +
+            '<div class="vs-box"></div><p class="vs-spec"></p></figure>' +
+        '</div>' +
+        `<p class="vs-note">${s.note}</p>`;
       box.appendChild(step);
-      mounted.push({ s, cal, cap });
+
+      const boxes = step.querySelectorAll('.vs-box');
+      const specs = step.querySelectorAll('.vs-spec');
+
+      [['old', 0], ['ours', 1]].forEach(([side, n]) => {
+        const cfg = s[side];
+        const frame = boxes[n];
+        const out = specs[n];
+
+        if (s.kind === 'window') {
+          frame.classList.add('vs-box--win');
+          frame.innerHTML = cfg.html();
+          out.innerHTML = cfg.spec(cfg.find(frame));
+          return;
+        }
+
+        const stage = side === 'old' ? oldStage() : buildCalendar();
+        frame.appendChild(stage);
+
+        if (s.kind === 'type') {
+          // The specimen is set in the same stack the live component beside it
+          // is set in, so the browser lands on the same face; the label says
+          // which face that turned out to be, and at what size the component
+          // itself is set.
+          //
+          // The stack goes on through el.style, NEVER through a style="" in an
+          // HTML string: a computed font-family carries double quotes around
+          // any family with a space in it ('Georgia, "Times New Roman", serif'),
+          // and those close the attribute early. The declaration then dies on a
+          // trailing comma and both specimens quietly fall back to the page's
+          // own display face — which is this section showing neither typeface
+          // while claiming to compare them.
+          frame.classList.add('vs-box--type');
+          const read = cfg.probe(stage).map((el) => {
+            const c = getComputedStyle(el);
+            return { fam: famOf(el), stack: c.fontFamily, size: c.fontSize };
+          });
+          stage.remove();
+          read.forEach((r, k) => {
+            const row = document.createElement('p');
+            row.className = 'vs-type-row';
+            const fam = document.createElement('span');
+            fam.className = 'vs-type-fam';
+            fam.textContent = `${r.fam} · ${r.size} IN THE CALENDAR`;
+            const line = document.createElement('span');
+            line.className = 'vs-type-line';
+            line.style.fontFamily = r.stack;
+            line.textContent = cfg.words[k];
+            row.append(fam, line);
+            frame.appendChild(row);
+          });
+          const fams = [...new Set(read.map((r) => r.fam))];
+          out.innerHTML = fams.length > 1
+            ? `<b>${fams.length} FAMILIES</b> IN ONE GRID — ${fams.join(' + ')}`
+            : `<b>ONE FAMILY</b> THROUGHOUT — ${fams[0]}`;
+          return;
+        }
+
+        cropped.push({
+          stage, out, frame, span: s.span, find: cfg.find, spec: cfg.spec,
+          // where inside the found element the crop is centred, in multiples of
+          // its own width/height. 0.5 is its middle; step 6 uses 1.5 to land on
+          // the middle of a three-cell run from the run's first cell.
+          ax: cfg.ax === undefined ? 0.5 : cfg.ax,
+          ay: cfg.ay === undefined ? 0.5 : cfg.ay,
+        });
+      });
     });
 
     // Centre each crop on its target. Scaling about the element's centre keeps
     // the centre fixed, so the target is first translated there — in the
-    // element's own pre-scale coordinates, which is what a percentage
-    // translate on the inside of the scale gives us.
+    // element's own pre-scale coordinates, which is what a percentage translate
+    // on the inside of the scale gives us.
+    //
+    // A step declares `span`: how many of the stage's 900 px must be visible
+    // across the frame, and the scale falls out of the frame's real width. A
+    // fixed multiplier would be tuned to one viewport — the phone's frames are
+    // a third narrower than the desktop's, and the same 3.4× that framed an
+    // appointment on a laptop cut the words off either end of it.
     const place = () => {
-      mounted.forEach(({ s, cal, cap }) => {
-        const target = s.find(cal);
+      cropped.forEach(({ stage, out, frame, span, find, spec, ax, ay }) => {
+        const target = find(stage);
         if (!target) return;
-        cap.innerHTML = s.cap(target);
-        cal.style.transform = 'none';   // measure untransformed, or a re-run compounds
-        const c = cal.getBoundingClientRect();
+        // the stage goes through too: a line may need a second element from the
+        // same calendar, and it must be THIS calendar rather than another step's
+        out.innerHTML = spec(target, stage);
+        stage.style.transform = 'none';   // measure untransformed, or a re-run compounds
+        const c = stage.getBoundingClientRect();
         const t = target.getBoundingClientRect();
-        if (!c.width || !c.height) return;
-        const dx = 50 - ((t.left + t.width / 2 - c.left) / c.width) * 100;
-        const dy = 50 - ((t.top + t.height / 2 - c.top) / c.height) * 100;
-        cal.style.transform = `scale(${s.zoom}) translate(${dx}%, ${dy}%)`;
+        const fw = frame.clientWidth;
+        if (!c.width || !c.height || !fw) return;
+        const zoom = fw / span;
+        const dx = 50 - ((t.left + t.width * ax - c.left) / c.width) * 100;
+        const dy = 50 - ((t.top + t.height * ay - c.top) / c.height) * 100;
+        stage.style.transform = `scale(${zoom}) translate(${dx}%, ${dy}%)`;
       });
     };
     requestAnimationFrame(place);
@@ -794,373 +1141,19 @@
     // web fonts change the metrics under us; re-measure once they are in
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
 
-    // The last step turns the audit on the page itself.
+    // The section closes on itself: the page went and looked up what day it is,
+    // and so did the calendar it is arguing for.
     const self = document.createElement('div');
-    self.className = 'audit-step audit-step--self';
-    const cap = document.createElement('p');
-    cap.className = 'audit-cap';
-    cap.innerHTML = `This page knows today is the ${ORDINAL(M.today)}.<br />So does the calendar.`;
-    self.appendChild(cap);
+    self.className = 'vs-step vs-step--self';
+    self.innerHTML =
+      `<p class="vs-self">This page knows today is the ${ORDINAL(M.today)}.<br />So does the calendar.</p>`;
     box.appendChild(self);
-  }
 
-  // ---------- the app's SchedulePanel, rendered for one day ----------
-  // Same markup as apps/brachy/src/components/SchedulePanel: the day grouped
-  // with its count, then each event as a schedule-item — checkbox, colour dot,
-  // tag dots, D-day badge, and a meta row of whatever the event actually has.
-  // Nothing is drawn for a field the event does not carry.
-  const DOW_LONG = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-  function scheduleItem(e) {
-    const meta =
-      (e.time ? `<div class="schedule-item-time"><span>\u25f7</span><span>${e.time}</span></div>` : '') +
-      (e.period ? `<div class="schedule-item-period"><span>\u2194</span><span>${e.period}</span></div>` : '') +
-      (e.repeat ? '<div class="schedule-item-repeat"><span>\u21bb</span><span>Repeat</span></div>' : '') +
-      (e.remind ? `<div class="schedule-item-time"><span>\u25d4</span><span>${e.remind}</span></div>` : '') +
-      (e.buffer ? `<div class="schedule-item-time"><span>\u25f7</span><span>${e.buffer}</span></div>` : '');
-    return '<div class="schedule-item">' +
-      `<span class="schedule-item-checkbox${e.done ? ' checked' : ''}">\u2713</span>` +
-      '<div class="schedule-item-content"><div class="schedule-item-title-row">' +
-        (e.color ? `<span class="schedule-item-color-dot" style="background:${e.color}"></span>` : '') +
-        (e.tags ? `<span class="schedule-item-tag-dots">${e.tags.map((c) =>
-          `<span class="schedule-item-tag-dot" style="background:${c}"></span>`).join('')}</span>` : '') +
-        `<p class="schedule-item-title${e.done ? ' completed' : ''}">${e.t}</p>` +
-        (e.dday ? `<span class="schedule-item-dday">${e.dday}</span>` : '') +
-      '</div>' +
-      (meta ? `<div class="schedule-item-meta">${meta}</div>` : '') +
-      '</div></div>';
-  }
-
-  // The day header the panel opens with. A spanning bar belongs to a run of
-  // days rather than one, so it says so instead of naming a weekday.
-  function scheduleDay(el, events, count) {
-    const d = el.dataset.day;
-    const label = d
-      ? DOW_LONG[new Date(M.y, M.m, +d).getDay()].toUpperCase()
-      : 'PERIOD';
-    const today = +d === M.today;
-    return `<div class="schedule-day-group${today ? ' today' : ''}">` +
-      `<div class="schedule-day-header${today ? ' today' : ''}">` +
-        '<div class="schedule-day-header-left">' +
-          '<span class="schedule-day-chevron">\u203a</span>' +
-          `<span class="schedule-day-label${today ? ' today' : ''}">${label}</span>` +
-          `<span class="schedule-day-date">${el.dataset.when}</span>` +
-        '</div>' +
-        `<span class="schedule-day-count">${count || events.length}</span>` +
-      '</div>' +
-      `<div class="schedule-day-events">${events.map(scheduleItem).join('')}</div>` +
-    '</div>';
-  }
-
-  // On a phone the panel is a sheet lying over the lower weeks, and the readout
-  // lives down there too. Hand the pin the sheet's measured height so the line
-  // can sit above it instead of behind it.
-  const measureSheet = (panel) => requestAnimationFrame(() =>
-    $('.hero-pin').style.setProperty('--sheet-h', `${panel.offsetHeight}px`));
-
-  // ---------- the feature tour ----------
-  // Every event written on this month IS a feature. Hovering a day names it;
-  // clicking it opens the explanation in a panel on the right — which is also
-  // what clicking a day does inside the app, so the gesture is the product's.
-  function initFeatureTour() {
-    const cal = $('#plane-cal');
-    const out = $('#feat-read');
-    const panel = $('#feat-panel');
-    const pin = $('.hero-pin');
-    const closeBtn = $('#feat-close');
-    const total = FEATURES.length + 1;
-    const base = `CLICK A DAY — <b>${total}</b> FEATURES ARE LIVING IN THIS MONTH`;
-    out.innerHTML = base;
-
-    const featOf = (el) => (el.dataset.feat === 'span' ? SPAN : FEATURES[+el.dataset.feat]);
-
-    // Only the hero's calendar is the menu. The audit clones and the desktop
-    // widget carry the same markup but must stay out of the tab order.
-    const register = (el) => {
-      el.tabIndex = 0;
-      el.setAttribute('role', 'button');
-      el.setAttribute('aria-label', `Feature — ${featOf(el).name}`);
-    };
-    cal.querySelectorAll('[data-feat]').forEach(register);
-
-    let open = null;
-    const close = () => {
-      if (!open) return;                       // the scrub calls this on every frame
-      open.classList.remove('is-selected');
-      open = null;
-      panel.classList.remove('is-open');
-      pin.classList.remove('is-panel-open');
-      panel.setAttribute('aria-hidden', 'true');
-      closeBtn.tabIndex = -1;
-      out.innerHTML = base;
-    };
-    const show = (el) => {
-      const f = featOf(el);
-      if (!f) return;
-      if (open) open.classList.remove('is-selected');
-      open = el;
-      el.classList.add('is-selected');
-      $('#feat-panel-when').textContent = el.dataset.when;
-      // the day drawn the way the app's own panel draws it
-      $('#feat-panel-list').innerHTML = scheduleDay(el, f === SPAN
-        ? [{ t: SPAN.title, period: el.dataset.when }]
-        // the app's overflow line is not an event, so it is not an item — but
-        // the day is still carrying what it says it is carrying
-        : f.events.filter((e) => !e.more), f.dayCount);
-      const plan = $('#feat-panel-plan');
-      plan.textContent = f.plan === 'premium' ? 'PREMIUM' : 'FREE';
-      plan.className = `feat-plan is-${f.plan}`;
-      $('#feat-panel-title').textContent = f.name;
-      $('#feat-panel-body').textContent = f.body;
-      $('#feat-panel-n').textContent =
-        `${f === SPAN ? total : FEATURES.indexOf(f) + 1} / ${total}`;
-      panel.classList.add('is-open');
-      pin.classList.add('is-panel-open');
-      panel.setAttribute('aria-hidden', 'false');
-      closeBtn.tabIndex = 0;
-      measureSheet(panel);
-    };
-
-    cal.addEventListener('pointerover', (e) => {
-      const hit = e.target.closest('[data-feat]');
-      out.innerHTML = hit ? `${featOf(hit).name.toUpperCase()} — <b>CLICK</b> TO OPEN` : base;
-    });
-    cal.addEventListener('pointerleave', () => { out.innerHTML = base; });
-    cal.addEventListener('click', (e) => {
-      const hit = e.target.closest('[data-feat]');
-      if (hit) show(hit);
-    });
-    cal.addEventListener('keydown', (e) => {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
-      const hit = e.target.closest('[data-feat]');
-      if (!hit) return;
-      e.preventDefault();
-      show(hit);
-    });
-    closeBtn.addEventListener('click', close);
-    addEventListener('keydown', (e) => { if (e.key === 'Escape' && open) close(); });
-    // A tap anywhere else shuts it. On a phone the panel is a sheet lying over
-    // the lower weeks, so without this a covered day could not be reached.
-    document.addEventListener('click', (e) => {
-      if (open && !e.target.closest('#feat-panel, [data-feat]')) close();
-    });
-    // show and register are for the demo below, which writes one feature onto
-    // the month and then opens it the way a reader would
-    return { close, show, register, resetRead: () => { out.innerHTML = base; } };
-  }
-
-  // ---------- 2b. the page shows itself being used ----------
-  // The month is not handed over with an instruction. One of the fifteen
-  // features is held back out of the grid, and when the reader arrives the
-  // page writes it in: double-click a day, one panel, title and time and
-  // colour as fields, save. Then it opens what it just wrote — which is the
-  // same gesture the reader is about to be given — and gets out of the way.
-  //
-  // Everything here is the app's: the panel is where the app puts its panel,
-  // the swatches are the ten colours it ships, and the event that lands is a
-  // FEATURES entry drawn by the same eventHTML as every other day.
-
-  // Take the held feature off the grid. Until the demo writes it the day is
-  // empty, which is also the truth about the calendar this one replaced.
-  function holdBack(cal) {
-    const i = FEATURES.findIndex((f) => f.name === 'Ten event colours');
-    const cell = cal.querySelector(`.day-cell[data-feat="${i}"]`);
-    if (!cell) return null;
-    cell.dataset.hold = String(i);
-    delete cell.dataset.feat;
-    const evs = cell.querySelector('.day-events-detail');
-    if (evs) evs.remove();
-    return cell;
-  }
-
-  function initUseDemo(tour, cell) {
-    const pin = $('.hero-pin');
-    const cal = $('#plane-cal');
-    const panel = $('#compose');
-    const ptr = $('#use-ptr');
-    const read = $('#feat-read');
-    const api = { started: false, done: false };
-    if (!cell) { api.start = () => {}; api.settle = () => {}; return api; }
-
-    const feat = FEATURES[+cell.dataset.hold];
-    const ev = feat.events[0];
-
-    const drop = $('#compose-colours');
-    drop.innerHTML = PALETTE.map((c) =>
-      `<span class="compose-swatch" style="background:${c};color:${c}"></span>`).join('');
-    const swatches = [...panel.querySelectorAll('.compose-swatch')];
-    const chosen = Math.max(0, PALETTE.indexOf(ev.color));
-
-    let stopped = false;
-    const HALT = {};
-    const wait = (ms) => new Promise((r) => setTimeout(r, ms))
-      .then(() => { if (stopped) throw HALT; });
-
-    const pointAt = (el, fx = 0.5, fy = 0.5) => {
-      const p = pin.getBoundingClientRect();
-      const r = el.getBoundingClientRect();
-      ptr.style.left = `${r.left - p.left + r.width * fx}px`;
-      ptr.style.top = `${r.top - p.top + r.height * fy}px`;
-    };
-    const click = () => {
-      ptr.classList.remove('is-click');
-      void ptr.offsetWidth;
-      ptr.classList.add('is-click', 'is-press');
-      setTimeout(() => ptr.classList.remove('is-press'), 130);
-    };
-
-    // the event lands on the day it was written for, and only then is it a
-    // feature the reader can open
-    const written = () => {
-      if (cell.dataset.feat) return;
-      const box = document.createElement('div');
-      box.className = 'day-events-detail';
-      box.innerHTML = feat.events.map(eventHTML).join('');
-      cell.querySelector('.day-cell-content').appendChild(box);
-      cell.dataset.feat = cell.dataset.hold;
-      cell.classList.add('is-written');
-      tour.register(cell);
-    };
-
-    const openPanel = () => {
-      panel.classList.add('is-open');
-      pin.classList.add('is-panel-open');
-      panel.setAttribute('aria-hidden', 'false');
-      measureSheet(panel);
-    };
-    const shutPanel = () => {
-      panel.classList.remove('is-open', 'is-typing');
-      pin.classList.remove('is-panel-open');
-      panel.setAttribute('aria-hidden', 'true');
-    };
-
-    const settle = () => {
-      // Nothing to settle before it has begun. The scrub runs a frame at load,
-      // where p is 0, and without this that first frame would retire the demo
-      // before the reader ever reached it.
-      if (!api.started || api.done) return;
-      api.done = true;
-      stopped = true;
-      ptr.classList.remove('is-on', 'is-click', 'is-press');
-      pin.classList.remove('is-using');
-      shutPanel();
-      written();
-      tour.resetRead();
-    };
-    api.settle = settle;
-
-    async function play() {
-      const say = (t) => { read.innerHTML = t; };
-      $('#compose-when').textContent = cell.dataset.when;
-      $('#compose-text').textContent = '';
-      $('#compose-time').textContent = '--:--';
-      $('#compose-time').classList.add('is-empty');
-      swatches.forEach((sw) => sw.classList.remove('is-on'));
-      drop.classList.remove('is-open');
-      $('#ib-colour').querySelector('.icon-btn').classList.remove('active');
-
-      say('THE SAME APPOINTMENT — <b>HERE</b>');
-      pointAt(cell, 0.5, 0.4);
-      ptr.classList.add('is-on');
-      await wait(760);
-      click();
-      await wait(170);
-      click();
-      await wait(300);
-      openPanel();
-      say('DOUBLE-CLICK A DAY. <b>ONE</b> PANEL OPENS.');
-      await wait(620);
-
-      // title
-      pointAt($('#compose-title'), 0.1, 0.5);
-      panel.classList.add('is-typing');
-      await wait(340);
-      for (let i = 1; i <= ev.t.length; i++) {
-        $('#compose-text').textContent = ev.t.slice(0, i);
-        await wait(ev.t[i - 1] === ' ' ? 90 : 48);
-      }
-      panel.classList.remove('is-typing');
-      await wait(420);
-
-      // time
-      say('THE TIME IS A <b>FIELD</b>, NOT A WORD IN THE TITLE.');
-      pointAt($('#compose-time'), 0.12, 0.5);
-      await wait(500);
-      click();
-      await wait(180);
-      $('#compose-time').textContent = ev.time;
-      $('#compose-time').classList.remove('is-empty');
-      await wait(700);
-
-      // colour — the app files it in the second icon group, behind a PRO badge,
-      // and the page does not quietly demonstrate a paid field as a free one
-      say('THE FIELDS AFTER THE DIVIDER ARE <b>PAID</b>. THE PANEL SAYS SO.');
-      const cBtn = $('#ib-colour');
-      pointAt(cBtn, 0.5, 0.32);
-      await wait(640);
-      click();
-      cBtn.querySelector('.icon-btn').classList.add('active');
-      drop.classList.add('is-open');
-      await wait(560);
-      say('TEN COLOURS — <b>ONE CLICK</b>, NOT A CONVENTION YOU HAVE TO REMEMBER.');
-      pointAt(swatches[chosen]);
-      await wait(520);
-      click();
-      swatches[chosen].classList.add('is-on');
-      $('#compose-text').style.color = ev.color;
-      await wait(900);
-
-      // save
-      const save = $('#compose-save');
-      pointAt(save);
-      await wait(520);
-      click();
-      save.classList.add('is-press');
-      setTimeout(() => save.classList.remove('is-press'), 150);
-      drop.classList.remove('is-open');
-      await wait(220);
-      shutPanel();
-      await wait(300);
-      written();
-      say('ONE PANEL. <b>ONCE.</b>');
-      await wait(1500);
-
-      // and the same click reads it back
-      say('AND EVERY EVENT ON THIS MONTH IS ONE OF THESE.');
-      pointAt(cell, 0.5, 0.4);
-      await wait(620);
-      click();
-      await wait(200);
-      tour.show(cell);
-      await wait(2400);
-      tour.close();
-      ptr.classList.remove('is-on');
-      pin.classList.remove('is-using');
-      await wait(600);
-      settle();
-    }
-
-    api.start = () => {
-      if (api.started) return;
-      api.started = true;
-      if (REDUCED()) { settle(); return; }
-      pin.classList.add('is-using');
-      play().catch((e) => { if (e !== HALT) throw e; });
-    };
-
-    // The reader's own hand always wins: a real click hands the month over,
-    // wherever the demo had got to. A click and not a pointerdown, because on
-    // a phone a pointerdown is how you scroll — arriving is not interrupting.
-    pin.addEventListener('click', () => { if (api.started) settle(); });
-    addEventListener('keydown', (e) => {
-      if (api.started && ['Tab', 'Enter', ' ', 'Escape'].includes(e.key)) settle();
-    });
-
-    return api;
+    return [...box.querySelectorAll('.vs-step')];
   }
 
   // ---------- scroll scrub — one rAF-throttled pass drives every section ----------
-  function initScrub(tour, demo, use) {
+  function initScrub(demo, vsSteps) {
     const hero = $('#hero');
     const wall = $('#plane-wall');
     const cal = $('#plane-cal');
@@ -1173,15 +1166,9 @@
     const nw = $('#newway');
     const beatBreak = $('#beat-break');
     const beatBuilt = $('#beat-built');
-    const read = $('#feat-read');
     const cue = $('#cue-label');
     const link = $('#demo-link');
     const shards = collectShards();
-    const claim = $('#claim');
-    const claimLines = [...document.querySelectorAll('[data-claim]')];
-    const frames = [...document.querySelectorAll('.audit-frame')];
-    const life = $('#life');
-    const lifeB = $('#life-b');
 
     // progress of a tall section behind its sticky pin, 0 → 1
     const prog = (el) => {
@@ -1190,46 +1177,43 @@
       return span <= 0 ? 0 : clamp01(-r.top / span);
     };
 
-    let lastY = scrollY;
-    let vel = 0;
     let queued = false;
 
     function run() {
       queued = false;
       const vh = innerHeight;
 
-      // scroll velocity, smoothed — feeds the claim's chromatic split
-      const dy = scrollY - lastY;
-      lastY = scrollY;
-      vel += (Math.min(Math.abs(dy), 90) - vel) * 0.2;
-
-      // 1. hero — one pinned sequence in four beats:
-      //    BEFORE 0 → .24 · SHATTER .24 → .50 · REVEAL .50 → .64 · TOUR .64 → 1
+      // 1. hero — one pinned sequence in three beats:
+      //    BEFORE 0 → .30 · SHATTER .30 → .62 · REVEAL .62 → 1
+      //
+      //    The hero used to carry a fourth beat, a clickable tour of the month.
+      //    It is gone: the first screen states the difference and section 2
+      //    proves it, so the reveal is the last thing the pin has to do.
       const p = prog(hero);
       const seg = (a, b) => clamp01((p - a) / (b - a));
       wall.style.transform = `translate3d(0, ${p * -40}px, 0) scale(1.06)`;
 
-      const qBreak = seg(0.24, 0.50);
-      const qUp = seg(0.50, 0.64);
+      const qBreak = seg(0.30, 0.62);
+      const qUp = seg(0.62, 0.80);
 
       // The demo plays at p = 0, so its narration is up from the first frame
       // rather than fading in on a scroll that has not happened yet. Leaving
       // the screen is what ends it.
-      if (p > 0.10) demo.settle();
-      copy.style.opacity = String(1 - seg(0.20, 0.26));
+      if (p > 0.12) demo.settle();
+      copy.style.opacity = String(1 - seg(0.24, 0.32));
       // ours leaves with the copy; the shatter is not the place to already be
       // holding a piece of the answer
-      if (p > 0.12) {
-        const k = String(1 - seg(0.12, 0.24));
+      if (p > 0.14) {
+        const k = String(1 - seg(0.14, 0.28));
         nw.style.opacity = k;
         link.style.opacity = k;
       } else if (nw.style.opacity) {
         nw.style.opacity = '';
         link.style.opacity = '';
       }
-      frame.style.opacity = String(1 - seg(0.24, 0.34));
-      stage.style.opacity = String(1 - seg(0.50, 0.56));
-      bin.style.opacity = String(seg(0.16, 0.24) * (1 - seg(0.50, 0.56)));
+      frame.style.opacity = String(1 - seg(0.30, 0.42));
+      stage.style.opacity = String(1 - seg(0.62, 0.68));
+      bin.style.opacity = String(seg(0.20, 0.30) * (1 - seg(0.62, 0.68)));
       bin.style.transform = `scale(${1 + 0.1 * Math.sin(qBreak * Math.PI)})`;
       binLid.style.transform = `rotate(${-22 * qBreak}deg) translateY(${-2 * qBreak}px)`;
 
@@ -1245,70 +1229,43 @@
         s.el.style.opacity = String(1 - t * 0.85);
       });
 
-      beatBreak.style.opacity = String(seg(0.27, 0.33) * (1 - seg(0.44, 0.50)));
-      beatBuilt.style.opacity = String(seg(0.55, 0.60) * (1 - seg(0.66, 0.72)));
+      beatBreak.style.opacity = String(seg(0.34, 0.41) * (1 - seg(0.55, 0.62)));
+      beatBuilt.style.opacity = String(seg(0.68, 0.74) * (1 - seg(0.84, 0.90)));
 
-      // ours rises in its place, and only then becomes the menu
+      // ours rises in its place and then holds. A thing you are being handed
+      // should not still be sliding while you look at it.
       cal.style.opacity = String(qUp);
-      // It rises into place and then holds. There was a drift of -70px across
-      // the hero on top of this, which pulled the month up under the topbar for
-      // the whole tour — and a thing you are being asked to click should not be
-      // sliding while you aim at it.
       cal.style.transform =
         `translate3d(0, ${(1 - qUp) * 46}px, 0) scale(${0.962 + qUp * 0.038})`;
-      pin.classList.toggle('is-tour', p > 0.63);
-      // the month shows itself being used before it is handed over
-      if (p > 0.66) use.start();
-      if (p < 0.60 || p > 0.95) use.settle();
-      read.style.opacity = String(seg(0.64, 0.70) * (1 - seg(0.93, 1)));
-      if (p < 0.60) tour.close();
 
       const label = !demo.isDone() ? 'SCROLL WHEN READY'
-        : p < 0.24 ? 'SCROLL TO BREAK IT' : 'SCROLL';
+        : p < 0.30 ? 'SCROLL TO BREAK IT'
+        : p < 0.86 ? 'SCROLL'
+        : 'ONE PART AT A TIME';
       if (cue.textContent !== label) cue.textContent = label;
 
-      // the pin dims on the way out, so the panel and the readout leave with
-      // the calendar rather than outliving it
+      // the pin dims on the way out, so nothing outlives the calendar
       pin.style.opacity = String(clamp01(1 - (p - 0.93) / 0.07));
 
-      // 2. the claim — lines arrive on their own windows; the split only
-      //    shows while the page is actually moving, and settles to nothing.
-      const cp = prog(claim);
-      const split = (vel / 90) * 1.2;
-      claimLines.forEach((el) => {
-        const [a, b] = el.dataset.claim.split(' ').map(Number);
-        const k = clamp01((cp - a) / (b - a));
-        el.style.opacity = String(k);
-        el.style.transform = `translateY(${(1 - k) * 0.16}em)`;
-        el.style.textShadow = split > 0.05
-          ? `${-split}px 0 rgba(255,0,80,0.28), ${split}px 0 rgba(0,220,255,0.28)`
-          : 'none';
+      // 2. one part at a time — each comparison assembles as it reaches the
+      //    middle of the screen and lets go as it leaves. One custom property
+      //    per step; the two sides read it for their own offsets, so this pass
+      //    writes one value and the compositor does the rest.
+      vsSteps.forEach((el) => {
+        const r = el.getBoundingClientRect();
+        const off = Math.abs(r.top + r.height / 2 - vh / 2) / (vh / 2);
+        el.style.setProperty('--k', clamp01(1 - off * 1.15).toFixed(3));
       });
-
-      // 3. the audit — focus pull: each crop snaps sharp at centre screen
-      frames.forEach((f) => {
-        const r = f.getBoundingClientRect();
-        const off = Math.abs((r.top + r.height / 2) - vh / 2) / (vh / 2);
-        f.style.filter = `blur(${Math.min(off * off * 14, 14)}px)`;
-      });
-
-      // 4. life on the desktop — crossfade between wallpapers.
-      //    This is the shader's fallback, and it stays when the shader lands.
-      const lp = prog(life);
-      lifeB.style.opacity = String(clamp01((lp - 0.3) / 0.4));
-
-      // keep ticking only while the split is still decaying, so the page is
-      // not running a rAF loop while it sits still
-      if (vel > 0.05) request();
     }
 
     // While the cue reads as an instruction it must not do the opposite of
-    // what it says: clicking it advances THROUGH the sequence, and only once
-    // the tour is up does it go back to being the link past the section.
+    // what it says: clicking it advances THROUGH the sequence to the reveal,
+    // and only once ours is standing does it go back to being the link past
+    // the section.
     $('.scroll-cue').addEventListener('click', (e) => {
-      if (prog(hero) >= 0.63) return;
+      if (prog(hero) >= 0.80) return;
       e.preventDefault();
-      const top = hero.offsetTop + (hero.offsetHeight - innerHeight) * 0.72;
+      const top = hero.offsetTop + (hero.offsetHeight - innerHeight) * 0.84;
       scrollTo({ top, behavior: REDUCED() ? 'auto' : 'smooth' });
     });
 
@@ -1399,17 +1356,12 @@
   // ---------- start ----------
   function init() {
     scrollTo(0, 0);
-    buildOldCalendar();
-    const heroCal = buildCalendar(false);
-    $('#plane-cal').appendChild(heroCal);
-    const held = holdBack(heroCal);
-    $('#life-cal').appendChild(buildCalendar(true));
-    buildAudit();
-    const tour = initFeatureTour();
+    buildOldCalendar($('#oldcal'));
+    $('#plane-cal').appendChild(buildCalendar());
+    const vsSteps = buildVersus();
     const demo = initOldDemo();
-    const use = initUseDemo(tour, held);
     runLoader(demo.start);
-    initScrub(tour, demo, use);
+    initScrub(demo, vsSteps);
     initCursor();
     initGet();
 
