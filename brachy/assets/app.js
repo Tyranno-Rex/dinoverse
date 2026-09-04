@@ -489,17 +489,22 @@
     return app;
   }
 
-  // ---------- 1. the wall — everything it does, and then where it lives ----------
-  // The whole catalogue at once, set on a wallpaper. The words are one block of
-  // type in three sizes, so the wall has a rhythm rather than being an even
-  // paste; the large ones are the eight the tour is about to perform.
+  // ---------- 1. the wall — the pitch, and then the whole list ----------
+  // The first screen is a sales pitch that keeps not ending. One feature, big,
+  // on its own. Then another somewhere else. Then three at once. Then the page
+  // admits it is still not finished — and everything it has been holding back
+  // floods in at once, the four beats shrinking into their places in a wall of
+  // a hundred, laid across a wallpaper.
   //
-  // Scroll takes it apart. Each word has its own direction and its own delay,
-  // and the delay is not random for the large ones: the small type leaves
-  // first, so the eight are the last things standing before the calendar takes
-  // the screen. What is left in the cleared middle has no window around it,
-  // which is the whole of desktop mode — shown rather than described, and the
-  // reason the tour does not spend a step on it.
+  // It plays itself, the way the loader does. A reader who scrolls instead of
+  // watching gets the same end state at once — the same three-entry-point
+  // contract the tour steps keep, for the same reason.
+  //
+  // After that, scroll takes the wall apart. Each word has its own direction
+  // and its own delay, the small type leaves first, and what is left standing
+  // in the cleared middle is the calendar with no window around it — which is
+  // the whole of desktop mode, shown rather than described, and the reason the
+  // tour spends no step on it.
   //
   // Every number here is counted off CATALOG and KEYS. A count typed next to a
   // list is a claim; a count read out of the list cannot be wrong.
@@ -509,22 +514,55 @@
     const wallPlane = $('#plane-wall');
     const cal = $('#plane-cal');
     const pin = $('.wall-pin');
+    const cue = $('#cue-label');
 
     const pro = CATALOG.filter((s) => s[0] === '*').length;
-    const COPY = [
+
+    // The pitch. Each beat says one line and puts what it is boasting about on
+    // the screen, big, somewhere the last one is not — and leaves it there, so
+    // by the fourth beat the reader is looking at eight things at once and the
+    // page is still saying there is more.
+    //
+    // The spots are fractions of the words' own box, not of the pin: a word
+    // parked outside that box would be clipped by it.
+    const BEATS = [
       {
-        eyebrow: `${CATALOG.length} FEATURES · ${CATALOG.length - pro} FREE · ${pro} PRO`,
-        title: 'All of it, at once.',
-        lead: 'Every feature in the build you can download today, settings included. ' +
-          'Nothing on this wall is on a roadmap.',
+        line: 'Let’s start with the one you came for.',
+        cast: [['Desktop mode — it becomes the wallpaper', 0.5, 0.3, 2.2]],
       },
       {
-        eyebrow: 'AND NO WINDOW AROUND IT',
-        title: 'It is the wallpaper.',
-        lead: 'Desktop mode drops the frame and hands the month to the desktop itself. ' +
-          'Nothing to arrange, and nothing sitting on top of anything.',
+        line: 'Good, isn’t it. Don’t get comfortable.',
+        cast: [['QuickAdd — parsed on the device', 0.26, 0.6, 1.8]],
+      },
+      {
+        line: 'Still with us? Then have these.',
+        cast: [
+          ['The daily planner', 0.76, 0.5, 1.6],
+          ['*Tag filter bar', 0.19, 0.79, 1.4],
+          ['*Decorate mode — place, size, rotate', 0.67, 0.71, 1.4],
+        ],
+      },
+      {
+        line: 'Yes. It is quite a calendar.',
+        sub: 'And no — that was not the list.',
+        cast: [
+          ['*Cloud sync — events, memos, settings, tags', 0.26, 0.1, 1.3],
+          ['Drag an event to another day', 0.77, 0.25, 1.3],
+          ['MCP connection, off until you turn it on', 0.47, 0.93, 1.3],
+        ],
       },
     ];
+    const FLOOD = {
+      eyebrow: `${CATALOG.length} FEATURES · ${CATALOG.length - pro} FREE · ${pro} PRO`,
+      line: 'Don’t be surprised.',
+      sub: 'For Brachy, this is standard.',
+    };
+    const REVEAL = {
+      eyebrow: 'AND NO WINDOW AROUND IT',
+      line: 'It is the wallpaper.',
+      sub: 'Desktop mode drops the frame and hands the month to the desktop itself. ' +
+        'Nothing to arrange, and nothing sitting on top of anything.',
+    };
 
     const build = (raw) => {
       const isPro = raw[0] === '*';
@@ -553,19 +591,114 @@
       };
     };
 
-    const pieces = CATALOG.map((raw) =>
-      scatter(build(raw), (BIG.has(raw) ? 0.36 : 0) + Math.random() * 0.28));
+    const byName = new Map();
+    const pieces = CATALOG.map((raw) => {
+      const el = build(raw);
+      byName.set(raw, el);
+      return scatter(el, (BIG.has(raw) ? 0.36 : 0) + Math.random() * 0.28);
+    });
 
     keysEl.innerHTML = `<span class="wall-keys-n">${KEYS.length} SHORTCUTS</span>` +
       KEYS.map(([k, what]) => `<span class="wall-key"><b>${k}</b>${what}</span>`).join('');
     // the band leaves in one piece: it is one thought, not nine
     pieces.push({ el: keysEl, delay: 0, t: -1, dx: 0, dy: 260, rot: 0 });
 
+    // ---- the pitch's staging ----
+    // A word is thrown to its spot by transforming it out of the place it
+    // already has in the wall. Which means the flood does not have to move
+    // anything anywhere: it clears the transform, and every one of them travels
+    // home on its own — into the layout it was always going to have.
+    const cast = [];
+    const castTo = (raw, fx, fy, want) => {
+      const el = byName.get(raw);
+      if (!el) return;
+      const box = words.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      // never wider than the box it is being shown in
+      const s = Math.max(1, Math.min(want, (box.width - 24) / Math.max(1, r.width)));
+      const w = r.width * s, h = r.height * s;
+      const cx = Math.min(Math.max(box.width * fx, w / 2 + 10), box.width - w / 2 - 10);
+      const cy = Math.min(Math.max(box.height * fy, h / 2 + 6), box.height - h / 2 - 6);
+      const dx = box.left + cx - (r.left + r.width / 2);
+      const dy = box.top + cy - (r.top + r.height / 2);
+      // It has to ARRIVE at its spot, not slide to it from the place it holds
+      // in the wall — the travel belongs to the flood, at the other end. So the
+      // tween is switched off for the one frame that puts it there.
+      el.style.transition = 'none';
+      el.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${s})`;
+      el.classList.add('is-cast');
+      el.classList.remove('is-lit');
+      void el.offsetWidth;
+      el.style.transition = '';
+      el.classList.add('is-lit');            // and then it flickers on
+      cast.push(el);
+    };
+    const uncast = () => {
+      cast.forEach((el) => {
+        el.style.transform = '';
+        el.classList.remove('is-cast', 'is-lit');
+      });
+      cast.length = 0;
+    };
+
+    let said = null;
+    const say = (c) => {
+      if (said === c) return;
+      said = c;
+      $('#wall-eyebrow').textContent = c.eyebrow || '';
+      $('#wall-title').textContent = c.line;
+      $('#wall-lead').textContent = c.sub || '';
+    };
+
+    // ---- the pitch ----
+    // intro → wall. Leaving the first screen ends it, whatever it was in the
+    // middle of; there is one end state and both routes reach it.
+    let phase = 'intro';
+    let token = 0;
+    const HALT = {};
+
+    // `animate` only when the pitch reached its own ending. A reader who
+    // scrolled out of it gets the wall at once — a 0.95s tween fighting a
+    // per-frame scatter transform would be the worst of both.
+    const settleIntro = (animate) => {
+      if (phase === 'wall') return;
+      phase = 'wall';
+      token++;
+      words.classList.toggle('is-flooding', !!animate);
+      words.classList.remove('is-intro');
+      uncast();
+      say(FLOOD);
+      // the cue has been reading WATCH; nothing else will run until the reader
+      // scrolls, so it has to stop asking them to stand still
+      cue.textContent = 'SCROLL';
+      if (animate) setTimeout(() => words.classList.remove('is-flooding'), 1000);
+      // the block's real layout only matters now, and the web fonts have
+      // certainly landed by the time anyone has watched a pitch
+      measure();
+    };
+
+    async function playIntro() {
+      token++;
+      const mine = token;
+      const w = (ms) => new Promise((r) => setTimeout(r, ms))
+        .then(() => { if (token !== mine || phase === 'wall') throw HALT; });
+      await w(520);
+      for (const b of BEATS) {
+        say(b);
+        await w(340);
+        for (const c of b.cast) { castTo(...c); await w(360); }
+        await w(b.cast.length > 1 ? 1250 : 1500);
+      }
+      await w(260);
+      settleIntro(true);
+    }
+
+    // ---- how far the block has to travel before it can come apart ----
     // A hundred names do not fit one phone screen, and a block clipped at both
     // ends reads as a bug rather than as a lot of features. So the wall pans
-    // through itself before it comes apart. On a wide screen the block fits,
-    // the overflow is zero, and this span collapses to nothing — one code path,
-    // no phone-only behaviour to keep in step.
+    // through itself before it scatters. On a wide screen the block fits, the
+    // overflow is zero, and this span collapses to nothing — one code path, no
+    // phone-only behaviour to keep in step.
     let over = 0, panEnd = 0, lastP = 0;
     const measure = () => {
       // measured with nothing scattered: a transformed word still counts
@@ -586,24 +719,37 @@
       panEnd = over ? Math.max(0.12, Math.min(0.34, (over / words.clientHeight) * 0.3)) : 0;
     };
 
-    let said = -1;
-    const say = (i) => {
-      if (i === said) return;
-      said = i;
-      $('#wall-eyebrow').textContent = COPY[i].eyebrow;
-      $('#wall-title').textContent = COPY[i].title;
-      $('#wall-lead').textContent = COPY[i].lead;
-    };
-    say(0);
-
+    words.classList.add('is-intro');
+    say(BEATS[0]);
     measure();
+
     return {
+      // the pitch runs once the loader is out of the way
+      start() {
+        if (REDUCED()) { settleIntro(false); return; }
+        playIntro().catch((e) => { if (e !== HALT) throw e; });
+      },
       // the block's height changes when the web fonts land and when the window
-      // is resized, and how far it has to pan changes with it
-      measure() { measure(); this.at(lastP); },
+      // is resized, and how far it has to pan changes with it. While the pitch
+      // owns the screen there is nothing to measure — the cast words are
+      // transformed out of the layout, and settleIntro re-measures anyway.
+      measure() { if (phase === 'intro') return; measure(); this.at(lastP); },
       // p is 0 → 1 across the section behind the pin
       at(p) {
         lastP = p;
+        wallPlane.style.transform = `translate3d(0, ${p * -34}px, 0) scale(1.06)`;
+
+        // Leaving the first screen ends the pitch. The scrub runs a frame at
+        // load with p exactly 0, so the threshold has to be above zero or the
+        // pitch would be cut off before it started.
+        if (phase === 'intro') {
+          if (p <= 0.015) {
+            if (cue.textContent !== 'WATCH') cue.textContent = 'WATCH';
+            return;
+          }
+          settleIntro(false);
+        }
+
         // first the block pans through itself (nothing to pan on a wide
         // screen), then everything after it runs on what is left of the scroll
         const pan = panEnd ? clamp01(p / panEnd) : 0;
@@ -628,8 +774,6 @@
           s.el.style.opacity = String(1 - t);
         });
 
-        wallPlane.style.transform = `translate3d(0, ${p * -34}px, 0) scale(1.06)`;
-
         // ours rises in the cleared middle and then holds. A thing you are being
         // handed should not still be moving while you look at it.
         const up = clamp01((r - 0.36) / 0.26);
@@ -637,7 +781,9 @@
         cal.style.transform =
           `translate3d(0, ${(1 - up) * 44}px, 0) scale(${0.964 + up * 0.036})`;
 
-        say(r < 0.44 ? 0 : 1);
+        say(r < 0.44 ? FLOOD : REVEAL);
+        const label = r < 0.30 ? 'SCROLL' : r < 0.62 ? 'KEEP GOING' : 'NOW WATCH IT WORK';
+        if (cue.textContent !== label) cue.textContent = label;
         pin.style.opacity = String(clamp01(1 - (r - 0.93) / 0.07));
       },
     };
@@ -1437,7 +1583,6 @@
   function initScrub(wall, tour) {
     const wallSec = $('#wall');
     const tourSec = $('#tour');
-    const cue = $('#cue-label');
 
     // progress of a tall section behind its sticky pin, 0 → 1
     const prog = (el) => {
@@ -1451,13 +1596,9 @@
     function run() {
       queued = false;
 
-      const p = prog(wallSec);
-      wall.at(p);
-
-      const label = p < 0.30 ? 'SCROLL'
-        : p < 0.62 ? 'KEEP GOING'
-        : 'NOW WATCH IT WORK';
-      if (cue.textContent !== label) cue.textContent = label;
+      // the wall owns its own cue label: while the pitch is still running it
+      // has to read WATCH rather than tell the reader to scroll away from it
+      wall.at(prog(wallSec));
 
       // the tour — scroll picks the step and the step plays itself. The engine
       // is told a position, never a direction: it works out for itself what to
@@ -1556,7 +1697,9 @@
     $('#plane-cal').appendChild(plane);
     const wall = initWall();
     const tour = initTour();
-    runLoader(initScrub(wall, tour));
+    const request = initScrub(wall, tour);
+    // the pitch owns the screen the moment the loader lets go of it
+    runLoader(() => { wall.start(); request(); });
     initCursor();
     initGet();
 

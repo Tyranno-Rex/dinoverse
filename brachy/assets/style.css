@@ -566,6 +566,36 @@ img { max-width: 100%; display: block; }
 }
 .wall-word.is-big .wall-pro { font-size: 9px; padding: 2px 5px; }
 
+/* ---------- the pitch ---------- */
+/* While it runs, the wall is holding everything back: the words are all there,
+   in the places they will end up in, at nothing. The beats throw four of them
+   out to their own spots, and the flood is nothing more than clearing those
+   transforms — every one of them travels home into the layout it already had.
+
+   The tween lives ONLY on these two classes. During the scatter the scroll
+   writes a transform every frame, and a transition on that would lag the
+   scroll by most of a second. */
+.wall-words.is-intro .wall-word,
+.wall-words.is-flooding .wall-word {
+  transition: transform 0.95s cubic-bezier(0.16, 0.84, 0.24, 1), opacity 0.7s;
+}
+.wall-words.is-intro .wall-word { opacity: 0; }
+.wall-words.is-intro .wall-keys { opacity: 0; transition: opacity 0.7s; }
+/* the selector has to out-specify `.wall-words.is-intro .wall-word`, or a cast
+   word goes back to nothing the moment its flicker finishes */
+.wall-words.is-intro .wall-word.is-cast,
+.wall-word.is-cast { opacity: 1; z-index: 3; color: var(--chalk); }
+/* it does not fade up, it comes on — like something switching on */
+.wall-word.is-lit { animation: caston 0.5s cubic-bezier(0.2, 0, 0, 1); }
+@keyframes caston {
+  0% { opacity: 0; }
+  16% { opacity: 1; }
+  28% { opacity: 0.12; }
+  42% { opacity: 1; }
+  56% { opacity: 0.4; }
+  68%, 100% { opacity: 1; }
+}
+
 /* the shortcuts get their own band and their own number: the matrix counts
    them among its rows, but each one is a second way into a feature that is
    already up on the wall */
@@ -957,6 +987,10 @@ img { max-width: 100%; display: block; }
   .tour-quick > .app, .tour-planner > .app, .tour-agent-line { transition: none; }
   .is-typing .type-caret { animation: none; opacity: 1; }
   .day-events-detail.is-landed, .quick-add-preview { animation: none; }
+  /* the pitch does not play here at all — initWall settles straight to the
+     wall — so nothing may be caught mid-flicker or mid-travel on the way */
+  .wall-word, .wall-keys { transition: none !important; }
+  .wall-word.is-lit { animation: none; }
 }
 
 /* ---------- narrow screens ---------- */
