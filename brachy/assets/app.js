@@ -2,7 +2,9 @@
 //
 // Two screens, and neither of them is a picture.
 //
-//   1. WALL — every feature the product has, all at once, set on a wallpaper.
+//   1. WALL — a black screen first, where eight features are shown one at a
+//             time and the page keeps saying there is more; then every feature
+//             the product has, all at once, set on a wallpaper.
 //             The count is read off the list rather than typed next to it.
 //             Scroll scatters the words and leaves the calendar standing in the
 //             cleared middle with no window around it — which is desktop mode,
@@ -26,8 +28,8 @@
 // socket, so what the agent asked for is said in the PAGE's type, outside the
 // app's frame — neither is drawn as a screen the product does not have.
 //
-// The page runs on the visitor's real date throughout: the loader types out
-// today before anything is drawn, and every step works on days this month
+// The page runs on the visitor's real date throughout: it opens on black with
+// today's date on it and nothing else, and every step works on days this month
 // really has.
 //
 // Stage one is CSS only. The two WebGL moments (wall sheen, wallpaper
@@ -523,37 +525,38 @@
 
     const pro = CATALOG.filter((s) => s[0] === '*').length;
 
-    // The pitch. Each beat says one line and puts what it is boasting about on
-    // the screen, big, somewhere the last one is not — and leaves it there, so
-    // by the fourth beat the reader is looking at eight things at once and the
-    // page is still saying there is more.
+    // The pitch. Each beat says one line and puts what it is boasting about in
+    // the middle of a black screen, big, on its own — and then that one leaves
+    // and the next one arrives. One thing at a time, which is the whole point
+    // of a black screen: there is nothing else on it to look at instead.
     //
-    // The spots are fractions of the words' own box, not of the pin: a word
-    // parked outside that box would be clipped by it.
+    // Eight of the hundred get shown here. Not a sample of the list — the eight
+    // the tour is about to perform, so nothing is boasted about that the page
+    // does not then go and do.
     const BEATS = [
       {
         line: 'Let’s start with the one you came for.',
-        cast: [['Desktop mode — it becomes the wallpaper', 0.5, 0.3, 2.2]],
+        cast: ['Desktop mode — it becomes the wallpaper'],
       },
       {
         line: 'Good, isn’t it. Don’t get comfortable.',
-        cast: [['QuickAdd — parsed on the device', 0.26, 0.6, 1.8]],
+        cast: ['QuickAdd — parsed on the device'],
       },
       {
         line: 'Still with us? Then have these.',
         cast: [
-          ['The daily planner', 0.76, 0.5, 1.6],
-          ['*Tag filter bar', 0.19, 0.79, 1.4],
-          ['*Decorate mode — place, size, rotate', 0.67, 0.71, 1.4],
+          'The daily planner',
+          '*Tag filter bar',
+          '*Decorate mode — place, size, rotate',
         ],
       },
       {
         line: 'Yes. It is quite a calendar.',
         sub: 'And no — that was not the list.',
         cast: [
-          ['*Cloud sync — events, memos, settings, tags', 0.26, 0.1, 1.3],
-          ['Drag an event to another day', 0.77, 0.25, 1.3],
-          ['MCP connection, off until you turn it on', 0.47, 0.93, 1.3],
+          '*Cloud sync — events, memos, settings, tags',
+          'Drag an event to another day',
+          'MCP connection, off until you turn it on',
         ],
       },
     ];
@@ -632,47 +635,96 @@
     pieces.push({ el: keysEl, delay: 0, t: -1, dx: 0, dy: 260, rot: 0 });
 
     // ---- the pitch's staging ----
-    // A word is thrown to its spot by transforming it out of the place it
-    // already has in the wall. Which means the flood does not have to move
-    // anything anywhere: it clears the transform, and every one of them travels
-    // home on its own — into the layout it was always going to have.
-    const cast = [];
-    const castTo = (raw, fx, fy, want) => {
-      const el = byName.get(raw);
-      if (!el) return;
+    // A word is put in the middle of the black screen by transforming it out of
+    // the place it already holds in the wall. Which means the flood does not
+    // have to move anything anywhere: it clears the transform, and every one of
+    // them travels home on its own — into the layout it was always going to
+    // have. The centring is done here, in pixels, rather than in CSS, because
+    // the word has to keep the place it will go back to.
+    const drop = (el) => {
+      el.style.transform = '';
+      el.style.animationDelay = '';
+      el.classList.remove('is-cast', 'is-lit', 'is-going');
+    };
+    let cast = [];
+    const castBeat = (list) => {
       const box = words.getBoundingClientRect();
-      const r = el.getBoundingClientRect();
-      // never wider than the box it is being shown in
-      const s = Math.max(1, Math.min(want, (box.width - 24) / Math.max(1, r.width)));
-      const w = r.width * s, h = r.height * s;
-      const cx = Math.min(Math.max(box.width * fx, w / 2 + 10), box.width - w / 2 - 10);
-      const cy = Math.min(Math.max(box.height * fy, h / 2 + 6), box.height - h / 2 - 6);
-      const dx = box.left + cx - (r.left + r.width / 2);
-      const dy = box.top + cy - (r.top + r.height / 2);
-      // It has to ARRIVE at its spot, not slide to it from the place it holds
-      // in the wall — the travel belongs to the flood, at the other end. So the
-      // tween is switched off for the one frame that puts it there.
-      el.style.transition = 'none';
-      el.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${s})`;
-      el.classList.add('is-cast');
-      el.classList.remove('is-lit');
-      void el.offsetWidth;
-      el.style.transition = '';
-      el.classList.add('is-lit');            // and then it flickers on
-      cast.push(el);
+
+      // the beat before this one leaves the way it came, and only once it is
+      // gone does it go back to being an ordinary word in the wall
+      const prev = cast;
+      cast = [];
+      prev.forEach((el) => el.classList.add('is-going'));
+      setTimeout(() => prev.forEach(drop), 520);
+
+      // measured first, laid out second: a stack can only be centred once its
+      // own height is known
+      const want = list.length > 1 ? 1.55 : 2.5;
+      const items = list.reduce((acc, raw) => {
+        const el = byName.get(raw);
+        if (!el) return acc;
+        const r = el.getBoundingClientRect();
+        // Never wider than the screen it is being shown on — and on a narrow
+        // one that means going BELOW its own size rather than stopping at it.
+        // A word running off both edges of a black screen with nothing else on
+        // it is the one thing this screen cannot afford.
+        const s = Math.max(0.55, Math.min(want, (box.width - 48) / Math.max(1, r.width)));
+        acc.push({ el, r, s, h: r.height * s });
+        return acc;
+      }, []);
+
+      const gap = 30;
+      const total = items.reduce((a, it) => a + it.h, 0) + gap * (items.length - 1);
+      let y = box.height / 2 - total / 2;
+      items.forEach((it, i) => {
+        const cy = y + it.h / 2;
+        y += it.h + gap;
+        const dx = box.left + box.width / 2 - (it.r.left + it.r.width / 2);
+        const dy = box.top + cy - (it.r.top + it.r.height / 2);
+        // It has to ARRIVE where it is going, not slide there from the place it
+        // holds in the wall — that travel belongs to the flood, at the other
+        // end. So the tween is switched off for the one frame that puts it there.
+        it.el.style.transition = 'none';
+        it.el.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${it.s})`;
+        it.el.classList.add('is-cast');
+        it.el.classList.remove('is-lit', 'is-going');
+        void it.el.offsetWidth;
+        it.el.style.transition = '';
+        // three of them arrive one after another rather than as a block
+        it.el.style.animationDelay = `${i * 0.14}s`;
+        it.el.classList.add('is-lit');
+        cast.push(it.el);
+      });
     };
     const uncast = () => {
-      cast.forEach((el) => {
-        el.style.transform = '';
-        el.classList.remove('is-cast', 'is-lit');
-      });
-      cast.length = 0;
+      cast.forEach(drop);
+      cast = [];
     };
 
-    let said = null;
+    // While the screen is black the pitch's words are the only thing on it, so
+    // they get their own element in the middle rather than the plate in the
+    // corner — and they change the way everything else on this screen changes:
+    // the line leaves, and the next one arrives out of nothing.
+    const openLine = $('#open-line');
+    const openSub = $('#open-sub');
+    let said = null, swap = 0;
     const say = (c) => {
       if (said === c) return;
+      const first = said === null;
       said = c;
+      if (phase === 'intro') {
+        openLine.classList.remove('is-up');
+        openSub.classList.remove('is-up');
+        clearTimeout(swap);
+        swap = setTimeout(() => {
+          openLine.textContent = c.line;
+          openSub.textContent = c.sub || '';
+          void openLine.offsetWidth;
+          openLine.classList.add('is-up');
+          if (c.sub) openSub.classList.add('is-up');
+        }, first ? 0 : 300);
+        return;
+      }
       $('#wall-eyebrow').textContent = c.eyebrow || '';
       $('#wall-title').textContent = c.line;
       $('#wall-lead').textContent = c.sub || '';
@@ -694,6 +746,11 @@
       token++;
       words.classList.toggle('is-flooding', !!animate);
       words.classList.remove('is-intro');
+      // the whole black stage lifts on one class: the wallpaper comes up, the
+      // topbar comes back, the plate takes the words off the middle of the
+      // screen, and the hundred are simply there
+      document.body.classList.remove('is-opening');
+      clearTimeout(swap);
       uncast();
       say(FLOOD);
       // the cue has been reading WATCH; nothing else will run until the reader
@@ -710,12 +767,12 @@
       const mine = token;
       const w = (ms) => new Promise((r) => setTimeout(r, ms))
         .then(() => { if (token !== mine || phase === 'wall') throw HALT; });
-      await w(520);
+      await w(420);
       for (const b of BEATS) {
         say(b);
-        await w(340);
-        for (const c of b.cast) { castTo(...c); await w(360); }
-        await w(b.cast.length > 1 ? 1250 : 1500);
+        await w(620);                        // the line lands before the goods
+        castBeat(b.cast);
+        await w(b.cast.length > 1 ? 2050 : 1750);
       }
       await w(260);
       settleIntro(true);
@@ -750,7 +807,9 @@
     };
 
     words.classList.add('is-intro');
-    say(BEATS[0]);
+    // black from the first frame, behind the loader's own black, so there is
+    // no moment where the page shows itself before the pitch has begun
+    document.body.classList.add('is-opening');
     measure();
 
     return {
@@ -819,61 +878,30 @@
     };
   }
 
-  // ---------- 0. loader — black, and something being typed ----------
-  // Nothing is drawn here and nothing is measured: the page opens on black and
-  // writes. The middle line is the visitor's own date, so the first sentence on
-  // screen is already true of them — and then it hands over to a wall of a
-  // hundred features, which is the loudest thing on this site. Quiet first.
+  // ---------- 0. loader — black, and one line arriving ----------
+  // Nothing is drawn here and nothing is typed. The page opens on black with
+  // one sentence on it, and the sentence is the visitor's own date, so the
+  // first thing this page says is already true of them. It arrives the way
+  // every line after it arrives — up out of nothing, coming into focus — and
+  // the cover it is on is the same black the pitch behind it is standing on,
+  // so when the cover goes there is nothing to see going.
   function runLoader(onDone) {
     const wrap = $('#boot');
-    const box = $('#boot-lines');
+    const line = $('#boot-line');
 
     const dow = new Date(M.y, M.m, M.today)
       .toLocaleString('en-US', { weekday: 'long' });
-    const LINES = [
-      { text: 'BRACHY CALENDAR', cls: '' },
-      { text: `${dow}, ${M.month} ${ORDINAL(M.today)}`, cls: 'boot-line--lead' },
-      { text: 'THIS MONTH, ON YOUR DESKTOP.', cls: 'boot-line--last' },
-    ];
-
-    const nodes = LINES.map((l) => {
-      const p = document.createElement('p');
-      p.className = `boot-line ${l.cls}`.trim();
-      box.appendChild(p);
-      return p;
-    });
-    const caret = document.createElement('span');
-    caret.className = 'boot-caret';
+    line.textContent = `${dow}, ${M.month} ${ORDINAL(M.today)}.`;
 
     // the pitch owns the screen from here; it is what the reader sees first
     const finish = () => { wrap.classList.add('is-done'); onDone(); };
-    if (REDUCED()) {
-      nodes.forEach((n, i) => { n.textContent = LINES[i].text; });
-      finish();
-      return;
-    }
+    if (REDUCED()) { line.classList.add('is-up'); finish(); return; }
 
-    let i = 0, j = 0;
-    const write = () => {
-      const line = LINES[i].text;
-      const node = nodes[i];
-      if (j < line.length) {
-        caret.classList.add('is-typing');
-        j++;
-        node.textContent = line.slice(0, j);
-        node.appendChild(caret);
-        // the hand the tour writes with, quicker: a space is a beat. Three
-        // lines land in about 2.3s — long enough to be an opening, short
-        // enough that it is not a wait.
-        setTimeout(write, line[j - 1] === ' ' ? 54 : 24);
-        return;
-      }
-      caret.classList.remove('is-typing');
-      i++; j = 0;
-      if (i < LINES.length) setTimeout(write, 190);
-      else setTimeout(finish, 460);
-    };
-    setTimeout(write, 260);
+    setTimeout(() => line.classList.add('is-up'), 300);
+    // it holds, then leaves before the cover does, so the black is empty for a
+    // beat and the pitch is not arriving on top of the date
+    setTimeout(() => line.classList.remove('is-up'), 2000);
+    setTimeout(finish, 2500);
   }
 
   // ---------- 2. the tour — the calendar uses itself ----------

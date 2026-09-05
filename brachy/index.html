@@ -10,18 +10,18 @@
   <title>BRACHY CALENDAR — DINOVERSE</title>
   <link rel="icon" href="../image/brachy-icon.png" />
   <link rel="preload" href="assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/style.css?v=12" />
+  <link rel="stylesheet" href="assets/style.css?v=13" />
 </head>
 <body>
-  <!-- ============ LOADER — black, and something being typed ============
-       No progress bar, no logo, and no month drawing itself: the page opens
-       the way a plain text file opens, on black, with lines written a
-       character at a time. What it writes is the visitor's own date, so the
-       first thing this page says is already true of them before it has asked
-       for anything — and it hands over to a wall of a hundred features, which
-       is the loudest screen on the site. Quiet first. -->
+  <!-- ============ LOADER — black, and one line arriving ============
+       No progress bar, no logo, and no month drawing itself. The page opens on
+       black with one sentence on it, and the sentence is the visitor's own
+       date, so the first thing this page says is already true of them. It does
+       not type: it arrives — up out of nothing, the way the four lines after
+       it do. This cover never announces itself, because the pitch behind it is
+       standing on the same black. -->
   <div class="boot" id="boot" aria-hidden="true">
-    <div class="boot-lines" id="boot-lines"></div>
+    <p class="boot-line" id="boot-line"></p>
   </div>
 
   <div class="cursor" id="cursor" aria-hidden="true"></div>
@@ -35,7 +35,14 @@
   <h1 class="sr-only">Brachy Calendar — a desktop calendar that is your wallpaper</h1>
 
   <!-- ============ 1. THE WALL — everything it does, then where it lives ====
-       The first screen is the whole feature list at once, set on a wallpaper.
+       It opens on black. No wallpaper, no calendar, no topbar — for ten
+       seconds this is not a web page, it is a screen with one sentence and one
+       feature on it, and then the next, and then the next. Eight of the
+       hundred, one at a time, so a little of what this thing does is seen
+       before all of it is.
+
+       Then the black lifts and the rest arrives at once: the whole feature
+       list, set on a wallpaper.
        The words are the product's, counted rather than claimed: the eyebrow
        reads its numbers off the same array the wall is built from, so the
        count cannot drift from the list.
@@ -55,6 +62,16 @@
       </div>
 
       <div class="plane plane--cal" id="plane-cal"></div>
+
+      <!-- The pitch's own words, while the screen is still black. They are not
+           the plate below: down there the copy is a caption on a wall of type,
+           and up here it is the only thing on screen apart from the feature it
+           is boasting about. So it gets its own element and its own type, and
+           the plate takes over the moment the wall arrives. -->
+      <div class="open" id="open" aria-hidden="true">
+        <p class="open-line" id="open-line"></p>
+        <p class="open-sub" id="open-sub"></p>
+      </div>
 
       <div class="wall-copy" id="wall-copy">
         <p class="eyebrow" id="wall-eyebrow"></p>
@@ -169,6 +186,6 @@
   <script src="../assets/vendor/lenis.min.js"></script>
   <script src="../assets/crypto.js"></script>
   <script src="../data.js"></script>
-  <script src="assets/app.js?v=12"></script>
+  <script src="assets/app.js?v=13"></script>
 </body>
 </html>

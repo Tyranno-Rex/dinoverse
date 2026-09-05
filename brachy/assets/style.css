@@ -77,7 +77,7 @@ img { max-width: 100%; display: block; }
   margin: 0;
 }
 /* the contrast axis: very tight huge type against very wide small mono */
-.eyebrow, .topbar, .scroll-cue, .boot-line,
+.eyebrow, .topbar, .scroll-cue,
 .tour-tick, .get-meta, .footer, .link-btn, .file-row {
   font-family: var(--mono);
   text-transform: uppercase;
@@ -101,44 +101,33 @@ img { max-width: 100%; display: block; }
 }
 @media (hover: none) { .cursor { display: none; } }
 
-/* ---------- loader: black, and something being typed ---------- */
-/* Blacker than the page itself (--void is #08090a): the page arriving out of
-   this reads as a light coming on rather than a panel being taken away. */
+/* ---------- loader: black, and one line arriving ---------- */
+/* Blacker than the page itself (--void is #08090a), and the same black the
+   pitch behind it is standing on — so when this cover goes there is nothing
+   to see going. It does not type. Nothing on this page types any more: a
+   caret and a monospaced font are a terminal, and the screen this is opening
+   is not a terminal. The line arrives, out of nothing, from a little below
+   where it ends up. */
 .boot {
   position: fixed; inset: 0; z-index: 100;
   background: #000;
-  display: grid; align-content: center;
-  padding: 0 clamp(22px, 9vw, 140px);
-  transition: opacity 0.9s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0.9s;
+  display: grid; place-items: center;
+  padding: 0 clamp(20px, 6vw, 90px);
+  transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0.8s;
 }
 .boot.is-done { opacity: 0; visibility: hidden; }
-.boot-lines { display: grid; gap: 1.05em; }
 .boot-line {
-  margin: 0;
-  font-family: var(--mono);
-  font-size: clamp(12px, 1.35vw, 16px);
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--steel-dim);
-  /* every line holds its height before a character of it exists, so the block
-     never grows under the one being written */
-  min-height: 1.2em;
+  margin: 0; text-align: center;
+  font-family: var(--display); font-weight: 600;
+  font-size: clamp(30px, 5vw, 78px);
+  letter-spacing: -0.035em; line-height: 1.04;
+  color: var(--chalk);
+  opacity: 0; transform: translate3d(0, 26px, 0); filter: blur(9px);
+  transition: opacity 1s cubic-bezier(0.16, 0.84, 0.24, 1),
+              transform 1.15s cubic-bezier(0.16, 0.84, 0.24, 1),
+              filter 1s cubic-bezier(0.16, 0.84, 0.24, 1);
 }
-.boot-line--lead { color: var(--chalk); }
-.boot-line--last { color: var(--steel); }
-.boot-caret {
-  display: inline-block;
-  width: 0.56em; height: 1.05em;
-  margin-left: 0.16em;
-  vertical-align: -0.2em;
-  background: var(--accent-lit);
-  animation: boot-blink 1.05s steps(1) infinite;
-}
-/* it blinks while it waits and holds while it writes — the other way round
-   reads as a fault */
-.boot-caret.is-typing { animation: none; opacity: 1; }
-@keyframes boot-blink { 0%, 52% { opacity: 1; } 53%, 100% { opacity: 0; } }
+.boot-line.is-up { opacity: 1; transform: none; filter: blur(0); }
 
 /* ---------- topbar ---------- */
 .topbar {
@@ -593,6 +582,47 @@ img { max-width: 100%; display: block; }
 .wall-word.is-echo.is-big { color: var(--steel); }
 .wall-word.is-echo .wall-pro { opacity: 0.55; }
 
+/* ---------- the pitch, on black ----------
+   The screen this opens on is black, and the only thing on it is type. No
+   wallpaper, no calendar, no topbar — the page's own furniture would make it
+   a web page, and for these ten seconds it is not one. Every rule here is on
+   `body.is-opening`, which the pitch owns and the flood clears, so the whole
+   stage lifts on one class rather than on eight timers. */
+body.is-opening .wall-pin { background: #000; }
+body.is-opening .plane--wall { opacity: 0; }
+/* the copy plate is a caption on a wall of type; there is no wall yet */
+body.is-opening .wall-copy { opacity: 0; }
+/* the wall's ground fades in under the flood rather than being there for it */
+.plane--wall, .wall-pin { transition: opacity 1.1s ease, background 1.1s ease; }
+.wall-copy { transition: opacity 0.8s ease 0.25s; }
+body.is-opening .topbar { opacity: 0; }
+.topbar { transition: opacity 0.7s ease; }
+/* the scrim belongs to the plate, and the plate is not here yet */
+body.is-opening .wall-pin::after { opacity: 0; }
+.wall-pin::after { transition: opacity 0.9s ease; }
+
+/* what the pitch says while the screen is black. Sat above the middle, so the
+   feature it is boasting about can have the middle. */
+.open {
+  position: absolute; z-index: 6; pointer-events: none;
+  left: clamp(16px, 6vw, 90px); right: clamp(16px, 6vw, 90px);
+  top: 19vh;
+  display: grid; gap: 14px; justify-items: center; text-align: center;
+  opacity: 0; transition: opacity 0.6s ease;
+}
+body.is-opening .open { opacity: 1; }
+.open-line, .open-sub {
+  margin: 0; max-width: 22ch;
+  font-family: var(--display); letter-spacing: -0.03em; line-height: 1.06;
+  opacity: 0; transform: translate3d(0, 22px, 0); filter: blur(8px);
+  transition: opacity 0.85s cubic-bezier(0.16, 0.84, 0.24, 1),
+              transform 1s cubic-bezier(0.16, 0.84, 0.24, 1),
+              filter 0.85s cubic-bezier(0.16, 0.84, 0.24, 1);
+}
+.open-line { font-weight: 600; font-size: clamp(24px, 3.4vw, 52px); color: var(--chalk); }
+.open-sub { font-weight: 500; font-size: clamp(17px, 2vw, 30px); color: var(--steel); max-width: 30ch; }
+.open-line.is-up, .open-sub.is-up { opacity: 1; transform: none; filter: blur(0); }
+
 /* ---------- the pitch ---------- */
 /* While it runs, the wall is holding everything back: the words are all there,
    in the places they will end up in, at nothing. The beats throw four of them
@@ -612,15 +642,20 @@ img { max-width: 100%; display: block; }
    word goes back to nothing the moment its flicker finishes */
 .wall-words.is-intro .wall-word.is-cast,
 .wall-word.is-cast { opacity: 1; z-index: 3; color: var(--chalk); }
-/* it does not fade up, it comes on — like something switching on */
-.wall-word.is-lit { animation: caston 0.5s cubic-bezier(0.2, 0, 0, 1); }
+/* It arrives out of nothing and comes into focus — the same motion as every
+   other line on the black screen. It used to flicker on like a bulb, which
+   was the right idea on a wallpaper and the wrong one here: nothing on a
+   black screen should look like it is failing. The transform is already
+   carrying the word to its place, so the arrival is opacity and blur only. */
+.wall-word.is-lit { animation: caston 0.9s cubic-bezier(0.16, 0.84, 0.24, 1) both; }
 @keyframes caston {
-  0% { opacity: 0; }
-  16% { opacity: 1; }
-  28% { opacity: 0.12; }
-  42% { opacity: 1; }
-  56% { opacity: 0.4; }
-  68%, 100% { opacity: 1; }
+  from { opacity: 0; filter: blur(12px); }
+  to { opacity: 1; filter: blur(0); }
+}
+/* the beat before this one, on its way out: it leaves the way it came */
+.wall-word.is-going {
+  opacity: 0 !important; filter: blur(10px);
+  transition: opacity 0.5s ease, filter 0.5s ease;
 }
 
 /* the shortcuts get their own band and their own number: the matrix counts
@@ -1018,7 +1053,10 @@ img { max-width: 100%; display: block; }
      wall — so nothing may be caught mid-flicker or mid-travel on the way */
   .wall-word, .wall-keys { transition: none !important; }
   .wall-word.is-lit { animation: none; }
-  .boot-caret { animation: none; opacity: 1; }
+  /* the opening does not play here: the line is simply up, and initWall
+     settles straight to the wall */
+  .boot-line { opacity: 1; transform: none; filter: none; transition: none; }
+  .open-line, .open-sub { transition: none; }
 }
 
 /* ---------- narrow screens ---------- */
