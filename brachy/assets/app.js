@@ -26,8 +26,8 @@
 // socket, so what the agent asked for is said in the PAGE's type, outside the
 // app's frame — neither is drawn as a screen the product does not have.
 //
-// The page runs on the visitor's real date throughout: the loader draws this
-// actual month and stops on today, and every step works on days this month
+// The page runs on the visitor's real date throughout: the loader types out
+// today before anything is drawn, and every step works on days this month
 // really has.
 //
 // Stage one is CSS only. The two WebGL moments (wall sheen, wallpaper
@@ -45,6 +45,11 @@
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
   const pad2 = (n) => String(n).padStart(2, '0');
+  const ORDINAL = (n) => {
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  };
 
   // ---------- the date module — one place, read by everything ----------
   function thisMonth(now = new Date()) {
@@ -598,6 +603,29 @@
       return scatter(el, (BIG.has(raw) ? 0.36 : 0) + Math.random() * 0.28);
     });
 
+    // ---- and then it repeats, because that is what a wallpaper does ----
+    // A hundred names do not fill a desktop screen, and a list that stops
+    // two thirds of the way down is a list. So the list runs again, and again,
+    // until there is no room left — and then it is cut off by the edge, the
+    // way a pattern is. The first pass is the one the pitch casts from and the
+    // one the eye reads; the passes after it are the wall.
+    //
+    // Only ever as many as the screen actually needs, and never more than
+    // three, because every one of them is a node the scatter has to write a
+    // transform to on every frame it moves.
+    const fill = () => {
+      for (let pass = 0; pass < 3; pass++) {
+        // 24px, the same slack `measure` calls a wall that fits: filling to
+        // within a couple of pixels would add a whole pass for nothing
+        if (words.scrollHeight > words.clientHeight + 24) return;
+        CATALOG.forEach((raw) => {
+          const el = build(raw);
+          el.classList.add('is-echo');
+          pieces.push(scatter(el, (BIG.has(raw) ? 0.36 : 0) + Math.random() * 0.28));
+        });
+      }
+    };
+
     keysEl.innerHTML = `<span class="wall-keys-n">${KEYS.length} SHORTCUTS</span>` +
       KEYS.map(([k, what]) => `<span class="wall-key"><b>${k}</b>${what}</span>`).join('');
     // the band leaves in one piece: it is one thought, not nine
@@ -701,6 +729,8 @@
     // phone-only behaviour to keep in step.
     let over = 0, panEnd = 0, lastP = 0;
     const measure = () => {
+      // a wider window is a shorter block; top it back up before measuring
+      fill();
       // measured with nothing scattered: a transformed word still counts
       // towards the scrollable area, so a half-flung wall would measure taller
       // than it is
@@ -789,54 +819,61 @@
     };
   }
 
-  // ---------- 0. loader — this month draws itself, day by day ----------
+  // ---------- 0. loader — black, and something being typed ----------
+  // Nothing is drawn here and nothing is measured: the page opens on black and
+  // writes. The middle line is the visitor's own date, so the first sentence on
+  // screen is already true of them — and then it hands over to a wall of a
+  // hundred features, which is the loudest thing on this site. Quiet first.
   function runLoader(onDone) {
-    const wrap = $('#loader');
-    const grid = $('#loader-grid');
-    const nEl = $('#loader-n');
-    $('#loader-month').textContent = `${M.month} ${M.y}`;
+    const wrap = $('#boot');
+    const box = $('#boot-lines');
 
-    const cells = [];
-    for (let i = 0; i < M.first; i++) {
-      const b = document.createElement('span');
-      b.className = 'loader-cell is-blank';
-      grid.appendChild(b);
-    }
-    for (let d = 1; d <= M.days; d++) {
-      const el = document.createElement('span');
-      el.className = 'loader-cell';
-      grid.appendChild(el);
-      cells.push(el);
-    }
+    const dow = new Date(M.y, M.m, M.today)
+      .toLocaleString('en-US', { weekday: 'long' });
+    const LINES = [
+      { text: 'BRACHY CALENDAR', cls: '' },
+      { text: `${dow}, ${M.month} ${ORDINAL(M.today)}`, cls: 'boot-line--lead' },
+      { text: 'THIS MONTH, ON YOUR DESKTOP.', cls: 'boot-line--last' },
+    ];
 
-    // the demo owns the screen from here; it is what the reader sees first
+    const nodes = LINES.map((l) => {
+      const p = document.createElement('p');
+      p.className = `boot-line ${l.cls}`.trim();
+      box.appendChild(p);
+      return p;
+    });
+    const caret = document.createElement('span');
+    caret.className = 'boot-caret';
+
+    // the pitch owns the screen from here; it is what the reader sees first
     const finish = () => { wrap.classList.add('is-done'); onDone(); };
-    if (REDUCED()) { nEl.textContent = pad2(M.today); finish(); return; }
+    if (REDUCED()) {
+      nodes.forEach((n, i) => { n.textContent = LINES[i].text; });
+      finish();
+      return;
+    }
 
-    // Pace it so the loader reads the same on the 1st as on the 31st: the
-    // per-day step stretches for short counts, and a floor keeps the whole
-    // thing on screen long enough to be seen.
-    const FLOOR = 1500;
-    const step = Math.min(110, Math.max(26, 1400 / M.today));
-    const t0 = performance.now();
-
-    let d = 0;
-    const tick = () => {
-      d++;
-      const cell = cells[d - 1];
-      if (cell) {
-        cell.classList.add('is-on');
-        if (d === M.today) cell.classList.add('is-today');
+    let i = 0, j = 0;
+    const write = () => {
+      const line = LINES[i].text;
+      const node = nodes[i];
+      if (j < line.length) {
+        caret.classList.add('is-typing');
+        j++;
+        node.textContent = line.slice(0, j);
+        node.appendChild(caret);
+        // the hand the tour writes with, quicker: a space is a beat. Three
+        // lines land in about 2.3s — long enough to be an opening, short
+        // enough that it is not a wait.
+        setTimeout(write, line[j - 1] === ' ' ? 54 : 24);
+        return;
       }
-      nEl.textContent = pad2(d);
-      if (d < M.today) {
-        setTimeout(tick, step);
-      } else {
-        const held = performance.now() - t0;
-        setTimeout(finish, Math.max(260, FLOOR - held));
-      }
+      caret.classList.remove('is-typing');
+      i++; j = 0;
+      if (i < LINES.length) setTimeout(write, 190);
+      else setTimeout(finish, 460);
     };
-    setTimeout(tick, 320);
+    setTimeout(write, 260);
   }
 
   // ---------- 2. the tour — the calendar uses itself ----------
