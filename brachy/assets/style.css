@@ -481,13 +481,18 @@ img { max-width: 100%; display: block; }
    wallpaper with no window round it, which is desktop mode, shown, and the
    reason the tour does not spend a step on it.
    ============================================================ */
-.month { height: 780vh; position: relative; }
+/* One screen. Not a tall section behind a sticky pin: this is a story, and a
+   story cannot be scrubbed. Scrolling it moved four days at a flick and handed
+   the reader a month that had visibly changed with no account of how. It plays
+   itself, at the speed it is told at, and scrolling away is the only control —
+   which ends it and hands the month over finished. */
+.month { height: 100vh; position: relative; }
 .month-pin {
   --gut: clamp(12px, 3vw, 44px);
   /* the same band as the tour's, so the calendar walking from one section
      into the next does not change size on the way */
   --band: clamp(150px, 22vh, 210px);
-  position: sticky; top: 0; height: 100vh;
+  position: relative; height: 100%;
   overflow: hidden;
   background: #000;
 }
@@ -544,16 +549,17 @@ img { max-width: 100%; display: block; }
   display: grid; place-items: center; align-content: center; gap: 14px;
   padding: 0 clamp(20px, 6vw, 90px);
   opacity: 0; visibility: hidden;
-  transition: opacity 0.34s ease, visibility 0.34s;
+  transition: opacity 0.26s ease, visibility 0.26s;
 }
 .black.is-on { opacity: 1; visibility: visible; }
+/* The date arrives slowly and leaves quickly. Both directions on one long
+   transition left it still fading as the black lifted, so the day you had
+   just left ghosted over the day you had just arrived in. */
 .black-dow, .black-day {
   margin: 0; text-align: center;
   font-family: var(--display); letter-spacing: -0.035em; line-height: 1.04;
   opacity: 0; transform: translate3d(0, 22px, 0); filter: blur(9px);
-  transition: opacity 0.8s cubic-bezier(0.16, 0.84, 0.24, 1),
-              transform 0.95s cubic-bezier(0.16, 0.84, 0.24, 1),
-              filter 0.8s cubic-bezier(0.16, 0.84, 0.24, 1);
+  transition: opacity 0.22s ease, transform 0.22s ease, filter 0.22s ease;
 }
 .black-dow {
   font-family: var(--mono); font-weight: 500; text-transform: uppercase;
@@ -561,7 +567,12 @@ img { max-width: 100%; display: block; }
 }
 .black-day { font-weight: 600; font-size: clamp(30px, 5vw, 78px); color: var(--chalk); }
 .black.is-said .black-dow,
-.black.is-said .black-day { opacity: 1; transform: none; filter: blur(0); }
+.black.is-said .black-day {
+  opacity: 1; transform: none; filter: blur(0);
+  transition: opacity 0.7s cubic-bezier(0.16, 0.84, 0.24, 1),
+              transform 0.85s cubic-bezier(0.16, 0.84, 0.24, 1),
+              filter 0.7s cubic-bezier(0.16, 0.84, 0.24, 1);
+}
 /* the weekday arrives first and the date lands on it */
 .black.is-said .black-day { transition-delay: 0.12s; }
 

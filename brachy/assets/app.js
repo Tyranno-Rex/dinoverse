@@ -471,8 +471,6 @@
   };
 
   function initMonth() {
-    const pin = $('.month-pin');
-    const wallPlane = $('#plane-wall');
     const black = $('#black');
     const blackDow = $('#black-dow');
     const blackDay = $('#black-day');
@@ -518,7 +516,11 @@
     // one hands it over full — so a stop on either would put the same date on
     // the rail twice and cut to black twice on one day.
     const tellable = dealt.filter(([d, f]) => INBOX[f.name] && d > 1 && d < M.days);
-    const STOPS = Math.min(7, tellable.length);
+    // Five. It was seven when the scroll picked the day and the reader set the
+    // pace; now the film runs at its own, and every stop is roughly four
+    // seconds nobody can skip past. Five days of a month is enough to show a
+    // month happening, and the tour below performs eight more.
+    const STOPS = Math.min(5, tellable.length);
     const told = new Set();
     for (let i = 0; i < STOPS; i++) {
       told.add(tellable[STOPS === 1 ? 0 : Math.round((i * (tellable.length - 1)) / (STOPS - 1))][0]);
@@ -594,10 +596,15 @@
       ticks.forEach((t, k) => t.classList.toggle('is-at', k === i));
     };
 
-    // ---- play, settle, undo ----
-    // The same three entry points every tour step keeps, for the same reason: a
-    // reader who scrolls instead of watching is entitled to the end state at
-    // once, and a reader who scrolls back is entitled to have it taken away.
+    // ---- the film ----
+    // One screen, and it plays itself all the way through. It used to be a tall
+    // section with the scroll picking the day, and that was the wrong shape for
+    // it: one flick of a trackpad crossed four days at once, so the reader was
+    // handed a month that had visibly changed and no account of how. A story
+    // cannot be scrubbed. It is told at the speed it is told at.
+    //
+    // Leaving is the only control, and it does what leaving a film does: the
+    // rest of it is over, and the month is handed over finished.
     const settle = (i) => {
       const b = BEATS[i];
       blackTo(false); dateCard(0, false); showMsg(null, false);
@@ -605,63 +612,70 @@
       say(i);
     };
 
-    let at = -1, token = 0;
+    let token = 0, done = false;
     const HALT = {};
 
-    async function goTo(n, animate) {
-      if (n === at) return;
+    const finish = () => {
+      done = true;
+      if (cue.textContent !== 'NOW WATCH IT WORK') cue.textContent = 'NOW WATCH IT WORK';
+    };
+
+    async function film() {
       token++;
       const mine = token;
       const w = (ms) => new Promise((r) => setTimeout(r, ms))
         .then(() => { if (token !== mine) throw HALT; });
 
-      const back = n < at;
-      at = n;
-      if (!animate || REDUCED()) { settle(n); return; }
+      for (let i = 0; i < BEATS.length; i++) {
+        const b = BEATS[i];
 
-      const b = BEATS[n];
-      // The cut. Going back is a cut too — it is how you leave a day, in either
-      // direction — but nothing plays on the other side of it.
-      blackTo(true);
-      showMsg(null, false);
-      await w(340);
-      dateCard(b.day, true);
-      // the days nothing was said on land here, behind the black, so the month
-      // is never skipped and never seen jumping
-      upTo(b.day);
-      say(n);
-      await w(b === OPEN ? 1100 : 950);
-      dateCard(0, false);
-      await w(300);
-      blackTo(false);
-      if (back || !b.msg) return;
+        // the cut: the screen goes, the date is said on the black, and the days
+        // nothing was said on land behind it — so the month is never skipped
+        // and never seen jumping
+        blackTo(true);
+        showMsg(null, false);
+        await w(260);
+        dateCard(b.day, true);
+        upTo(b.day);
+        say(i);
+        await w(i === 0 ? 900 : 700);
+        dateCard(0, false);
+        await w(230);
+        blackTo(false);
 
-      // and then the day itself: it comes in, and the calendar takes it
-      await w(560);
-      showMsg(b.msg, true);
-      await w(1700);
-      const box = evBox(b.day);
-      if (box) { box.classList.remove('is-landed'); void box.offsetWidth; box.classList.add('is-landed'); }
-      await w(1100);
-      showMsg(null, false);
+        // and then the day itself: something comes in, and the calendar takes it
+        if (b.msg) {
+          await w(380);
+          showMsg(b.msg, true);
+          await w(1250);
+          const box = evBox(b.day);
+          if (box) { box.classList.remove('is-landed'); void box.offsetWidth; box.classList.add('is-landed'); }
+          await w(800);
+          showMsg(null, false);
+          await w(260);
+        } else {
+          await w(i === BEATS.length - 1 ? 700 : 520);
+        }
+      }
+      finish();
     }
-
-    const drive = (n, animate) => {
-      goTo(n, animate).catch((e) => { if (e !== HALT) throw e; });
-    };
 
     upTo(0);
     say(0);
     return {
-      beats: BEATS.length,
-      start() { drive(0, !REDUCED()); },
-      at(p) {
-        wallPlane.style.transform = `translate3d(0, ${p * -30}px, 0) scale(1.06)`;
-        const n = Math.min(BEATS.length - 1, Math.floor(p * BEATS.length));
-        drive(n, true);
-        const label = n === 0 ? 'SCROLL' : n === BEATS.length - 1 ? 'NOW WATCH IT WORK' : 'KEEP GOING';
-        if (cue.textContent !== label) cue.textContent = label;
-        pin.style.opacity = String(clamp01(1 - (p - 0.95) / 0.05));
+      start() {
+        if (REDUCED()) { settle(BEATS.length - 1); finish(); return; }
+        cue.textContent = 'WATCH';
+        film().catch((e) => { if (e !== HALT) throw e; });
+      },
+      // Scrolling off the screen ends it, whatever it was in the middle of —
+      // the same contract every step on this page keeps. The month is handed
+      // over finished rather than frozen halfway through the 12th.
+      leave() {
+        if (done) return;
+        token++;
+        settle(BEATS.length - 1);
+        finish();
       },
     };
   }
@@ -1423,9 +1437,10 @@
     function run() {
       queued = false;
 
-      // the month — scroll picks the day, and arriving at one plays it: the
-      // cut to black, the date, and then whatever came in that day
-      month.at(prog(monthSec));
+      // The month is one screen and it plays itself, so there is nothing for
+      // the scroll to pick. It only has to be told when the reader has left,
+      // which ends it — the same thing leaving does to every step on this page.
+      if (monthSec.getBoundingClientRect().bottom < innerHeight * 0.7) month.leave();
 
       // the tour — scroll picks the step and the step plays itself. The engine
       // is told a position, never a direction: it works out for itself what to
