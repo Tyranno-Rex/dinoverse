@@ -2,10 +2,12 @@
 //
 // Two screens, and neither of them is a picture.
 //
-//   1. WALL — a black screen first, where eight features are shown one at a
-//             time and the page keeps saying there is more; then every feature
-//             the product has, all at once, set on a wallpaper.
-//             The count is read off the list rather than typed next to it.
+//   1. MONTH — one month, as it happened. The 1st, an empty grid, and then the
+//             month filling: work arrives the way work arrives — somebody
+//             messages you — and the calendar takes it. The screen cuts to
+//             black between days and hands you the date, and the days nothing
+//             was said on fill in behind it. Every event that lands is a real
+//             feature doing its own job.
 //             Scroll scatters the words and leaves the calendar standing in the
 //             cleared middle with no window around it — which is desktop mode,
 //             demonstrated rather than described.
@@ -28,12 +30,12 @@
 // socket, so what the agent asked for is said in the PAGE's type, outside the
 // app's frame — neither is drawn as a screen the product does not have.
 //
-// The page runs on the visitor's real date throughout: it opens on black with
-// today's date on it and nothing else, and every step works on days this month
+// The page runs on the visitor's real date throughout: the story is this
+// month, the 1st to its own last day, and every step works on days this month
 // really has.
 //
-// Stage one is CSS only. The two WebGL moments (wall sheen, wallpaper
-// displacement dissolve) wait on real app screenshots — see
+// Stage one is CSS only. The one WebGL moment left on the plan (the wallpaper
+// displacement dissolve) waits on real app screenshots — see
 // docs/superpowers/specs/2026-08-31-brachy-site-design.md §7. Their fallbacks
 // are what you see now, and they stay when the shaders land.
 
@@ -66,159 +68,6 @@
     };
   }
   const M = thisMonth();
-
-  // ---------- the catalogue: everything the product does ----------
-  // Transcribed from mesozoic's docs/spec/FEATURE_MATRIX.md, which is written
-  // against the code rather than against a plan — section by section, in its
-  // order, one line per row of its tables. A leading * means the app gates it
-  // behind PRO, and that mark is the matrix's, not this page's.
-  //
-  // The two repositories are separate, so nothing keeps this in step
-  // automatically. It is a snapshot of the matrix dated 2026-08-31; when the
-  // product grows, this list has to be brought over by hand.
-  //
-  // The wall's numbers are counted off these arrays at run time. A count typed
-  // next to a list is a claim; a count read out of it cannot be wrong.
-  const CATALOG = [
-    // 2.1 views and navigation
-    'Month, week, day and agenda views',
-    'A custom N-day view',
-    'Year heatmap',
-    'Today, previous, next — and jump to any month',
-    'Mini calendar in the day view',
-    'Timeline scrubber',
-    '*Tag filter bar',
-    '*Account filter bar',
-    'Overcommit warning',
-    // 2.2 events
-    'Create, edit, delete, duplicate',
-    'Write one in its own window',
-    'Drag an event to another day',
-    'Drag its edges to change the time',
-    'Title, notes, start and end, all-day',
-    'Multi-day events',
-    'Location, and locations you have saved',
-    'Several links, each with its own label',
-    'Meet, Zoom and Teams links recognised',
-    'Attendees and organiser, read from the invite',
-    'D-day countdown',
-    'Buffer time before and after',
-    'Completion, per repeat instance',
-    'Time-conflict detection',
-    '*Per-event colour',
-    '*Tags on an event',
-    '*Save and apply templates',
-    '*Assign an event to an account',
-    // 2.3 repeats
-    'Daily, weekly, monthly, yearly — every N',
-    'Ends on a date, or after N times',
-    'Edit or skip a single occurrence',
-    'This one, or all the ones after it',
-    // 2.4 reminders
-    'Several reminders on one event',
-    'OS-native notification scheduler',
-    'Snooze',
-    'Join the meeting from the notification',
-    // 2.5 memos, pomodoro, planner, time
-    'Memos, and memo windows',
-    'Pomodoro timer, started from an event',
-    'The daily planner',
-    'Focus-time suggestions',
-    'Share your free slots',
-    '*Statistics and charts',
-    // 2.6 search, quick add, birthdays
-    'Search, in a modal or its own window',
-    'QuickAdd — parsed on the device',
-    'Birthdays, drawn on the month',
-    // 2.7 stickers
-    'Mood stickers',
-    'Your own images as stickers',
-    '*Decorate mode — place, size, rotate',
-    // 2.8 appearance, display, layout
-    'Light and dark',
-    'Accent colour',
-    'Font size',
-    'Window opacity, or background only',
-    'Colourblind-friendly palette',
-    'Reduce motion',
-    'Holidays, lunar dates, adjacent months, grid lines, ISO week numbers',
-    'Event dots, for a compact month',
-    'Events per cell, and columns within one',
-    'Hide weekdays you do not use',
-    'Carry unfinished days forward',
-    'Overcommit warning, and where the line is',
-    'Schedule panel left or right, and pinned',
-    'Always on top, resize mode, drag, fit to screen',
-    'Desktop mode — it becomes the wallpaper',
-    'Tray icon',
-    '*Weather in the day',
-    // 2.9 time and language
-    'First day of the week',
-    'When your day starts',
-    '12 or 24 hour',
-    'Up to two more time zones',
-    'Six languages, or follow the system',
-    'Locale defaults applied for you',
-    // 2.10 data in and out
-    'Export and import JSON',
-    'Import and export iCal',
-    'Export the month as PDF',
-    'Automatic backup, encrypted, five kept',
-    'Undo and redo',
-    // 2.11 account and subscription
-    'Sign in with Google',
-    'Subscription status, and the upgrade sheet',
-    'Redeem a coupon',
-    'Card payment',
-    'Manage, cancel or reactivate',
-    'Delete your account and everything in it',
-    '*Link up to three email addresses',
-    '*Choose the account new events go to',
-    // 2.12 external calendars
-    '*Google Calendar, both ways',
-    '*CalDAV, both ways',
-    '*Background sync every 15 minutes',
-    '*Credentials in the OS keychain only',
-    '*Subscribe to an iCal feed',
-    // 2.13 cloud
-    '*Cloud sync — events, memos, settings, tags',
-    '*Live push over SSE',
-    '*How much storage you are using',
-    '*Erase everything on the server',
-    // 2.14 MCP
-    'MCP connection, off until you turn it on',
-    'Local socket only — no network port',
-    'list, create and update events',
-    'list, create and update memos and tags',
-    'Connecting copies a prompt, and touches nothing else',
-    // 2.15 onboarding
-    'A tour on first run',
-    'Tip of the day',
-    '*Privacy re-consent when you upgrade',
-  ];
-
-  // The matrix counts these among its rows, but each one is a second way into a
-  // feature already on the list above. Counting them again would inflate the
-  // total, so they get their own band and their own number.
-  const KEYS = [
-    ['N', 'new event'], ['Q', 'quickadd'], ['P', 'planner'], ['T', 'today'],
-    ['← →', 'prev · next'], ['1 2 3 4', 'month · week · day · agenda'],
-    ['Ctrl K', 'search'], ['Ctrl Z', 'undo'], ['F5', 'refresh'],
-  ];
-
-  // The eight the tour actually performs, set larger on the wall so it has a
-  // rhythm instead of being an even paste. Desktop mode is one of them: the
-  // wall's own transition is its demonstration.
-  const BIG = new Set([
-    'Desktop mode — it becomes the wallpaper',
-    'QuickAdd — parsed on the device',
-    'Drag an event to another day',
-    'The daily planner',
-    '*Tag filter bar',
-    '*Decorate mode — place, size, rotate',
-    '*Cloud sync — events, memos, settings, tags',
-    'MCP connection, off until you turn it on',
-  ]);
 
   // ---------- the feature tour ----------
   // Each entry is a real feature of the app (apps/brachy/docs/FEATURE_SPEC.md),
@@ -393,9 +242,9 @@
   // ---------- the two the tour writes ----------
   // They are the month's own, taken off EVERY calendar the page draws so that
   // writing them is what puts the month together rather than adding a second
-  // copy two cells away. Off every calendar, not just the tour's: the wall
-  // hands the reader a month and the tour picks it up, and two pills quietly
-  // vanishing at the seam would be the page contradicting itself.
+  // copy two cells away. Off every calendar, not just the tour's: the story
+  // hands the reader a finished month and the tour picks it up, and two pills
+  // quietly vanishing at the seam would be the page contradicting itself.
   const HELD = ['QuickAdd, on the device', 'Google Calendar, CalDAV, iCal feeds']
     .map((name) => {
       const f = FEATURES.find((x) => x.name === name);
@@ -496,412 +345,325 @@
     return app;
   }
 
-  // ---------- 1. the wall — the pitch, and then the whole list ----------
-  // The first screen is a sales pitch that keeps not ending. One feature, big,
-  // on its own. Then another somewhere else. Then three at once. Then the page
-  // admits it is still not finished — and everything it has been holding back
-  // floods in at once, the four beats shrinking into their places in a wall of
-  // a hundred, laid across a wallpaper.
+  // ---------- 0. loader — the black the story starts in ----------
+  // It says nothing, and it draws nothing. The screen it lifts onto is still
+  // black — the month's story opens in a blackout of its own — so there is no
+  // moment where this cover can be seen leaving. All it has to do is hold the
+  // page while the month is built and the fonts land.
+  function runLoader(onDone) {
+    const wrap = $('#boot');
+    const finish = () => { wrap.classList.add('is-done'); onDone(); };
+    if (REDUCED()) { finish(); return; }
+    setTimeout(finish, 620);
+  }
+
+  // ---------- 1. the month — one month, as it happened ----------
+  // The first screen is not a pitch and it is not a list. It is the 1st, an
+  // empty month, and then the month happening. Work arrives the way work
+  // actually arrives — somebody messages you — and the calendar takes it.
   //
-  // It plays itself, the way the loader does. A reader who scrolls instead of
-  // watching gets the same end state at once — the same three-entry-point
-  // contract the tour steps keep, for the same reason.
+  // Between one day and the next the screen goes black and gives you the date,
+  // the way a film cuts, and the days nothing was said on fill in behind it. So
+  // the month is never skipped: the 1st to the 30th all happen, and we only
+  // stop where there is something to see.
   //
-  // After that, scroll takes the wall apart. Each word has its own direction
-  // and its own delay, the small type leaves first, and what is left standing
-  // in the cleared middle is the calendar with no window around it — which is
-  // the whole of desktop mode, shown rather than described, and the reason the
-  // tour spends no step on it.
+  // Every event that lands is a real feature of the product doing the thing it
+  // does, dealt onto this month by dealFeatures() — the same deal the tour then
+  // works on. Nothing here is written for the story: the story is written for
+  // what the product actually does, which is the only order those two can go in.
   //
-  // Every number here is counted off CATALOG and KEYS. A count typed next to a
-  // list is a claim; a count read out of the list cannot be wrong.
-  function initWall() {
-    const words = $('#wall-words');
-    const keysEl = $('#wall-keys');
+  // Scroll picks the day and arriving at one plays it, the same contract every
+  // tour step keeps: play, settle, undo. Scrolling back really does take the
+  // pills off the grid again.
+  //
+  // The senders are invented. The work is not: this is a month of the kind of
+  // thing a calendar is actually asked to hold.
+  const INBOX = {
+    'Repeating events': {
+      who: 'Dana', dot: '#0A84FF',
+      text: 'Standup every Monday from now on — set it once so I stop asking.',
+      did: 'It repeats, and it ends when you say so.',
+      lead: 'Daily, weekly, monthly, or every second week. Edit one occurrence or that one and everything after it.' },
+
+    'Ten event colours': {
+      who: 'Mina', dot: '#FF375F',
+      text: 'Design review Thursday. Make it red — I keep walking past it.',
+      did: 'Red. One of the ten the system ships.',
+      lead: 'The pill takes the colour at 15%, the label at full. Turn on the colourblind palette and all ten remap to Wong’s universal set.' },
+
+    'D-day countdown': {
+      who: 'Sam', dot: '#FF9F0A',
+      text: 'Launch is a week out. Can you put the countdown on it?',
+      did: 'D-7, and it counts itself down.',
+      lead: 'The number is never something you work out on your fingers.' },
+
+    'Tags, and a filter': {
+      who: 'Dana', dot: '#0A84FF',
+      text: 'Client call Tuesday. Tag it so I can pull the whole account later.',
+      did: 'Two tags, two dots.',
+      lead: 'Filter by one and the rest of the month dims rather than disappears — so you read a project without losing the shape of the month.' },
+
+    'Completion': {
+      who: 'Ops', dot: '#8E8E93',
+      text: 'Domain renewal is on you today.',
+      did: 'Ticked off where it stands.',
+      lead: 'On a repeating event completion is stored per occurrence, so last week being done does not mark this week done.' },
+
+    'Mood stickers': {
+      who: 'Sam', dot: '#FF9F0A',
+      text: 'We shipped 1.2. That deserves something on the day.',
+      did: 'One sticker, on that day.',
+      lead: 'From the cell’s right-click menu, and you can register your own images alongside the emoji.' },
+
+    'Overcommit warning': {
+      who: 'Mina', dot: '#FF375F',
+      text: 'Can you take the vendor sync as well? It is the same day.',
+      did: 'Five on one day — and the cell says so.',
+      lead: 'The threshold is yours: a number of events, or a number of hours. It warns while the day is still ahead of you.' },
+
+    'Reminders, and snooze': {
+      who: 'Ops', dot: '#8E8E93',
+      text: 'Dentist confirmed for Wednesday, 3pm.',
+      did: 'Fifteen minutes before.',
+      lead: 'A real system notification, several to one event, snoozed for ten. If the event has a meeting link the notification opens it.' },
+
+    'Pomodoro timer': {
+      who: 'Dana', dot: '#0A84FF',
+      text: 'Four blocks on the deck today, if you can.',
+      did: 'Four sessions, logged on the day they ran.',
+      lead: 'Started from the event they belong to, so the month ends up holding the work and not only the plan.' },
+
+    'Memo windows': {
+      who: 'Sam', dot: '#FF9F0A',
+      text: 'Passport number when you get a second — not urgent.',
+      did: 'A memo, in its own window.',
+      lead: 'Free-standing notes outside the grid. Pin one and it stays above every other window until you unpin it.' },
+
+    'Focus-time suggestions': {
+      who: 'Brachy', dot: '#64D2FF', app: true,
+      text: 'Two clear hours on Friday morning. Want them?',
+      did: 'Offered, not booked.',
+      lead: 'It reads the day you already have, finds the gaps inside your working hours that are worth anything, and offers them.' },
+
+    'Weather in the day': {
+      who: 'Mina', dot: '#FF375F',
+      text: 'Picnic Saturday, if it is dry.',
+      did: 'The forecast sits in the day header.',
+      lead: 'Your coordinates are rounded to two decimal places and sent straight to Open-Meteo. The request never passes through our server.' },
+
+    'Backup, import, export': {
+      who: 'Ops', dot: '#8E8E93',
+      text: 'Audit next month. Make sure all of this is backed up.',
+      did: 'Written on launch, and again on quit.',
+      lead: 'The last five are kept and the operating system encrypts them. Export is JSON or plain .ics, and a month prints to PDF.' },
+
+    'The daily planner': {
+      who: 'Dana', dot: '#0A84FF',
+      text: 'Send me that day hour by hour, not just the list.',
+      did: 'Press P and the day opens.',
+      lead: 'Add straight into an hour, tick things off there, and what you planned and what you kept sit in the same column.' },
+
+    'Conflicts and buffer time': {
+      who: 'Mina', dot: '#FF375F',
+      text: 'Interview at four. Leave yourself room either side.',
+      did: 'Ten minutes before, ten after.',
+      lead: 'Two events on the same hour are flagged as they are made, and the time an event really costs you is the time the day accounts for.' },
+  };
+
+  function initMonth() {
+    const pin = $('.month-pin');
     const wallPlane = $('#plane-wall');
-    const cal = $('#plane-cal');
-    const pin = $('.wall-pin');
+    const black = $('#black');
+    const blackDow = $('#black-dow');
+    const blackDay = $('#black-day');
+    const msg = $('#msg');
     const cue = $('#cue-label');
+    const cal = $('#plane-cal');
 
-    const pro = CATALOG.filter((s) => s[0] === '*').length;
+    const cellFor = (d) => cal.querySelector(`.day-cell[data-day="${d}"]`);
+    const evBox = (d) => { const c = cellFor(d); return c && c.querySelector('.day-events-detail'); };
 
-    // The pitch. Each beat says one line and puts what it is boasting about in
-    // the middle of a black screen, big, on its own — and then that one leaves
-    // and the next one arrives. One thing at a time, which is the whole point
-    // of a black screen: there is nothing else on it to look at instead.
-    //
-    // Eight of the hundred get shown here. Not a sample of the list — the eight
-    // the tour is about to perform, so nothing is boasted about that the page
-    // does not then go and do.
-    const BEATS = [
-      {
-        line: 'Let’s start with the one you came for.',
-        cast: ['Desktop mode — it becomes the wallpaper'],
-      },
-      {
-        line: 'Good, isn’t it. Don’t get comfortable.',
-        cast: ['QuickAdd — parsed on the device'],
-      },
-      {
-        line: 'Still with us? Then have these.',
-        cast: [
-          'The daily planner',
-          '*Tag filter bar',
-          '*Decorate mode — place, size, rotate',
-        ],
-      },
-      {
-        line: 'Yes. It is quite a calendar.',
-        sub: 'And no — that was not the list.',
-        cast: [
-          '*Cloud sync — events, memos, settings, tags',
-          'Drag an event to another day',
-          'MCP connection, off until you turn it on',
-        ],
-      },
-    ];
-    const FLOOD = {
-      eyebrow: `${CATALOG.length} FEATURES · ${CATALOG.length - pro} FREE · ${pro} PRO`,
-      line: 'Don’t be surprised.',
-      sub: 'For Brachy, this is standard.',
+    // Every day of the month is off the grid to begin with, including the
+    // header marks — a weather glyph on the 12th before the 12th has happened
+    // would be the month knowing something it has not been told.
+    const marks = (d) => {
+      const c = cellFor(d);
+      return c ? [...c.querySelectorAll('.day-cell-header > *:not(.day-number)')] : [];
     };
-    const REVEAL = {
-      eyebrow: 'AND NO WINDOW AROUND IT',
-      line: 'It is the wallpaper.',
-      sub: 'Desktop mode drops the frame and hands the month to the desktop itself. ' +
-        'Nothing to arrange, and nothing sitting on top of anything.',
-    };
+    const spanBar = cal.querySelector('.spanning-bar');
+    const spanDay = (() => {
+      const row = spanBar && spanBar.closest('.week-row');
+      const cellsIn = row ? [...row.querySelectorAll('.day-cell[data-day]')] : [];
+      const spaced = cellsIn.filter((c) => c.querySelector('.day-spanning-spacer'));
+      return spaced.length ? +spaced[0].dataset.day : 0;
+    })();
 
-    const build = (raw) => {
-      const isPro = raw[0] === '*';
-      const el = document.createElement('span');
-      el.className = `wall-word${BIG.has(raw) ? ' is-big' : ''}${isPro ? ' is-pro' : ''}`;
-      el.textContent = isPro ? raw.slice(1) : raw;
-      if (isPro) {
-        const b = document.createElement('i');
-        b.className = 'wall-pro';
-        b.textContent = 'PRO';
-        el.appendChild(b);
+    // ---- the days this month actually has something on ----
+    // Read off the deal, in date order. The two the tour writes are not here:
+    // they are held off every calendar on the page, and a story that put them
+    // on would be handing the tour a month it cannot then write into.
+    const held = new Set(HELD.map((h) => h.day));
+    const dealt = [...DEAL.byDay]
+      .filter(([d]) => !held.has(d))
+      .sort((a, b) => a[0] - b[0]);
+
+    // Seven of them get a message and a stop. Only days whose feature has
+    // something to say are eligible — a feature added to FEATURES without a
+    // line in INBOX quietly fills in with the rest rather than stopping the
+    // story on a day nobody wrote — and they are picked evenly across the
+    // month rather than taken from the front, so the story runs the length of
+    // the month instead of finishing in its first week. The days that are not
+    // stopped on fill in behind the black, which is what they look like.
+    // The 1st and the last day are spoken for — one opens the month empty and
+    // one hands it over full — so a stop on either would put the same date on
+    // the rail twice and cut to black twice on one day.
+    const tellable = dealt.filter(([d, f]) => INBOX[f.name] && d > 1 && d < M.days);
+    const STOPS = Math.min(7, tellable.length);
+    const told = new Set();
+    for (let i = 0; i < STOPS; i++) {
+      told.add(tellable[STOPS === 1 ? 0 : Math.round((i * (tellable.length - 1)) / (STOPS - 1))][0]);
+    }
+
+    // ---- the beats ----
+    // The 1st, then every day worth stopping on, then the 30th. The first and
+    // the last are the only two invented: the month has to start somewhere
+    // empty, and it has to be handed over full.
+    const OPEN = {
+      day: 1,
+      copy: { eyebrow: `${M.month.toUpperCase()} ${M.y}`, title: 'An empty month.',
+        lead: 'Thirty days, nothing on them yet. Everything that lands here from now on lands because somebody asked for it.' },
+    };
+    const CLOSE = {
+      day: M.days,
+      copy: { eyebrow: `${M.days} DAYS · ${dealt.length} OF THEM SPOKEN FOR`,
+        title: 'And it is the wallpaper.',
+        lead: 'Desktop mode drops the frame and hands the month to the desktop itself. Nothing to arrange, and nothing sitting on top of anything.' },
+    };
+    const BEATS = [OPEN,
+      ...dealt.filter(([d]) => told.has(d)).map(([d, f]) => {
+        const m = INBOX[f.name];
+        return { day: d, feature: f, msg: m,
+          copy: { eyebrow: f.name.toUpperCase(), title: m.did, lead: m.lead } };
+      }),
+      CLOSE];
+
+    // ---- the grid, day by day ----
+    const showDay = (d, on) => {
+      const c = cellFor(d);
+      if (!c) return;
+      c.classList.toggle('is-on', on);
+      marks(d).forEach((el) => el.classList.toggle('is-on', on));
+      if (spanDay && d === spanDay && spanBar) spanBar.classList.toggle('is-on', on);
+    };
+    // everything up to and including `d`, and nothing after it
+    const upTo = (d) => { for (let n = 1; n <= M.days; n++) showDay(n, n <= d); };
+
+    // ---- the cut ----
+    const blackTo = (on) => { black.classList.toggle('is-on', !!on); };
+    // `on` is coerced: classList.toggle(name, undefined) flips the class rather
+    // than clearing it, and a settle that flipped this on would leave the next
+    // cut showing its date before the black had arrived under it.
+    const dateCard = (d, on) => {
+      if (on) {
+        const dt = new Date(M.y, M.m, d);
+        blackDow.textContent = dt.toLocaleString('en-US', { weekday: 'long' });
+        blackDay.textContent = `${M.month} ${ORDINAL(d)}`;
       }
-      words.insertBefore(el, keysEl);      // the keys band stays last
-      return el;
+      black.classList.toggle('is-said', !!on);
     };
 
-    // where each piece goes when the wall comes apart, decided once
-    const scatter = (el, delay) => {
-      const a = Math.random() * Math.PI * 2;
-      const d = 260 + Math.random() * 520;
-      return {
-        el, delay, t: -1,
-        dx: Math.cos(a) * d,
-        dy: Math.sin(a) * d - 70,
-        rot: (Math.random() * 2 - 1) * 64,
-      };
-    };
-
-    const byName = new Map();
-    const pieces = CATALOG.map((raw) => {
-      const el = build(raw);
-      byName.set(raw, el);
-      return scatter(el, (BIG.has(raw) ? 0.36 : 0) + Math.random() * 0.28);
-    });
-
-    // ---- and then it repeats, because that is what a wallpaper does ----
-    // A hundred names do not fill a desktop screen, and a list that stops
-    // two thirds of the way down is a list. So the list runs again, and again,
-    // until there is no room left — and then it is cut off by the edge, the
-    // way a pattern is. The first pass is the one the pitch casts from and the
-    // one the eye reads; the passes after it are the wall.
-    //
-    // Only ever as many as the screen actually needs, and never more than
-    // three, because every one of them is a node the scatter has to write a
-    // transform to on every frame it moves.
-    const fill = () => {
-      for (let pass = 0; pass < 3; pass++) {
-        // 24px, the same slack `measure` calls a wall that fits: filling to
-        // within a couple of pixels would add a whole pass for nothing
-        if (words.scrollHeight > words.clientHeight + 24) return;
-        CATALOG.forEach((raw) => {
-          const el = build(raw);
-          el.classList.add('is-echo');
-          pieces.push(scatter(el, (BIG.has(raw) ? 0.36 : 0) + Math.random() * 0.28));
-        });
+    const showMsg = (m, on) => {
+      if (on) {
+        $('#msg-who').textContent = m.who;
+        $('#msg-dot').style.background = m.dot;
+        $('#msg-body').textContent = m.text;
+        msg.classList.toggle('is-app', !!m.app);
       }
+      msg.classList.toggle('is-on', !!on);
     };
 
-    keysEl.innerHTML = `<span class="wall-keys-n">${KEYS.length} SHORTCUTS</span>` +
-      KEYS.map(([k, what]) => `<span class="wall-key"><b>${k}</b>${what}</span>`).join('');
-    // the band leaves in one piece: it is one thought, not nine
-    pieces.push({ el: keysEl, delay: 0, t: -1, dx: 0, dy: 260, rot: 0 });
+    const rail = $('#month-rail');
+    rail.innerHTML = BEATS.map((b) => `<li class="month-tick">${pad2(b.day)}</li>`).join('');
+    const ticks = [...rail.children];
 
-    // ---- the pitch's staging ----
-    // A word is put in the middle of the black screen by transforming it out of
-    // the place it already holds in the wall. Which means the flood does not
-    // have to move anything anywhere: it clears the transform, and every one of
-    // them travels home on its own — into the layout it was always going to
-    // have. The centring is done here, in pixels, rather than in CSS, because
-    // the word has to keep the place it will go back to.
-    const drop = (el) => {
-      el.style.transform = '';
-      el.style.animationDelay = '';
-      el.classList.remove('is-cast', 'is-lit', 'is-going');
-    };
-    let cast = [];
-    const castBeat = (list) => {
-      const box = words.getBoundingClientRect();
-
-      // the beat before this one leaves the way it came, and only once it is
-      // gone does it go back to being an ordinary word in the wall
-      const prev = cast;
-      cast = [];
-      prev.forEach((el) => el.classList.add('is-going'));
-      setTimeout(() => prev.forEach(drop), 520);
-
-      // measured first, laid out second: a stack can only be centred once its
-      // own height is known
-      const want = list.length > 1 ? 1.55 : 2.5;
-      const items = list.reduce((acc, raw) => {
-        const el = byName.get(raw);
-        if (!el) return acc;
-        const r = el.getBoundingClientRect();
-        // Never wider than the screen it is being shown on — and on a narrow
-        // one that means going BELOW its own size rather than stopping at it.
-        // A word running off both edges of a black screen with nothing else on
-        // it is the one thing this screen cannot afford.
-        const s = Math.max(0.55, Math.min(want, (box.width - 48) / Math.max(1, r.width)));
-        acc.push({ el, r, s, h: r.height * s });
-        return acc;
-      }, []);
-
-      const gap = 30;
-      const total = items.reduce((a, it) => a + it.h, 0) + gap * (items.length - 1);
-      let y = box.height / 2 - total / 2;
-      items.forEach((it, i) => {
-        const cy = y + it.h / 2;
-        y += it.h + gap;
-        const dx = box.left + box.width / 2 - (it.r.left + it.r.width / 2);
-        const dy = box.top + cy - (it.r.top + it.r.height / 2);
-        // It has to ARRIVE where it is going, not slide there from the place it
-        // holds in the wall — that travel belongs to the flood, at the other
-        // end. So the tween is switched off for the one frame that puts it there.
-        it.el.style.transition = 'none';
-        it.el.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${it.s})`;
-        it.el.classList.add('is-cast');
-        it.el.classList.remove('is-lit', 'is-going');
-        void it.el.offsetWidth;
-        it.el.style.transition = '';
-        // three of them arrive one after another rather than as a block
-        it.el.style.animationDelay = `${i * 0.14}s`;
-        it.el.classList.add('is-lit');
-        cast.push(it.el);
-      });
-    };
-    const uncast = () => {
-      cast.forEach(drop);
-      cast = [];
+    const say = (i) => {
+      const c = BEATS[i] ? BEATS[i].copy : null;
+      $('#month-eyebrow').textContent = c ? c.eyebrow : '';
+      $('#month-title').textContent = c ? c.title : '';
+      $('#month-lead').textContent = c ? c.lead : '';
+      ticks.forEach((t, k) => t.classList.toggle('is-at', k === i));
     };
 
-    // While the screen is black the pitch's words are the only thing on it, so
-    // they get their own element in the middle rather than the plate in the
-    // corner — and they change the way everything else on this screen changes:
-    // the line leaves, and the next one arrives out of nothing.
-    const openLine = $('#open-line');
-    const openSub = $('#open-sub');
-    let said = null, swap = 0;
-    const say = (c) => {
-      if (said === c) return;
-      const first = said === null;
-      said = c;
-      if (phase === 'intro') {
-        openLine.classList.remove('is-up');
-        openSub.classList.remove('is-up');
-        clearTimeout(swap);
-        swap = setTimeout(() => {
-          openLine.textContent = c.line;
-          openSub.textContent = c.sub || '';
-          void openLine.offsetWidth;
-          openLine.classList.add('is-up');
-          if (c.sub) openSub.classList.add('is-up');
-        }, first ? 0 : 300);
-        return;
-      }
-      $('#wall-eyebrow').textContent = c.eyebrow || '';
-      $('#wall-title').textContent = c.line;
-      $('#wall-lead').textContent = c.sub || '';
+    // ---- play, settle, undo ----
+    // The same three entry points every tour step keeps, for the same reason: a
+    // reader who scrolls instead of watching is entitled to the end state at
+    // once, and a reader who scrolls back is entitled to have it taken away.
+    const settle = (i) => {
+      const b = BEATS[i];
+      blackTo(false); dateCard(0, false); showMsg(null, false);
+      upTo(b.day);
+      say(i);
     };
 
-    // ---- the pitch ----
-    // intro → wall. Leaving the first screen ends it, whatever it was in the
-    // middle of; there is one end state and both routes reach it.
-    let phase = 'intro';
-    let token = 0;
+    let at = -1, token = 0;
     const HALT = {};
 
-    // `animate` only when the pitch reached its own ending. A reader who
-    // scrolled out of it gets the wall at once — a 0.95s tween fighting a
-    // per-frame scatter transform would be the worst of both.
-    const settleIntro = (animate) => {
-      if (phase === 'wall') return;
-      phase = 'wall';
-      token++;
-      words.classList.toggle('is-flooding', !!animate);
-      words.classList.remove('is-intro');
-      // the whole black stage lifts on one class: the wallpaper comes up, the
-      // topbar comes back, the plate takes the words off the middle of the
-      // screen, and the hundred are simply there
-      document.body.classList.remove('is-opening');
-      clearTimeout(swap);
-      uncast();
-      say(FLOOD);
-      // the cue has been reading WATCH; nothing else will run until the reader
-      // scrolls, so it has to stop asking them to stand still
-      cue.textContent = 'SCROLL';
-      if (animate) setTimeout(() => words.classList.remove('is-flooding'), 1000);
-      // the block's real layout only matters now, and the web fonts have
-      // certainly landed by the time anyone has watched a pitch
-      measure();
-    };
-
-    async function playIntro() {
+    async function goTo(n, animate) {
+      if (n === at) return;
       token++;
       const mine = token;
       const w = (ms) => new Promise((r) => setTimeout(r, ms))
-        .then(() => { if (token !== mine || phase === 'wall') throw HALT; });
-      await w(420);
-      for (const b of BEATS) {
-        say(b);
-        await w(620);                        // the line lands before the goods
-        castBeat(b.cast);
-        await w(b.cast.length > 1 ? 2050 : 1750);
-      }
-      await w(260);
-      settleIntro(true);
+        .then(() => { if (token !== mine) throw HALT; });
+
+      const back = n < at;
+      at = n;
+      if (!animate || REDUCED()) { settle(n); return; }
+
+      const b = BEATS[n];
+      // The cut. Going back is a cut too — it is how you leave a day, in either
+      // direction — but nothing plays on the other side of it.
+      blackTo(true);
+      showMsg(null, false);
+      await w(340);
+      dateCard(b.day, true);
+      // the days nothing was said on land here, behind the black, so the month
+      // is never skipped and never seen jumping
+      upTo(b.day);
+      say(n);
+      await w(b === OPEN ? 1100 : 950);
+      dateCard(0, false);
+      await w(300);
+      blackTo(false);
+      if (back || !b.msg) return;
+
+      // and then the day itself: it comes in, and the calendar takes it
+      await w(560);
+      showMsg(b.msg, true);
+      await w(1700);
+      const box = evBox(b.day);
+      if (box) { box.classList.remove('is-landed'); void box.offsetWidth; box.classList.add('is-landed'); }
+      await w(1100);
+      showMsg(null, false);
     }
 
-    // ---- how far the block has to travel before it can come apart ----
-    // A hundred names do not fit one phone screen, and a block clipped at both
-    // ends reads as a bug rather than as a lot of features. So the wall pans
-    // through itself before it scatters. On a wide screen the block fits, the
-    // overflow is zero, and this span collapses to nothing — one code path, no
-    // phone-only behaviour to keep in step.
-    let over = 0, panEnd = 0, lastP = 0;
-    const measure = () => {
-      // a wider window is a shorter block; top it back up before measuring
-      fill();
-      // measured with nothing scattered: a transformed word still counts
-      // towards the scrollable area, so a half-flung wall would measure taller
-      // than it is
-      pieces.forEach((s) => { s.el.style.transform = 'none'; s.el.style.opacity = ''; s.t = -1; });
-      // centred content that overflows spills past BOTH ends and the top half
-      // cannot be scrolled to, so a block too tall for its box is aligned to
-      // the top instead — and then panned through with scrollTop
-      words.classList.remove('is-tall');
-      // a couple of pixels over is not a wall that needs panning — it is a wall
-      // that fits, and spending a third of the section scrolling three pixels
-      // would be a dead beat on every desktop
-      const tall = words.scrollHeight > words.clientHeight + 24;
-      words.classList.toggle('is-tall', tall);
-      over = tall ? words.scrollHeight - words.clientHeight : 0;
-      // how long the pan takes is how much there is to pan, capped
-      panEnd = over ? Math.max(0.12, Math.min(0.34, (over / words.clientHeight) * 0.3)) : 0;
+    const drive = (n, animate) => {
+      goTo(n, animate).catch((e) => { if (e !== HALT) throw e; });
     };
 
-    words.classList.add('is-intro');
-    // black from the first frame, behind the loader's own black, so there is
-    // no moment where the page shows itself before the pitch has begun
-    document.body.classList.add('is-opening');
-    measure();
-
+    upTo(0);
+    say(0);
     return {
-      // the pitch runs once the loader is out of the way
-      start() {
-        if (REDUCED()) { settleIntro(false); return; }
-        playIntro().catch((e) => { if (e !== HALT) throw e; });
-      },
-      // the block's height changes when the web fonts land and when the window
-      // is resized, and how far it has to pan changes with it. While the pitch
-      // owns the screen there is nothing to measure — the cast words are
-      // transformed out of the layout, and settleIntro re-measures anyway.
-      measure() { if (phase === 'intro') return; measure(); this.at(lastP); },
-      // p is 0 → 1 across the section behind the pin
+      beats: BEATS.length,
+      start() { drive(0, !REDUCED()); },
       at(p) {
-        lastP = p;
-        wallPlane.style.transform = `translate3d(0, ${p * -34}px, 0) scale(1.06)`;
-
-        // Leaving the first screen ends the pitch. The scrub runs a frame at
-        // load with p exactly 0, so the threshold has to be above zero or the
-        // pitch would be cut off before it started.
-        if (phase === 'intro') {
-          if (p <= 0.015) {
-            if (cue.textContent !== 'WATCH') cue.textContent = 'WATCH';
-            return;
-          }
-          settleIntro(false);
-        }
-
-        // first the block pans through itself (nothing to pan on a wide
-        // screen), then everything after it runs on what is left of the scroll
-        const pan = panEnd ? clamp01(p / panEnd) : 0;
-        // a little past the measured bottom, because the browser clamps
-        // scrollTop for us: the block can settle a few pixels taller than it
-        // measured, and stopping short would leave the last row half cut
-        words.scrollTop = (over + 24) * pan;
-        // a beat at the bottom before it comes apart, so the end of the list is
-        // something the reader gets to see rather than something that flashes
-        const rest = panEnd ? panEnd + 0.08 : 0;
-        const r = rest ? clamp01((p - rest) / (1 - rest)) : p;
-
-        const q = clamp01(r / 0.56);          // the scatter is over well before the end
-        pieces.forEach((s) => {
-          const t = clamp01((q - s.delay) / (1 - s.delay));
-          if (t === s.t) return;              // 110 nodes: do not write what has not changed
-          s.t = t;
-          const e = t * t;
-          s.el.style.transform = t
-            ? `translate3d(${s.dx * e}px, ${s.dy * e}px, 0) rotate(${s.rot * e}deg)`
-            : 'none';
-          s.el.style.opacity = String(1 - t);
-        });
-
-        // ours rises in the cleared middle and then holds. A thing you are being
-        // handed should not still be moving while you look at it.
-        const up = clamp01((r - 0.36) / 0.26);
-        cal.style.opacity = String(up);
-        cal.style.transform =
-          `translate3d(0, ${(1 - up) * 44}px, 0) scale(${0.964 + up * 0.036})`;
-
-        say(r < 0.44 ? FLOOD : REVEAL);
-        const label = r < 0.30 ? 'SCROLL' : r < 0.62 ? 'KEEP GOING' : 'NOW WATCH IT WORK';
+        wallPlane.style.transform = `translate3d(0, ${p * -30}px, 0) scale(1.06)`;
+        const n = Math.min(BEATS.length - 1, Math.floor(p * BEATS.length));
+        drive(n, true);
+        const label = n === 0 ? 'SCROLL' : n === BEATS.length - 1 ? 'NOW WATCH IT WORK' : 'KEEP GOING';
         if (cue.textContent !== label) cue.textContent = label;
-        pin.style.opacity = String(clamp01(1 - (r - 0.93) / 0.07));
+        pin.style.opacity = String(clamp01(1 - (p - 0.95) / 0.05));
       },
     };
-  }
-
-  // ---------- 0. loader — black, and one line arriving ----------
-  // Nothing is drawn here and nothing is typed. The page opens on black with
-  // one sentence on it, and the sentence is the visitor's own date, so the
-  // first thing this page says is already true of them. It arrives the way
-  // every line after it arrives — up out of nothing, coming into focus — and
-  // the cover it is on is the same black the pitch behind it is standing on,
-  // so when the cover goes there is nothing to see going.
-  function runLoader(onDone) {
-    const wrap = $('#boot');
-    const line = $('#boot-line');
-
-    const dow = new Date(M.y, M.m, M.today)
-      .toLocaleString('en-US', { weekday: 'long' });
-    line.textContent = `${dow}, ${M.month} ${ORDINAL(M.today)}.`;
-
-    // the pitch owns the screen from here; it is what the reader sees first
-    const finish = () => { wrap.classList.add('is-done'); onDone(); };
-    if (REDUCED()) { line.classList.add('is-up'); finish(); return; }
-
-    setTimeout(() => line.classList.add('is-up'), 300);
-    // it holds, then leaves before the cover does, so the black is empty for a
-    // beat and the pitch is not arriving on top of the date
-    setTimeout(() => line.classList.remove('is-up'), 2000);
-    setTimeout(finish, 2500);
   }
 
   // ---------- 2. the tour — the calendar uses itself ----------
@@ -1632,7 +1394,7 @@
       // p is 0..1 across the section, and it is 0 both above the section and at
       // the instant the pin sticks. So p === 0 means "not here yet" and winds
       // the calendar all the way back — otherwise the scrub's very first frame,
-      // which runs at load while the reader is still on the wall, would play
+      // which runs at load while the reader is still on the month, would play
       // step one to an empty room.
       at: (p) => {
         if (p <= 0) { goTo(-1, false); return; }
@@ -1645,8 +1407,8 @@
   // Two sections, two pins, one pass. Each is told a position between 0 and 1
   // and works out for itself what that means; neither is ever told a direction,
   // which is why scrolling up puts things back instead of replaying them.
-  function initScrub(wall, tour) {
-    const wallSec = $('#wall');
+  function initScrub(month, tour) {
+    const monthSec = $('#month');
     const tourSec = $('#tour');
 
     // progress of a tall section behind its sticky pin, 0 → 1
@@ -1661,9 +1423,9 @@
     function run() {
       queued = false;
 
-      // the wall owns its own cue label: while the pitch is still running it
-      // has to read WATCH rather than tell the reader to scroll away from it
-      wall.at(prog(wallSec));
+      // the month — scroll picks the day, and arriving at one plays it: the
+      // cut to black, the date, and then whatever came in that day
+      month.at(prog(monthSec));
 
       // the tour — scroll picks the step and the step plays itself. The engine
       // is told a position, never a direction: it works out for itself what to
@@ -1672,16 +1434,12 @@
     }
 
     const request = () => { if (!queued) { queued = true; requestAnimationFrame(run); } };
-    // The wall is a block of type: how tall it is, and therefore how far it has
-    // to pan before it can come apart, changes when the window is resized and
-    // once more when the web fonts land.
-    const remeasure = () => { wall.measure(); request(); };
     addEventListener('scroll', request, { passive: true });
-    addEventListener('resize', remeasure);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure);
+    addEventListener('resize', request);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(request);
     run();
     // handed back so the loader can ask for one more frame on its way out: the
-    // wall is measured behind a full-screen cover until then
+    // month is sitting behind a full-screen cover until then
     return request;
   }
 
@@ -1758,13 +1516,13 @@
   function init() {
     scrollTo(0, 0);
     const plane = buildCalendar();
-    holdFrom(plane);           // the month the wall hands over is the month the tour picks up
+    holdFrom(plane);           // the month the story hands over is the month the tour picks up
     $('#plane-cal').appendChild(plane);
-    const wall = initWall();
+    const month = initMonth();
     const tour = initTour();
-    const request = initScrub(wall, tour);
-    // the pitch owns the screen the moment the loader lets go of it
-    runLoader(() => { wall.start(); request(); });
+    const request = initScrub(month, tour);
+    // the story owns the screen the moment the loader lets go of it
+    runLoader(() => { month.start(); request(); });
     initCursor();
     initGet();
 

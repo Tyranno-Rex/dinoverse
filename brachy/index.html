@@ -10,19 +10,16 @@
   <title>BRACHY CALENDAR — DINOVERSE</title>
   <link rel="icon" href="../image/brachy-icon.png" />
   <link rel="preload" href="assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/style.css?v=13" />
+  <link rel="stylesheet" href="assets/style.css?v=14" />
 </head>
 <body>
-  <!-- ============ LOADER — black, and one line arriving ============
-       No progress bar, no logo, and no month drawing itself. The page opens on
-       black with one sentence on it, and the sentence is the visitor's own
-       date, so the first thing this page says is already true of them. It does
-       not type: it arrives — up out of nothing, the way the four lines after
-       it do. This cover never announces itself, because the pitch behind it is
-       standing on the same black. -->
-  <div class="boot" id="boot" aria-hidden="true">
-    <p class="boot-line" id="boot-line"></p>
-  </div>
+  <!-- ============ LOADER — the black the story starts in ============
+       No progress bar, no logo, no month drawing itself, and no words: the
+       page opens on black because the first thing the story does is open on
+       black. This cover holds it there while the month is built, and then it
+       lifts onto a screen that is still black — so there is no moment where
+       the cover can be seen leaving. -->
+  <div class="boot" id="boot" aria-hidden="true"></div>
 
   <div class="cursor" id="cursor" aria-hidden="true"></div>
 
@@ -34,50 +31,51 @@
 
   <h1 class="sr-only">Brachy Calendar — a desktop calendar that is your wallpaper</h1>
 
-  <!-- ============ 1. THE WALL — everything it does, then where it lives ====
-       It opens on black. No wallpaper, no calendar, no topbar — for ten
-       seconds this is not a web page, it is a screen with one sentence and one
-       feature on it, and then the next, and then the next. Eight of the
-       hundred, one at a time, so a little of what this thing does is seen
-       before all of it is.
+  <!-- ============ 1. THE MONTH — one month, as it happened ============
+       The first screen is not a pitch and not a list. It is September the 1st,
+       an empty month, and then the month happening: work arrives the way work
+       actually arrives — somebody messages you — and the calendar takes it.
+       Between one day and the next the screen goes black and gives you the
+       date, the way a film cuts, and the days you did not stop on fill in
+       behind it. By the 30th the month is full, and full of the product: every
+       event on it is a real feature doing the thing it does.
 
-       Then the black lifts and the rest arrives at once: the whole feature
-       list, set on a wallpaper.
-       The words are the product's, counted rather than claimed: the eyebrow
-       reads its numbers off the same array the wall is built from, so the
-       count cannot drift from the list.
+       Scroll picks the day; arriving at one plays it. Nothing here is a video —
+       the pills that land are the app's own markup landing in the app's own
+       grid, which is why scrolling back takes them off again.
 
-       Scroll scatters them — the small ones first — and what is left standing
-       in the cleared middle is the calendar itself, with no window around it.
-       That transition IS the demonstration of desktop mode; the tour does not
-       spend a step on it. -->
-  <section class="wall" id="wall">
-    <div class="wall-pin">
+       It ends where the tour needs it to: the finished month standing on the
+       desktop with no window around it, which is desktop mode, shown. -->
+  <section class="month" id="month">
+    <div class="month-pin">
       <div class="plane plane--wall" id="plane-wall" aria-hidden="true"></div>
-
-      <!-- the shortcuts sit inside the block rather than beside it, so they pan
-           and scatter with everything else -->
-      <div class="wall-words" id="wall-words" aria-hidden="true">
-        <div class="wall-keys" id="wall-keys"></div>
-      </div>
-
       <div class="plane plane--cal" id="plane-cal"></div>
 
-      <!-- The pitch's own words, while the screen is still black. They are not
-           the plate below: down there the copy is a caption on a wall of type,
-           and up here it is the only thing on screen apart from the feature it
-           is boasting about. So it gets its own element and its own type, and
-           the plate takes over the moment the wall arrives. -->
-      <div class="open" id="open" aria-hidden="true">
-        <p class="open-line" id="open-line"></p>
-        <p class="open-sub" id="open-sub"></p>
+      <!-- the cut between one day and the next, and the date it hands you -->
+      <div class="black" id="black" aria-hidden="true">
+        <p class="black-dow" id="black-dow"></p>
+        <p class="black-day" id="black-day"></p>
       </div>
 
-      <div class="wall-copy" id="wall-copy">
-        <p class="eyebrow" id="wall-eyebrow"></p>
-        <h2 class="wall-title" id="wall-title">All of it, at once.</h2>
-        <p class="wall-lead" id="wall-lead"></p>
+      <!-- What comes in. Deliberately nobody's messenger: a plain card with a
+           name and a line, because the point is where the line ENDS UP, and a
+           recognisable app around it would be a claim we have no business
+           making. The people are made up; the work is the kind that is real. -->
+      <aside class="msg" id="msg" aria-hidden="true">
+        <div class="msg-head">
+          <span class="msg-dot" id="msg-dot"></span>
+          <span class="msg-who" id="msg-who"></span>
+          <span class="msg-when">now</span>
+        </div>
+        <p class="msg-body" id="msg-body"></p>
+      </aside>
+
+      <div class="month-copy">
+        <p class="eyebrow" id="month-eyebrow"></p>
+        <h2 class="month-title" id="month-title"></h2>
+        <p class="month-lead" id="month-lead"></p>
       </div>
+      <ol class="month-rail" id="month-rail"></ol>
 
       <a class="scroll-cue" href="#tour">
         <span id="cue-label">SCROLL</span><span class="scroll-cue-arrow" aria-hidden="true">↓</span>
@@ -186,6 +184,6 @@
   <script src="../assets/vendor/lenis.min.js"></script>
   <script src="../assets/crypto.js"></script>
   <script src="../data.js"></script>
-  <script src="assets/app.js?v=13"></script>
+  <script src="assets/app.js?v=14"></script>
 </body>
 </html>

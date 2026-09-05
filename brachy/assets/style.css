@@ -101,33 +101,16 @@ img { max-width: 100%; display: block; }
 }
 @media (hover: none) { .cursor { display: none; } }
 
-/* ---------- loader: black, and one line arriving ---------- */
-/* Blacker than the page itself (--void is #08090a), and the same black the
-   pitch behind it is standing on — so when this cover goes there is nothing
-   to see going. It does not type. Nothing on this page types any more: a
-   caret and a monospaced font are a terminal, and the screen this is opening
-   is not a terminal. The line arrives, out of nothing, from a little below
-   where it ends up. */
+/* ---------- loader: the black the story starts in ---------- */
+/* It says nothing and draws nothing. The screen it lifts onto is black too —
+   the month's story opens in a blackout of its own — so this cover is never
+   seen leaving. #000, the same black as the cut, not the page's --void. */
 .boot {
   position: fixed; inset: 0; z-index: 100;
   background: #000;
-  display: grid; place-items: center;
-  padding: 0 clamp(20px, 6vw, 90px);
-  transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0.8s;
+  transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0.7s;
 }
 .boot.is-done { opacity: 0; visibility: hidden; }
-.boot-line {
-  margin: 0; text-align: center;
-  font-family: var(--display); font-weight: 600;
-  font-size: clamp(30px, 5vw, 78px);
-  letter-spacing: -0.035em; line-height: 1.04;
-  color: var(--chalk);
-  opacity: 0; transform: translate3d(0, 26px, 0); filter: blur(9px);
-  transition: opacity 1s cubic-bezier(0.16, 0.84, 0.24, 1),
-              transform 1.15s cubic-bezier(0.16, 0.84, 0.24, 1),
-              filter 1s cubic-bezier(0.16, 0.84, 0.24, 1);
-}
-.boot-line.is-up { opacity: 1; transform: none; filter: blur(0); }
 
 /* ---------- topbar ---------- */
 .topbar {
@@ -489,20 +472,24 @@ img { max-width: 100%; display: block; }
 }
 
 /* ============================================================
-   1. THE WALL — everything it does, and then where it lives.
+   1. THE MONTH — one month, as it happened.
 
-   The whole catalogue at once, set on a wallpaper. Scroll takes the words
-   apart and what is left standing in the cleared middle is the calendar,
-   with no window around it. That transition is the demonstration of desktop
-   mode, which is why the tour does not spend a step on it.
+   The 1st and an empty grid, and then the month filling: somebody messages
+   you, and the calendar takes it. Between one day and the next the screen
+   cuts to black and hands you the date, and the days nothing was said on
+   fill in behind it. By the last day the month is full — and standing on a
+   wallpaper with no window round it, which is desktop mode, shown, and the
+   reason the tour does not spend a step on it.
    ============================================================ */
-.wall { height: 300vh; position: relative; }
-.wall-pin {
-  /* the same band as the tour's, so the calendar that walks from one section
+.month { height: 780vh; position: relative; }
+.month-pin {
+  --gut: clamp(12px, 3vw, 44px);
+  /* the same band as the tour's, so the calendar walking from one section
      into the next does not change size on the way */
   --band: clamp(150px, 22vh, 210px);
   position: sticky; top: 0; height: 100vh;
   overflow: hidden;
+  background: #000;
 }
 .plane { position: absolute; will-change: transform; }
 .plane--wall {
@@ -521,183 +508,131 @@ img { max-width: 100%; display: block; }
   z-index: 2; inset: 0;
   /* the top inset has to clear the fixed topbar, which is 56px tall and would
      otherwise sit across the calendar's own header */
-  padding: clamp(56px, 7vh, 88px) clamp(12px, 3vw, 44px) var(--band);
-  /* it does not exist until the wall has come apart; the scrub raises it */
-  opacity: 0; pointer-events: none;
+  padding: clamp(56px, 7vh, 88px) var(--gut) var(--band);
 }
 .plane--cal > .app { height: 100%; }
 
-/* ---------- the words ---------- */
-/* It is a wall, so it goes to the edges. The words used to sit in a centred
-   box with a margin all the way round it, which reads as a paragraph about
-   the features rather than as the features covering the screen. Now the box
-   IS the screen — the words run under the copy at the bottom, which brings
-   its own ground (.wall-pin::after), and off both sides the way a pattern
-   runs off the edge of the wall it is on. */
-.wall-words {
-  position: absolute; z-index: 4;
-  inset: 0;
-  padding: clamp(52px, 7vh, 84px) clamp(10px, 2vw, 30px) 18px;
-  display: flex; flex-wrap: wrap; align-content: center; justify-content: center;
-  gap: 5px 13px;
-  /* a block taller than this box cannot stay centred — centred overflow spills
-     past both ends and the top half is unreachable, so initWall aligns a tall
-     block to the top and pans it through with scrollTop instead */
-  overflow: hidden;
+/* ---------- the month, day by day ----------
+   Nothing is on the grid until the day it was put there. Not the pills and
+   not the marks in the header either: a weather glyph on the 12th before the
+   12th has happened is the month knowing something it has not been told. */
+.plane--cal .day-events-detail,
+.plane--cal .spanning-bar {
+  opacity: 0;
+  transition: opacity 0.5s ease;
 }
-/* the copy sits on a wall of type now, so it carries its own ground rather
-   than asking the wall to leave a hole where it stands */
-.wall-pin::after {
-  content: ""; position: absolute; z-index: 5; pointer-events: none;
-  left: 0; right: 0; bottom: 0; height: calc(var(--band) + 56px);
-  background: linear-gradient(to top,
-    rgba(7, 8, 10, 0.97) 0%, rgba(7, 8, 10, 0.93) 46%,
-    rgba(7, 8, 10, 0.55) 74%, rgba(7, 8, 10, 0) 100%);
-}
-.wall-words.is-tall { align-content: flex-start; }
-.wall-word {
-  font-family: var(--mono); font-size: 10.5px;
-  letter-spacing: 0.13em; text-transform: uppercase;
-  color: var(--steel); white-space: nowrap;
-  display: inline-flex; align-items: center; gap: 5px;
-}
-/* the eight the tour is about to perform, so the wall has a rhythm rather
-   than being an even paste */
-.wall-word.is-big {
-  font-family: var(--display); font-weight: 600;
-  font-size: clamp(18px, 2.1vw, 31px); letter-spacing: -0.02em;
-  text-transform: none; color: var(--chalk);
-}
-.wall-pro {
-  font-style: normal; font-family: var(--mono);
-  font-size: 7px; font-weight: 700; letter-spacing: 0.3px;
-  background: linear-gradient(135deg, #a78bfa, #7c3aed); color: #fff;
-  padding: 1px 4px; border-radius: 4px; line-height: 1.3;
-}
-.wall-word.is-big .wall-pro { font-size: 9px; padding: 2px 5px; }
-/* The list is repeated until it fills the screen. A repeat is the same word
-   again, not a lesser one, so an echo is graded only enough that the eye can
-   still find the first pass through the block. */
-.wall-word.is-echo { color: var(--steel-dim); }
-.wall-word.is-echo.is-big { color: var(--steel); }
-.wall-word.is-echo .wall-pro { opacity: 0.55; }
+.plane--cal .day-cell.is-on .day-events-detail,
+.plane--cal .spanning-bar.is-on { opacity: 1; }
+/* The marks in the header are hidden rather than faded, because one of them
+   cannot be faded: the app writes the weather glyph with its own inline
+   opacity, and an inline value beats any rule this page could write. They
+   arrive behind the cut anyway, where there is nothing to fade in front of. */
+.plane--cal .day-overcommit-badge,
+.plane--cal .day-mood-sticker,
+.plane--cal .day-cell-header > svg { visibility: hidden; }
+.plane--cal .day-overcommit-badge.is-on,
+.plane--cal .day-mood-sticker.is-on,
+.plane--cal .day-cell-header > svg.is-on { visibility: visible; }
 
-/* ---------- the pitch, on black ----------
-   The screen this opens on is black, and the only thing on it is type. No
-   wallpaper, no calendar, no topbar — the page's own furniture would make it
-   a web page, and for these ten seconds it is not one. Every rule here is on
-   `body.is-opening`, which the pitch owns and the flood clears, so the whole
-   stage lifts on one class rather than on eight timers. */
-body.is-opening .wall-pin { background: #000; }
-body.is-opening .plane--wall { opacity: 0; }
-/* the copy plate is a caption on a wall of type; there is no wall yet */
-body.is-opening .wall-copy { opacity: 0; }
-/* the wall's ground fades in under the flood rather than being there for it */
-.plane--wall, .wall-pin { transition: opacity 1.1s ease, background 1.1s ease; }
-.wall-copy { transition: opacity 0.8s ease 0.25s; }
-body.is-opening .topbar { opacity: 0; }
-.topbar { transition: opacity 0.7s ease; }
-/* the scrim belongs to the plate, and the plate is not here yet */
-body.is-opening .wall-pin::after { opacity: 0; }
-.wall-pin::after { transition: opacity 0.9s ease; }
+/* ---------- the cut ----------
+   A day does not become the next day by dissolving into it. The screen goes,
+   the date is said on the black, and the month comes back one day older —
+   which is also where the days nothing was said on quietly land. */
+.black {
+  position: absolute; inset: 0; z-index: 8;
+  background: #000;
+  display: grid; place-items: center; align-content: center; gap: 14px;
+  padding: 0 clamp(20px, 6vw, 90px);
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.34s ease, visibility 0.34s;
+}
+.black.is-on { opacity: 1; visibility: visible; }
+.black-dow, .black-day {
+  margin: 0; text-align: center;
+  font-family: var(--display); letter-spacing: -0.035em; line-height: 1.04;
+  opacity: 0; transform: translate3d(0, 22px, 0); filter: blur(9px);
+  transition: opacity 0.8s cubic-bezier(0.16, 0.84, 0.24, 1),
+              transform 0.95s cubic-bezier(0.16, 0.84, 0.24, 1),
+              filter 0.8s cubic-bezier(0.16, 0.84, 0.24, 1);
+}
+.black-dow {
+  font-family: var(--mono); font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.22em; font-size: var(--t-label); color: var(--steel);
+}
+.black-day { font-weight: 600; font-size: clamp(30px, 5vw, 78px); color: var(--chalk); }
+.black.is-said .black-dow,
+.black.is-said .black-day { opacity: 1; transform: none; filter: blur(0); }
+/* the weekday arrives first and the date lands on it */
+.black.is-said .black-day { transition-delay: 0.12s; }
 
-/* what the pitch says while the screen is black. Sat above the middle, so the
-   feature it is boasting about can have the middle. */
-.open {
-  position: absolute; z-index: 6; pointer-events: none;
-  left: clamp(16px, 6vw, 90px); right: clamp(16px, 6vw, 90px);
-  top: 19vh;
-  display: grid; gap: 14px; justify-items: center; text-align: center;
-  opacity: 0; transition: opacity 0.6s ease;
+/* ---------- what came in ----------
+   Deliberately nobody's messenger. A card with a name and a line, because the
+   point of it is where the line ends up, and a recognisable app drawn round it
+   would be a claim this page has no business making. */
+.msg {
+  position: absolute; z-index: 7;
+  right: var(--gut); top: clamp(76px, 11vh, 128px);
+  width: min(340px, 62vw);
+  background: rgba(16, 18, 20, 0.94);
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 13px 15px 15px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.5);
+  display: grid; gap: 8px;
+  opacity: 0; visibility: hidden;
+  transform: translate3d(22px, -8px, 0);
+  transition: opacity 0.42s ease, visibility 0.42s,
+              transform 0.5s cubic-bezier(0.16, 0.84, 0.24, 1);
 }
-body.is-opening .open { opacity: 1; }
-.open-line, .open-sub {
-  margin: 0; max-width: 22ch;
-  font-family: var(--display); letter-spacing: -0.03em; line-height: 1.06;
-  opacity: 0; transform: translate3d(0, 22px, 0); filter: blur(8px);
-  transition: opacity 0.85s cubic-bezier(0.16, 0.84, 0.24, 1),
-              transform 1s cubic-bezier(0.16, 0.84, 0.24, 1),
-              filter 0.85s cubic-bezier(0.16, 0.84, 0.24, 1);
+.msg.is-on { opacity: 1; visibility: visible; transform: none; }
+.msg-head {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
-.open-line { font-weight: 600; font-size: clamp(24px, 3.4vw, 52px); color: var(--chalk); }
-.open-sub { font-weight: 500; font-size: clamp(17px, 2vw, 30px); color: var(--steel); max-width: 30ch; }
-.open-line.is-up, .open-sub.is-up { opacity: 1; transform: none; filter: blur(0); }
-
-/* ---------- the pitch ---------- */
-/* While it runs, the wall is holding everything back: the words are all there,
-   in the places they will end up in, at nothing. The beats throw four of them
-   out to their own spots, and the flood is nothing more than clearing those
-   transforms — every one of them travels home into the layout it already had.
-
-   The tween lives ONLY on these two classes. During the scatter the scroll
-   writes a transform every frame, and a transition on that would lag the
-   scroll by most of a second. */
-.wall-words.is-intro .wall-word,
-.wall-words.is-flooding .wall-word {
-  transition: transform 0.95s cubic-bezier(0.16, 0.84, 0.24, 1), opacity 0.7s;
+.msg-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+.msg-who { color: var(--chalk); font-weight: 500; }
+.msg-when { margin-left: auto; color: var(--steel-dim); }
+.msg-body {
+  margin: 0; color: var(--text-secondary, #ebebf5);
+  font-size: clamp(14px, 1.15vw, 16px); line-height: 1.45;
 }
-.wall-words.is-intro .wall-word { opacity: 0; }
-.wall-words.is-intro .wall-keys { opacity: 0; transition: opacity 0.7s; }
-/* the selector has to out-specify `.wall-words.is-intro .wall-word`, or a cast
-   word goes back to nothing the moment its flicker finishes */
-.wall-words.is-intro .wall-word.is-cast,
-.wall-word.is-cast { opacity: 1; z-index: 3; color: var(--chalk); }
-/* It arrives out of nothing and comes into focus — the same motion as every
-   other line on the black screen. It used to flicker on like a bulb, which
-   was the right idea on a wallpaper and the wrong one here: nothing on a
-   black screen should look like it is failing. The transform is already
-   carrying the word to its place, so the arrival is opacity and blur only. */
-.wall-word.is-lit { animation: caston 0.9s cubic-bezier(0.16, 0.84, 0.24, 1) both; }
-@keyframes caston {
-  from { opacity: 0; filter: blur(12px); }
-  to { opacity: 1; filter: blur(0); }
-}
-/* the beat before this one, on its way out: it leaves the way it came */
-.wall-word.is-going {
-  opacity: 0 !important; filter: blur(10px);
-  transition: opacity 0.5s ease, filter 0.5s ease;
-}
-
-/* the shortcuts get their own band and their own number: the matrix counts
-   them among its rows, but each one is a second way into a feature that is
-   already up on the wall */
-.wall-keys {
-  width: 100%; margin-top: 12px;
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
-  gap: 7px 11px;
-}
-.wall-keys-n {
-  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.2em;
-  color: var(--steel-dim); margin-right: 5px;
-}
-.wall-key {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--steel-dim);
-}
-.wall-key b {
-  font-weight: 500; color: var(--steel);
-  border: 1px solid var(--line); border-radius: 3px; padding: 2px 5px;
-}
+/* when it is the app that spoke rather than a person */
+.msg.is-app { border-color: rgba(10, 132, 255, 0.4); }
+.msg.is-app .msg-who { color: var(--accent-lit); }
 
 /* ---------- the band ---------- */
-.wall-copy {
+.month-copy {
   position: absolute; z-index: 6;
   left: clamp(16px, 5vw, 64px); bottom: 0; height: var(--band);
   right: clamp(200px, 26vw, 380px);
   display: grid; align-content: center; gap: 9px;
   padding: 0 0 0 20px; border-left: 2px solid var(--accent);
 }
-.wall-copy .eyebrow { margin: 0; color: var(--accent-lit); }
-.wall-title {
+.month-copy .eyebrow { margin: 0; color: var(--accent-lit); }
+.month-title {
   margin: 0; font-family: var(--display); font-weight: 500;
   font-size: clamp(24px, 2.7vw, 40px); line-height: 1.06; letter-spacing: -0.03em;
   color: var(--chalk);
 }
-.wall-lead { margin: 0; max-width: 60ch; font-size: clamp(15px, 1.2vw, 18px); line-height: 1.5; color: var(--steel); }
+.month-lead { margin: 0; max-width: 60ch; font-size: clamp(15px, 1.2vw, 18px); line-height: 1.5; color: var(--steel); }
+.month-rail {
+  position: absolute; z-index: 7; margin: 0;
+  /* clear of the strip the cue and the skip link share along the bottom: nine
+     dates is a taller rail than the tour's eight steps, and at bottom:0 the
+     last of them lands on top of the download link */
+  right: var(--gut); bottom: 36px; height: calc(var(--band) - 36px);
+  list-style: none; padding: 0;
+  display: grid; align-content: center; gap: 6px; justify-items: end;
+}
+.month-tick {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em;
+  color: var(--steel-dim); transition: color 0.3s;
+}
+.month-tick.is-at { color: var(--accent-lit); }
 
 .scroll-cue {
-  position: absolute; z-index: 7; bottom: 2.5vh; left: 50%; transform: translateX(-50%);
+  position: absolute; z-index: 9; bottom: 2.5vh; left: 50%; transform: translateX(-50%);
   display: grid; gap: 8px; justify-items: center;
   color: var(--steel); text-decoration: none;
 }
@@ -705,7 +640,7 @@ body.is-opening .open { opacity: 1; }
 @keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
 /* the page runs to about eleven screens now, so there is a way out of it */
 .wall-skip {
-  position: absolute; z-index: 7; right: clamp(16px, 4vw, 48px); bottom: 2.5vh;
+  position: absolute; z-index: 9; right: clamp(16px, 4vw, 48px); bottom: 2.5vh;
   font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
   color: var(--steel-dim); text-decoration: none; transition: color 0.25s;
 }
@@ -1049,50 +984,48 @@ body.is-opening .open { opacity: 1; }
   .tour-quick > .app, .tour-planner > .app, .tour-agent-line { transition: none; }
   .is-typing .type-caret { animation: none; opacity: 1; }
   .day-events-detail.is-landed, .quick-add-preview { animation: none; }
-  /* the pitch does not play here at all — initWall settles straight to the
-     wall — so nothing may be caught mid-flicker or mid-travel on the way */
-  .wall-word, .wall-keys { transition: none !important; }
-  .wall-word.is-lit { animation: none; }
-  /* the opening does not play here: the line is simply up, and initWall
-     settles straight to the wall */
-  .boot-line { opacity: 1; transform: none; filter: none; transition: none; }
-  .open-line, .open-sub { transition: none; }
+  /* the story does not play here: initMonth settles each day straight to its
+     end state, so nothing may be caught mid-cut or mid-arrival on the way */
+  .black, .black-dow, .black-day, .msg { transition: none; }
+  .plane--cal .day-events-detail, .plane--cal .spanning-bar { transition: none; }
 }
 
 /* ---------- narrow screens ---------- */
 @media (max-width: 720px) {
   /* EVERY calendar tweak below is scoped to the section it belongs to —
-     .plane--cal on the wall, .tour-stage in the tour — and must stay that way.
+     .plane--cal on the month, .tour-stage in the tour — and must stay that way.
      Both sections draw a live month at whatever the viewport is, so on a phone
      they have to give things up to fit; an unscoped rule would be read back by
      anything measuring the app's own values and reported as the product's.
      An unscoped `.day-event-title { padding: 2px 4px }` once had a spec line
      saying 2PX 4PX for a pill the app pads 2px 6px. */
 
-  .wall { height: 280vh; }
-  .wall-pin { --band: 176px; }
-  .plane--cal { padding-left: 4px; padding-right: 4px; }
+  .month-pin { --gut: 4px; --band: 176px; }
   .plane--cal .day-cell { padding: 5px 3px; }
   .plane--cal .day-event-time { display: none; }
   .plane--cal .day-event-title { padding: 2px 4px; }
 
-  /* a hundred names at desktop size do not fit a phone, and shrinking them is
-     the right answer here: the point of this screen is the SIZE of the list */
-  .wall-words { left: 10px; right: 10px; gap: 4px 9px; }
-  .wall-word { font-size: 8.5px; letter-spacing: 0.09em; gap: 4px; }
-  .wall-word.is-big { font-size: 14px; }
-  .wall-pro { font-size: 6px; padding: 1px 3px; }
-  .wall-word.is-big .wall-pro { font-size: 7px; padding: 1px 4px; }
-  .wall-keys { gap: 4px 7px; margin-top: 10px; }
-  .wall-keys-n { font-size: 8px; }
-  .wall-key { font-size: 7.5px; gap: 4px; }
-  .wall-key b { padding: 1px 4px; }
+  /* The card comes off the corner and lies across the width. It docks to the
+     BOTTOM down here, not the top: up there it lands squarely on the
+     calendar's own header and hides which month this is — which the cut said
+     in 40px type one second earlier and should not then take away. Above the
+     plate it also reads in the right order, the message and then what the
+     calendar did with it. */
+  .msg {
+    left: 10px; right: 10px; width: auto;
+    top: auto; bottom: calc(var(--band) + 8px);
+    padding: 11px 13px 13px;
+    transform: translate3d(0, 14px, 0);
+  }
+  .msg-body { font-size: 13px; }
+  .black-day { font-size: clamp(26px, 8vw, 40px); }
   /* down here the plate is the full width, so the cue and the skip cannot sit
      over the middle of it: the plate gives up the bottom strip and the two of
      them share it, one at each end */
-  .wall-copy { right: 14px; padding-left: 14px; bottom: 30px; height: calc(var(--band) - 30px); }
-  .wall-title { font-size: 21px; }
-  .wall-lead { font-size: 13px; line-height: 1.45; }
+  .month-copy { right: 14px; padding-left: 14px; bottom: 30px; height: calc(var(--band) - 30px); }
+  .month-title { font-size: 21px; }
+  .month-lead { font-size: 13px; line-height: 1.45; }
+  .month-rail { display: none; }
   .scroll-cue {
     left: 18px; right: auto; bottom: 7px; transform: none;
     grid-auto-flow: column; align-items: center; gap: 7px;
