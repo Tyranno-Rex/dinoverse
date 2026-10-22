@@ -83,7 +83,7 @@ function startSite() {
 // The name is drawn small in the panel's own type and blown up block by block. What it is drawn
 // from is a gibberish stand-in, so neither the source nor an un-blurred mosaic gives a real name.
 function mosaicNames() {
-  $$('.panel-name[data-mosaic]').forEach((el) => {
+  $$('[data-mosaic]').forEach((el) => {
     const cs = getComputedStyle(el);
     const size = parseFloat(cs.fontSize);
     const lineH = parseFloat(cs.lineHeight) || size * 0.86;
@@ -121,18 +121,17 @@ function renderPanels(apps) {
     apps.forEach((app, i) => track.appendChild(buildPanel(app, i)));
   }
 
-  // games follow the apps in the same card, numbering continues (3 apps + 3 games -> teaser "07")
+  // the games share one card after the apps, numbering continues (3 apps + the games -> teaser "05")
   const games = Array.isArray(window.DINO_GAMES) ? window.DINO_GAMES : [];
   if (games.length) {
     track.appendChild(buildGamesIntro());
-    games.forEach((g, i) => track.appendChild(buildPanel(g, apps.length + i)));
+    track.appendChild(buildGamesPanel(games, apps.length));
   }
 
   // teaser card after the apps and games
-  track.appendChild(buildComingSoonPanel(apps.length + games.length + 1));
+  track.appendChild(buildComingSoonPanel(apps.length + (games.length ? 1 : 0) + 1));
 }
 
-// One card for an app or a game (games.js). `soon`: not out yet — "NOT YET", and no downloads.
 function buildPanel(app, i) {
   const node = $('#panel-tpl').content.cloneNode(true);
   $('.panel-index', node).textContent = String(i + 1).padStart(2, '0');
@@ -142,7 +141,6 @@ function buildPanel(app, i) {
     if (k) nameEl.appendChild(document.createElement('br'));
     nameEl.appendChild(document.createTextNode(part));
   });
-  if (app.mosaic) nameEl.dataset.mosaic = rawName; // drawn over as blocks once laid out (mosaicNames)
   $('.panel-desc', node).textContent = app.description || '';
 
   const sticker = $('.panel-sticker', node);
@@ -167,24 +165,46 @@ function buildPanel(app, i) {
   const bits = [];
   if (app.version) bits.push(`<span class="tag">v${escapeHtml(app.version)}</span>`);
   (app.platforms || []).forEach((p) => bits.push(`<span>${PLATFORM_LABEL[p] || escapeHtml(p)}</span>`));
-  const access = app.soon ? 'NOT YET' : app.lock === 'own' ? '🔒 APP CODE' : (app.paid ? '💳 PAID' : '↓ FREE');
+  const access = app.lock === 'own' ? '🔒 APP CODE' : (app.paid ? '💳 PAID' : '↓ FREE');
   bits.push(`<span>${access}</span>`);
   meta.innerHTML = bits.join('');
 
-  if (app.soon) {
-    $('.beta-sticker', node).remove();
-    $('.panel-action', node).remove();
-  } else {
-    wirePanel(node, app);
-  }
+  wirePanel(node, app);
   return node;
 }
 
-/* ---------- games: the intro word before their cards ---------- */
+/* ---------- games: the intro word, then one card for all of them ---------- */
 function buildGamesIntro() {
   const p = document.createElement('article');
   p.className = 'panel intro-panel';
   p.innerHTML = '<h2 class="intro-big display" data-split>GAMES</h2>';
+  return p;
+}
+
+// None is out yet: their icons by the number, what they will run on, then each one's name (as a
+// mosaic), version and line; their stickers share the zone below.
+function buildGamesPanel(games, i) {
+  const p = document.createElement('article');
+  p.className = 'panel games-panel';
+  const platforms = [...new Set(games.flatMap((g) => g.platforms || []))];
+  p.innerHTML =
+    '<div class="panel-badge"><div class="panel-icons">' +
+      games.filter((g) => g.icon).map((g) => `<img class="panel-icon" src="${escapeHtml(g.icon)}" alt="" />`).join('') +
+      '</div><span class="panel-index">' + String(i + 1).padStart(2, '0') + '</span></div>' +
+    '<div class="panel-content">' +
+      '<div class="panel-meta">' + platforms.map((x) => `<span>${PLATFORM_LABEL[x] || escapeHtml(x)}</span>`).join('') +
+        '<span>NOT YET</span></div>' +
+      games.map((g) =>
+        '<div class="game-entry"><div class="game-entry-head"><h2 class="game-name display"></h2>' +
+          `<span class="game-version">v${escapeHtml(g.version || '')}</span></div>` +
+          `<p class="panel-desc">${escapeHtml(g.description || '')}</p></div>`).join('') +
+    '</div>' +
+    games.filter((g) => g.image).map((g, k) => `<img class="panel-sticker panel-sticker--p${k % 5}" src="${escapeHtml(g.image)}" alt="" />`).join('');
+  $$('.game-name', p).forEach((el, k) => {
+    const name = flatName(games[k].name || games[k].id);
+    if (games[k].mosaic) el.dataset.mosaic = name; // drawn over as blocks once laid out (mosaicNames)
+    el.textContent = name;
+  });
   return p;
 }
 
@@ -203,25 +223,30 @@ function buildComingSoonPanel(n) {
 }
 
 /* ---------- scatter each panel's mascot randomly in the zone below its content ---------- */
+// A panel with several (the games' card) splits the zone's width between them so none overlap.
 function placePanelMascots() {
   $$('#htrack .panel').forEach((panel) => {
-    const m = panel.querySelector('.panel-sticker');
+    const ms = $$('.panel-sticker', panel);
     const content = panel.querySelector('.panel-content');
-    if (!m || !content) return;
-    const apply = () => {
-      const pr = panel.getBoundingClientRect();
-      const cr = content.getBoundingClientRect();
-      const mw = m.offsetWidth, mh = m.offsetHeight;
-      const pad = 20, gap = 18;
-      const minTop = (cr.bottom - pr.top) + gap;          // just under the download area
-      const maxTop = Math.max(minTop, pr.height - mh - pad);
-      const maxLeft = Math.max(pad, pr.width - mw - pad);
-      m.style.left = Math.round(pad + Math.random() * (maxLeft - pad)) + 'px';
-      m.style.top = Math.round(minTop + Math.random() * (maxTop - minTop)) + 'px';
-      m.style.opacity = '1';
-    };
-    if (m.complete && m.naturalWidth) apply();
-    else { m.addEventListener('load', apply, { once: true }); m.addEventListener('error', apply, { once: true }); }
+    if (!ms.length || !content) return;
+    ms.forEach((m, k) => {
+      const apply = () => {
+        const pr = panel.getBoundingClientRect();
+        const cr = content.getBoundingClientRect();
+        const mw = m.offsetWidth, mh = m.offsetHeight;
+        const pad = 20, gap = 18;
+        const slot = (pr.width - pad * 2) / ms.length;
+        const minTop = (cr.bottom - pr.top) + gap;          // just under the download area
+        const maxTop = Math.max(minTop, pr.height - mh - pad);
+        const minLeft = pad + k * slot;
+        const maxLeft = Math.max(minLeft, minLeft + slot - mw);
+        m.style.left = Math.round(minLeft + Math.random() * (maxLeft - minLeft)) + 'px';
+        m.style.top = Math.round(minTop + Math.random() * (maxTop - minTop)) + 'px';
+        m.style.opacity = '1';
+      };
+      if (m.complete && m.naturalWidth) apply();
+      else { m.addEventListener('load', apply, { once: true }); m.addEventListener('error', apply, { once: true }); }
+    });
   });
 }
 

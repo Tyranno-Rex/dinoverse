@@ -167,7 +167,7 @@ body {
 .panel-meta { color: #8a8a82; display: flex; gap: 16px; flex-wrap: nowrap; white-space: nowrap; margin-bottom: 18px; }
 .panel-meta .tag { color: var(--blue); }
 .panel-name { font-size: clamp(32px, 5vw, 64px); color: var(--paper); margin-bottom: 18px; white-space: nowrap; }
-.panel-name .mosaic { display: block; image-rendering: pixelated; } /* a hidden name (app.js mosaicNames) */
+.mosaic { display: block; image-rendering: pixelated; } /* a hidden name (app.js mosaicNames) */
 .panel-desc { font-family: var(--body); color: #b7b7ae; font-size: clamp(14px, 1.6vw, 18px); line-height: 1.6; margin: 0 0 30px; max-width: 42ch; }
 .panel-desc:empty::before { content: "— no description —"; color: #5f5f58; }
 /* "BETA VERSION" — small die-cut sticker in each app's info area */
@@ -184,6 +184,17 @@ body {
 /* ---------- 04 coming-soon teaser (single consolidated card) ---------- */
 /* taller card → start content below the big number instead of centering it */
 .soon-panel { width: min(680px, 90vw); justify-content: flex-start; padding-top: clamp(200px, 30vh, 300px); }
+
+/* ---------- the games' one card: icons in a row by the number, then one entry per game ---------- */
+.games-panel { width: min(680px, 90vw); justify-content: flex-start; padding-top: clamp(170px, 26vh, 260px); }
+.panel-icons { display: flex; align-items: center; gap: clamp(8px, 1.4vw, 16px); }
+.games-panel .panel-icon { height: clamp(44px, 7vh, 84px); }
+.game-entry + .game-entry { margin-top: clamp(14px, 2.4vh, 24px); }
+.game-entry-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-bottom: 8px; }
+.game-name { font-size: clamp(22px, 2.6vw, 32px); color: var(--paper); }
+.game-version { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; color: var(--blue); }
+.games-panel .panel-desc { font-size: clamp(13px, 1.4vw, 16px); line-height: 1.5; margin: 0; }
+.games-panel .panel-sticker { height: clamp(90px, 15vh, 150px); }
 .soon-sub { white-space: normal; }
 
 /* intro + footer big words */
@@ -280,12 +291,16 @@ body {
   .hscroll.native .panel { width: 86vw; height: auto; min-height: 86vh; scroll-snap-align: start; }
   .hscroll.native .intro-panel { width: 78vw; }
   .hscroll.native .soon-panel { width: 90vw; padding-top: clamp(120px, 22vh, 200px); }
+  .hscroll.native .games-panel { width: 90vw; padding-top: clamp(150px, 23vh, 220px); }
 
   /* pinned-mobile (default, non-reduced-motion): panels stay one screen tall and
      are clipped, so trim oversized desktop widths/spacing to give content room. */
   .panel { width: 86vw; }
   .intro-panel { width: 78vw; }
   .soon-panel { width: 90vw; padding-top: clamp(120px, 20vh, 200px); }
+  .games-panel { width: 90vw; padding-top: clamp(150px, 23vh, 220px); } /* clear of the big number */
+  .games-panel .panel-icon { height: clamp(34px, 10vw, 56px); }
+  .games-panel .panel-sticker { height: clamp(60px, 18vw, 96px); }
 
   /* desktop-style badge kept (icon far left, number far right), a bit smaller */
   .panel-index { font-size: clamp(56px, 16vh, 120px); }
