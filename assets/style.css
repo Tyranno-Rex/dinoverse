@@ -167,6 +167,7 @@ body {
 .panel-meta { color: #8a8a82; display: flex; gap: 16px; flex-wrap: nowrap; white-space: nowrap; margin-bottom: 18px; }
 .panel-meta .tag { color: var(--blue); }
 .panel-name { font-size: clamp(32px, 5vw, 64px); color: var(--paper); margin-bottom: 18px; white-space: nowrap; }
+.panel-name .mosaic { display: block; image-rendering: pixelated; } /* a hidden name (app.js mosaicNames) */
 .panel-desc { font-family: var(--body); color: #b7b7ae; font-size: clamp(14px, 1.6vw, 18px); line-height: 1.6; margin: 0 0 30px; max-width: 42ch; }
 .panel-desc:empty::before { content: "— no description —"; color: #5f5f58; }
 /* "BETA VERSION" — small die-cut sticker in each app's info area */

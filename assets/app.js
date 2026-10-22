@@ -66,6 +66,7 @@ function initLenis() {
 function startSite() {
   const apps = (DATA && Array.isArray(DATA.apps)) ? DATA.apps : [];
   renderPanels(apps);
+  mosaicNames();
   $$('#app [data-split]').forEach(splitText);
   if (lenis) lenis.resize();
   setupHScroll();
@@ -73,7 +74,36 @@ function startSite() {
   let mascotTimer = null;
   window.addEventListener('resize', () => {
     clearTimeout(mascotTimer);
-    mascotTimer = setTimeout(placePanelMascots, 160);
+    // the type size follows the window, so the mosaic is redrawn at the new size
+    mascotTimer = setTimeout(() => { mosaicNames(); placePanelMascots(); }, 160);
+  });
+}
+
+/* ---------- names shown only as a mosaic (games.js `mosaic`) ---------- */
+// The name is drawn small in the panel's own type and blown up block by block. What it is drawn
+// from is a gibberish stand-in, so neither the source nor an un-blurred mosaic gives a real name.
+function mosaicNames() {
+  $$('.panel-name[data-mosaic]').forEach((el) => {
+    const cs = getComputedStyle(el);
+    const size = parseFloat(cs.fontSize);
+    const lineH = parseFloat(cs.lineHeight) || size * 0.86;
+    const block = Math.max(6, Math.round(size / 3.5)); // coarse enough to read as censored
+    const lines = el.dataset.mosaic.toUpperCase().split('\n');
+    const font = `${cs.fontWeight} ${size / block}px ${cs.fontFamily}`;
+    const cv = document.createElement('canvas');
+    const g = cv.getContext('2d');
+    g.font = font;
+    cv.width = Math.ceil(Math.max(...lines.map((l) => g.measureText(l).width))) + 1;
+    cv.height = Math.ceil((lines.length * lineH) / block);
+    g.font = font; // resizing the canvas reset it
+    g.fillStyle = cs.color;
+    g.textBaseline = 'middle';
+    lines.forEach((l, k) => g.fillText(l, 0, ((k + 0.5) * lineH) / block));
+    cv.className = 'mosaic';
+    cv.style.width = cv.width * block + 'px';
+    cv.style.height = cv.height * block + 'px';
+    el.replaceChildren(cv);
+    el.setAttribute('aria-label', 'Name hidden');
   });
 }
 
@@ -112,6 +142,7 @@ function buildPanel(app, i) {
     if (k) nameEl.appendChild(document.createElement('br'));
     nameEl.appendChild(document.createTextNode(part));
   });
+  if (app.mosaic) nameEl.dataset.mosaic = rawName; // drawn over as blocks once laid out (mosaicNames)
   $('.panel-desc', node).textContent = app.description || '';
 
   const sticker = $('.panel-sticker', node);
