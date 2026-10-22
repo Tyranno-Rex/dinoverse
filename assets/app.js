@@ -131,8 +131,39 @@ function renderPanels(apps) {
     });
   }
 
-  // teaser card after the apps — numbered to follow them (3 apps -> "04")
-  track.appendChild(buildComingSoonPanel(apps.length + 1));
+  // games follow the apps, numbering continues (3 apps + 3 games -> teaser "07")
+  const games = Array.isArray(window.DINO_GAMES) ? window.DINO_GAMES : [];
+  if (games.length) {
+    track.appendChild(buildGamesIntro());
+    games.forEach((g, i) => track.appendChild(buildGamePanel(g, apps.length + i + 1)));
+  }
+
+  // teaser card after the apps and games
+  track.appendChild(buildComingSoonPanel(apps.length + games.length + 1));
+}
+
+/* ---------- games: intro word + one panel per game (name, one line, screenshots) ---------- */
+function buildGamesIntro() {
+  const p = document.createElement('article');
+  p.className = 'panel intro-panel';
+  p.innerHTML = '<h2 class="intro-big display" data-split>GAMES</h2>';
+  return p;
+}
+
+function buildGamePanel(g, n) {
+  const p = document.createElement('article');
+  p.className = 'panel game-panel';
+  const shots = (g.images || [])
+    .map((src) => `<img src="${escapeHtml(src)}" alt="${escapeHtml(g.name)}" />`).join('');
+  p.innerHTML =
+    '<div class="panel-badge"><span class="panel-index">' + String(n).padStart(2, '0') + '</span></div>' +
+    '<div class="panel-content">' +
+      '<div class="panel-meta"><span class="tag">GAME</span></div>' +
+      '<h2 class="panel-name display">' + escapeHtml(g.name) + '</h2>' +
+      '<p class="panel-desc">' + escapeHtml(g.description || '') + '</p>' +
+      '<div class="game-shots">' + shots + '</div>' +
+    '</div>';
+  return p;
 }
 
 /* ---------- coming-soon teaser panel (one consolidated card) ---------- */

@@ -15,7 +15,6 @@ window.DINO_DATA = {
       ],
       "image": "image/sowhat-dino.png",
       "icon": "image/sowhat-dino-icon.png",
-      "site": "sowhat-dino/",
       "lock": "open",
       "files": [
         {
@@ -35,7 +34,6 @@ window.DINO_DATA = {
       ],
       "image": "image/brachy-mascot.png",
       "icon": "image/brachy-icon.png",
-      "site": "brachy/",
       "lock": "own",
       "enc": {
         "v": 1,
