@@ -18,7 +18,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
-const PLATFORM_LABEL = { win: 'WINDOWS', android: 'ANDROID', mac: 'MACOS', linux: 'LINUX', web: 'WEB', ios: 'IOS' };
+const PLATFORM_LABEL = { win: 'WINDOWS', android: 'ANDROID', mac: 'MACOS', linux: 'LINUX', web: 'WEB', ios: 'IOS', steam: 'STEAM' };
 // A name may carry explicit line breaks ("Brachy\nCalendar"); flat() is for alt text.
 const flatName = (s) => s.replace(/\n/g, ' ');
 const REDUCED = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -88,79 +88,72 @@ function renderPanels(apps) {
     p.innerHTML = '<div class="panel-content"><div class="empty">Nothing released yet.</div></div>';
     track.appendChild(p);
   } else {
-    const tpl = $('#panel-tpl');
-    apps.forEach((app, i) => {
-      const node = tpl.content.cloneNode(true);
-      $('.panel-index', node).textContent = String(i + 1).padStart(2, '0');
-      const rawName = app.name || app.id;
-      const nameEl = $('.panel-name', node);
-      rawName.split('\n').forEach((part, k) => {
-        if (k) nameEl.appendChild(document.createElement('br'));
-        nameEl.appendChild(document.createTextNode(part));
-      });
-      $('.panel-desc', node).textContent = app.description || '';
-
-      const sticker = $('.panel-sticker', node);
-      if (app.image) {
-        sticker.src = app.image;
-        sticker.alt = flatName(rawName);
-        sticker.classList.add('panel-sticker--p' + (i % 5)); // vary spot/angle per app
-      } else { sticker.remove(); }
-
-      const icon = $('.panel-icon', node);
-      if (app.icon) {
-        icon.src = app.icon;
-        icon.alt = flatName(rawName) + ' icon';
-      } else { icon.remove(); }
-
-      // apps with a page of their own link out to it; the rest drop the link
-      const site = $('.panel-site', node);
-      if (app.site) site.href = app.site;
-      else site.remove();
-
-      const meta = $('.panel-meta', node);
-      const bits = [];
-      if (app.version) bits.push(`<span class="tag">v${escapeHtml(app.version)}</span>`);
-      (app.platforms || []).forEach((p) => bits.push(`<span>${PLATFORM_LABEL[p] || escapeHtml(p)}</span>`));
-      const access = app.lock === 'own' ? '🔒 APP CODE' : (app.paid ? '💳 PAID' : '↓ FREE');
-      bits.push(`<span>${access}</span>`);
-      meta.innerHTML = bits.join('');
-
-      wirePanel(node, app);
-      track.appendChild(node);
-    });
+    apps.forEach((app, i) => track.appendChild(buildPanel(app, i)));
   }
 
-  // games follow the apps, numbering continues (3 apps + 3 games -> teaser "07")
+  // games follow the apps in the same card, numbering continues (3 apps + 3 games -> teaser "07")
   const games = Array.isArray(window.DINO_GAMES) ? window.DINO_GAMES : [];
   if (games.length) {
     track.appendChild(buildGamesIntro());
-    games.forEach((g, i) => track.appendChild(buildGamePanel(g, apps.length + i + 1)));
+    games.forEach((g, i) => track.appendChild(buildPanel(g, apps.length + i)));
   }
 
   // teaser card after the apps and games
   track.appendChild(buildComingSoonPanel(apps.length + games.length + 1));
 }
 
-/* ---------- games: intro word + one panel per game (genre + a few things from inside it — no name, no screens) ---------- */
+// One card for an app or a game (games.js). `soon`: not out yet — "NOT YET", and no downloads.
+function buildPanel(app, i) {
+  const node = $('#panel-tpl').content.cloneNode(true);
+  $('.panel-index', node).textContent = String(i + 1).padStart(2, '0');
+  const rawName = app.name || app.id;
+  const nameEl = $('.panel-name', node);
+  rawName.split('\n').forEach((part, k) => {
+    if (k) nameEl.appendChild(document.createElement('br'));
+    nameEl.appendChild(document.createTextNode(part));
+  });
+  $('.panel-desc', node).textContent = app.description || '';
+
+  const sticker = $('.panel-sticker', node);
+  if (app.image) {
+    sticker.src = app.image;
+    sticker.alt = flatName(rawName);
+    sticker.classList.add('panel-sticker--p' + (i % 5)); // vary spot/angle per app
+  } else { sticker.remove(); }
+
+  const icon = $('.panel-icon', node);
+  if (app.icon) {
+    icon.src = app.icon;
+    icon.alt = flatName(rawName) + ' icon';
+  } else { icon.remove(); }
+
+  // apps with a page of their own link out to it; the rest drop the link
+  const site = $('.panel-site', node);
+  if (app.site) site.href = app.site;
+  else site.remove();
+
+  const meta = $('.panel-meta', node);
+  const bits = [];
+  if (app.version) bits.push(`<span class="tag">v${escapeHtml(app.version)}</span>`);
+  (app.platforms || []).forEach((p) => bits.push(`<span>${PLATFORM_LABEL[p] || escapeHtml(p)}</span>`));
+  const access = app.soon ? 'NOT YET' : app.lock === 'own' ? '🔒 APP CODE' : (app.paid ? '💳 PAID' : '↓ FREE');
+  bits.push(`<span>${access}</span>`);
+  meta.innerHTML = bits.join('');
+
+  if (app.soon) {
+    $('.beta-sticker', node).remove();
+    $('.panel-action', node).remove();
+  } else {
+    wirePanel(node, app);
+  }
+  return node;
+}
+
+/* ---------- games: the intro word before their cards ---------- */
 function buildGamesIntro() {
   const p = document.createElement('article');
   p.className = 'panel intro-panel';
   p.innerHTML = '<h2 class="intro-big display" data-split>GAMES</h2>';
-  return p;
-}
-
-function buildGamePanel(g, n) {
-  const p = document.createElement('article');
-  p.className = 'panel game-panel';
-  const items = (g.items || []).map((src) => `<img src="${escapeHtml(src)}" alt="" />`).join('');
-  p.innerHTML =
-    '<div class="panel-badge"><span class="panel-index">' + String(n).padStart(2, '0') + '</span></div>' +
-    '<div class="panel-content">' +
-      '<div class="panel-meta"><span class="tag">GAME</span></div>' +
-      '<h2 class="panel-name display">' + escapeHtml(g.genre || '') + '</h2>' +
-      '<div class="game-items' + (g.pixel ? ' game-items--pixel' : '') + '">' + items + '</div>' +
-    '</div>';
   return p;
 }
 
@@ -344,6 +337,21 @@ function setupHeroStickers() {
     imgEls.push(img);
     layer.appendChild(s);
   });
+
+  // game stickers — a couple of things from inside each game (games.js `stickers`)
+  const games = Array.isArray(window.DINO_GAMES) ? window.DINO_GAMES : [];
+  games.forEach((gm) => (gm.stickers || []).forEach((src) => {
+    const s = document.createElement('div');
+    s.className = 'drag-sticker drag-sticker--game';
+    const img = document.createElement('img');
+    img.alt = flatName(gm.name || gm.id);
+    img.draggable = false;
+    img.src = src;
+    s.appendChild(img);
+    els.push(s);
+    imgEls.push(img);
+    layer.appendChild(s);
+  }));
 
   hero.appendChild(layer);
 
