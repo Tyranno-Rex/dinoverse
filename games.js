@@ -1,22 +1,18 @@
-// Public game list — hand-edited, no secrets. Separate from data.js so the app
-// generator never touches it. Images live in image/games/.
+// Public game list — hand-edited, no secrets. Separate from data.js so the app generator never
+// touches it. A game shows only its genre and a few objects from inside it (image/games/) —
+// no name, no screenshots, nothing that says which game it is.
 window.DINO_GAMES = [
   {
-    id: 'batota',
-    name: 'Batota',
-    description: 'Roguelike game.',
-    images: ['image/games/batota-title.jpg', 'image/games/batota-jokers.jpg'],
+    genre: 'Roguelike',
+    items: ['image/games/a-1.png', 'image/games/a-2.png', 'image/games/a-3.png', 'image/games/a-4.png'],
   },
   {
-    id: 'parcel-heights',
-    name: 'Parcel Heights',
-    description: 'Simulation game.',
-    images: ['image/games/parcel-heights-select.jpg', 'image/games/parcel-heights-play.jpg'],
+    genre: 'Simulation',
+    items: ['image/games/b-1.png', 'image/games/b-2.png', 'image/games/b-3.png', 'image/games/b-4.png'],
   },
   {
-    id: 'ace-ascendant',
-    name: 'Ace Ascendant',
-    description: 'Roguelike game.',
-    images: ['image/games/ace-ascendant-title.jpg', 'image/games/ace-ascendant-play.jpg'],
+    genre: 'Roguelike',
+    pixel: true,
+    items: ['image/games/c-1.png', 'image/games/c-2.png', 'image/games/c-3.png', 'image/games/c-4.png'],
   },
 ];

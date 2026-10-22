@@ -183,11 +183,14 @@ body {
 .soon-panel { width: min(680px, 90vw); justify-content: flex-start; padding-top: clamp(200px, 30vh, 300px); }
 .soon-sub { white-space: normal; }
 
-/* ---------- games: wider card, two screenshots under the one-line description ---------- */
-.game-panel { width: min(1000px, 92vw); padding-top: 12vh; } /* centred in the space under the big number */
-.game-panel .panel-desc { margin-bottom: 22px; }
-.game-shots { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.game-shots img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid #2f2f2f; }
+/* ---------- games: the genre, then a row of things from inside the game (no name, no screens) ---------- */
+.game-panel { width: min(820px, 92vw); padding-top: 12vh; } /* centred in the space under the big number */
+.game-items { display: flex; align-items: flex-end; gap: clamp(12px, 2.4vw, 26px); margin-top: 10px; }
+.game-items img {
+  flex: 0 1 auto; min-width: 0; max-width: 25%; width: auto; height: clamp(80px, 18vh, 170px);
+  object-fit: contain; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5)); user-select: none;
+}
+.game-items--pixel img { image-rendering: pixelated; } /* pixel art stays crisp at any size */
 
 /* intro + footer big words */
 /* wide enough (and with trimmed side padding) that the big "APPS" word fits
@@ -288,7 +291,7 @@ body {
   .intro-panel { width: 78vw; }
   .soon-panel { width: 90vw; padding-top: clamp(120px, 20vh, 200px); }
   .game-panel { width: 92vw; }
-  .game-shots { gap: 8px; }
+  .game-items { gap: 10px; }
 
   /* desktop-style badge kept (icon far left, number far right), a bit smaller */
   .panel-index { font-size: clamp(56px, 16vh, 120px); }

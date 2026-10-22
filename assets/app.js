@@ -142,7 +142,7 @@ function renderPanels(apps) {
   track.appendChild(buildComingSoonPanel(apps.length + games.length + 1));
 }
 
-/* ---------- games: intro word + one panel per game (name, one line, screenshots) ---------- */
+/* ---------- games: intro word + one panel per game (genre + a few things from inside it — no name, no screens) ---------- */
 function buildGamesIntro() {
   const p = document.createElement('article');
   p.className = 'panel intro-panel';
@@ -153,15 +153,13 @@ function buildGamesIntro() {
 function buildGamePanel(g, n) {
   const p = document.createElement('article');
   p.className = 'panel game-panel';
-  const shots = (g.images || [])
-    .map((src) => `<img src="${escapeHtml(src)}" alt="${escapeHtml(g.name)}" />`).join('');
+  const items = (g.items || []).map((src) => `<img src="${escapeHtml(src)}" alt="" />`).join('');
   p.innerHTML =
     '<div class="panel-badge"><span class="panel-index">' + String(n).padStart(2, '0') + '</span></div>' +
     '<div class="panel-content">' +
       '<div class="panel-meta"><span class="tag">GAME</span></div>' +
-      '<h2 class="panel-name display">' + escapeHtml(g.name) + '</h2>' +
-      '<p class="panel-desc">' + escapeHtml(g.description || '') + '</p>' +
-      '<div class="game-shots">' + shots + '</div>' +
+      '<h2 class="panel-name display">' + escapeHtml(g.genre || '') + '</h2>' +
+      '<div class="game-items' + (g.pixel ? ' game-items--pixel' : '') + '">' + items + '</div>' +
     '</div>';
   return p;
 }
