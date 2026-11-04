@@ -40,7 +40,7 @@ body {
 html { scrollbar-color: var(--ink) var(--paper); }
 input { caret-color: var(--accent); }
 :focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
-.hscroll :focus-visible, .footer :focus-visible { outline-color: var(--accent); }
+.dice-zone :focus-visible, .footer :focus-visible { outline-color: var(--accent); }
 .ico { display: inline-block; width: 1.1em; height: 1.1em; vertical-align: -0.2em; flex: 0 0 auto; }
 
 /* ---------- display + kinetic type ---------- */
@@ -136,84 +136,72 @@ input { caret-color: var(--accent); }
 }
 
 /* ============================================================
-   HORIZONTAL SCROLL GALLERY (#8 Mixed Scroll)
-   Section is tall; inner is pinned; track translates on scroll.
+   THE GALLERY: two dice (apps, games). Each zone is tall and its die is pinned;
+   scrolling tumbles the die from face to face (app.js rollDice).
+   A face is laid out at 560px square and scaled by --k to the die's size --S.
    ============================================================ */
-.hscroll { position: relative; background: var(--ink); }
-.hsticky { position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden; }
-.htrack { display: flex; height: 100vh; height: 100dvh; align-items: stretch; will-change: transform; }
+.dice-zone { position: relative; background: var(--ink); }
+.dice-zone + .dice-zone { border-top: 1px solid #1f1f1f; }
+.dice-sticky {
+  position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden;
+  display: grid; place-items: center; perspective: 1700px;
+}
+.die-hop { position: relative; width: var(--S); height: var(--S); transform-style: preserve-3d; will-change: transform; }
+.die { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; }
+.face {
+  position: absolute; inset: 0; overflow: hidden;
+  border-radius: calc(var(--S) * 0.05);
+  background: #151515; box-shadow: inset 0 0 0 1px #2c2c2c;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
+/* a face turning away from the light darkens (app.js sets --shade from how squarely it faces you) */
+.face::after { content: ""; position: absolute; inset: 0; background: #000; opacity: var(--shade, 0); pointer-events: none; }
+.face-body { width: 560px; height: 560px; transform: scale(var(--k)); transform-origin: 0 0; }
 
-.panel {
-  flex: 0 0 auto; width: min(560px, 86vw); height: 100vh; height: 100dvh;
-  position: relative; display: flex; flex-direction: column; justify-content: center;
-  padding: 0 clamp(28px, 5vw, 80px);
-  border-right: 1px solid #242424; color: var(--paper);
-}
-/* number + sticker sit side by side at top of each panel; flex keeps them apart */
-.panel-badge {
-  position: absolute; top: 6vh; left: clamp(28px, 5vw, 80px); right: clamp(28px, 5vw, 80px);
-  display: flex; align-items: center; justify-content: space-between;
-  z-index: 2; pointer-events: none;
-}
-.panel-index {
-  font-family: var(--display); font-weight: 900; font-size: clamp(80px, 16vh, 190px);
-  line-height: 1; color: var(--blue); user-select: none; margin-left: auto; /* push number to the far right */
-}
-/* icon stays at the far left of the badge */
-.panel-icon { flex: 0 0 auto; height: clamp(70px, 11vh, 120px); width: auto; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45)); user-select: none; }
-.soon-panel .panel-index { margin-left: 0; } /* 04 has no icon — keep it left */
-/* mascot is scattered randomly in the lower zone (below content) by JS */
+/* a card, as a face */
+.panel { position: relative; width: 560px; height: 560px; padding: 34px 40px; color: var(--paper); display: flex; flex-direction: column; }
+.panel-badge { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; pointer-events: none; }
+.panel-index { font-family: var(--display); font-weight: 900; font-size: 112px; line-height: 0.9; color: var(--blue); user-select: none; margin-left: auto; }
+.panel-icon { flex: 0 0 auto; height: 84px; width: auto; max-width: 120px; object-fit: contain; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45)); user-select: none; }
+.soon-panel .panel-index { margin-left: 0; }
+/* the card's mascot sits in the face's lower right corner, under the text */
 .panel-sticker {
-  position: absolute; left: 50%; bottom: clamp(20px, 5vh, 50px);
-  width: auto; height: clamp(110px, 19vh, 190px);
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5)); user-select: none;
-  z-index: 0; opacity: 0; transition: opacity 0.3s ease;
+  position: absolute; right: 30px; bottom: 26px; height: 150px; width: auto; max-width: 190px; object-fit: contain;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5)); user-select: none; z-index: 0;
 }
-/* slight angle/size variety per app — beside the number, never on it */
 .panel-sticker--p0 { transform: rotate(-7deg); }
-.panel-sticker--p1 { transform: rotate(8deg); height: clamp(135px, 23vh, 215px); }
-.panel-sticker--p2 { transform: rotate(-4deg); height: clamp(120px, 21vh, 200px); }
+.panel-sticker--p1 { transform: rotate(8deg); }
+.panel-sticker--p2 { transform: rotate(-4deg); }
 .panel-sticker--p3 { transform: rotate(5deg); }
-.panel-sticker--p4 { transform: rotate(-11deg); }
+.panel-sticker--p4 { transform: rotate(-9deg); }
 .panel-content { position: relative; z-index: 1; }
-.panel-meta { color: #8a8a82; display: flex; gap: 16px; flex-wrap: nowrap; white-space: nowrap; margin-bottom: 18px; }
+.panel-meta { color: #8a8a82; display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 14px; }
 .panel-meta .tag { color: var(--blue-lit); }
 .panel-meta .access { display: inline-flex; align-items: center; gap: 6px; }
-.panel-name { font-size: clamp(32px, 5vw, 64px); color: var(--paper); margin-bottom: 18px; white-space: nowrap; }
+.panel-name { font-size: 50px; color: var(--paper); margin-bottom: 14px; }
 .mosaic { display: block; image-rendering: pixelated; } /* a hidden name (app.js mosaicNames) */
-.panel-desc { font-family: var(--body); text-wrap: pretty; color: #b7b7ae; font-size: clamp(14px, 1.6vw, 18px); line-height: 1.6; margin: 0 0 30px; max-width: 42ch; }
+.panel-desc { font-family: var(--body); text-wrap: pretty; color: #b7b7ae; font-size: 16px; line-height: 1.55; margin: 0 0 22px; max-width: 30ch; }
 .panel-desc:empty::before { content: "— no description —"; color: #5f5f58; }
 /* "BETA VERSION" — small die-cut sticker in each app's info area */
 .beta-sticker {
-  display: inline-block; transform: rotate(-3deg);
+  align-self: flex-start; transform: rotate(-3deg);
   background: var(--accent); color: var(--ink);
   font-family: var(--mono); font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.14em; font-size: clamp(10px, 1.1vw, 12px);
+  letter-spacing: 0.14em; font-size: 11px;
   padding: 5px 12px; border-radius: 999px;
   box-shadow: 0 0 0 3px rgba(236, 234, 225, 0.92), 0 6px 14px rgba(0, 0, 0, 0.35);
-  margin: 2px 0 20px;
+  margin: 0 0 16px; display: inline-block;
 }
-
-/* ---------- 04 coming-soon teaser (single consolidated card) ---------- */
-/* taller card → start content below the big number instead of centering it */
-.soon-panel { width: min(680px, 90vw); justify-content: flex-start; padding-top: clamp(200px, 30vh, 300px); }
-
 .soon-sub { white-space: normal; }
 
-/* ---------- the APPS / GAMES dividers: a drum of letters turning in 3D (app.js layoutDrums/turnDrums) ---------- */
-.intro-panel { width: min(620px, 86vw); padding: 0; overflow: hidden; }
-.drum { position: absolute; inset: 0; perspective: 1000px; perspective-origin: 50% 40%; }
-.drum-ring { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; will-change: transform; }
-.drum-ch {
-  position: absolute; left: 0; top: 0; line-height: 1; letter-spacing: 0;
-  color: var(--blue); backface-visibility: visible; white-space: nowrap;
-}
-/* the far side of the ring is seen through: outlined, so the near side reads first */
-.drum-ch.back { color: transparent; -webkit-text-stroke: 1.5px var(--blue); opacity: 0.6; }
-.drum-star { color: var(--accent); }
-.drum-ch.drum-star.back { -webkit-text-stroke-color: var(--accent); }
-
-/* footer big words */
+/* the die's first face: what is on it */
+.cover-face { background: var(--blue); justify-content: space-between; padding: 40px 44px; }
+.cover-word { font-size: 150px; color: var(--paper); line-height: 0.82; margin-top: auto; }
+.cover-range { font-family: var(--mono); font-size: 14px; letter-spacing: 0.22em; color: var(--on-blue-2); order: -1; }
+/* faces the die never stops on carry pips */
+.pip-face { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 92px; gap: 0; }
+.pip-face span { display: grid; place-items: center; }
+.pip-face .pip::before { content: ""; width: 72px; height: 72px; border-radius: 50%; background: var(--accent); box-shadow: inset 0 -6px 0 rgba(0, 0, 0, 0.18); }
 
 /* footer = the studio's about / contact card */
 .footer {
@@ -261,17 +249,16 @@ input { caret-color: var(--accent); }
 .files .empty, .panel .empty { font-family: var(--mono); color: #8a8a82; font-size: 13px; letter-spacing: 0.1em; padding: 14px 0; }
 
 /* ============================================================
-   Fallback: reduced motion → native sideways swipe (no JS pin).
+   Reduced motion: no tumbling; the faces stand in a column, flat.
    ============================================================ */
-.hscroll.native { height: auto !important; }
-.hscroll.native .hsticky { position: static; height: auto; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
-.hscroll.native .htrack { transform: none !important; height: auto; }
-.hscroll.native .panel { height: auto; min-height: 86vh; scroll-snap-align: start; }
+.dice-zone.flat .dice-sticky { position: static; height: auto; display: flex; flex-direction: column; align-items: center; gap: 28px; padding: 60px 0; perspective: none; }
+.dice-zone.flat .die-hop, .dice-zone.flat .die { display: contents; }
+.dice-zone.flat .face { position: relative; inset: auto; width: var(--S); height: var(--S); transform: none !important; }
+.dice-zone.flat .face:has(.pip-face) { display: none; }
 
 /* ============================================================
-   Mobile (<=760px): same pinned vertical→horizontal gallery as desktop,
-   just with smaller type and wrapped text. Reduced-motion still falls
-   back to the native swipe carousel (.native rules above).
+   Mobile (<=760px): the same dice, sized to the screen (app.js sizeDice);
+   the hero and footer type shrink and wrap.
    ============================================================ */
 @media (max-width: 760px) {
   /* hero: shrink + allow wrap so long headlines never clip off-screen */
@@ -289,37 +276,7 @@ input { caret-color: var(--accent); }
   .drag-sticker--game img { max-width: 40vw; }
   .drag-sticker--studio { font-size: 10px; letter-spacing: 0.08em; padding: 9px 12px; }
 
-  /* gallery = horizontal swipe carousel on touch: each card is ~one screen
-     wide with a peek of the next; native overflow scroll + snap (no JS pin).
-     The strip box is exactly as tall as its content, so overflow-y:hidden
-     never clips — it just keeps vertical swipes scrolling the page. */
-  .hscroll.native .hsticky {
-    position: static; height: auto;
-    overflow-x: auto; overflow-y: hidden;
-    scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-  }
-  .hscroll.native .htrack { display: flex; height: auto; }
-  .hscroll.native .panel { width: 86vw; height: auto; min-height: 86vh; scroll-snap-align: start; }
-  .hscroll.native .intro-panel { width: 86vw; }
-  .hscroll.native .soon-panel { width: 90vw; padding-top: clamp(120px, 22vh, 200px); }
-
-  /* pinned-mobile (default, non-reduced-motion): panels stay one screen tall and
-     are clipped, so trim oversized desktop widths/spacing to give content room. */
-  .panel { width: 86vw; }
-  .intro-panel { width: 86vw; }
-  .soon-panel { width: 90vw; padding-top: clamp(120px, 20vh, 200px); }
-
-  /* desktop-style badge kept (icon far left, number far right), a bit smaller */
-  .panel-index { font-size: clamp(56px, 16vh, 120px); }
-  .panel-icon { height: clamp(56px, 15vw, 92px); }
-  .panel-sticker,
-  .panel-sticker--p1, .panel-sticker--p2 { height: clamp(72px, 22vw, 118px); }
-
-  /* nothing clips: every line wraps */
-  .panel-name, .panel-desc { white-space: normal; }
-  .panel-meta { white-space: normal; flex-wrap: wrap; gap: 8px 14px; }
-    .footer-cols { flex-direction: column; gap: clamp(26px, 5vh, 40px); }
+  .footer-cols { flex-direction: column; gap: clamp(26px, 5vh, 40px); }
   .footer-verse { white-space: normal; }
   .footer-ref { white-space: normal; }
 }
@@ -329,3 +286,7 @@ input { caret-color: var(--accent); }
   .scroll-cue-arrow { animation: none; }
   html { scroll-behavior: auto; }
 }
+/* the code form wraps, so a WRONG CODE line sits under the field, not beside the button */
+.app-pw { flex-wrap: wrap; }
+.app-pw .err { flex-basis: 100%; margin: 4px 0 0; }
+.panel .line-form { max-width: 330px; } /* clear of the mascot in the corner */
