@@ -136,115 +136,130 @@ input { caret-color: var(--accent); }
 }
 
 /* ============================================================
-   THE GALLERY: one card per screen in a 3D space (app.js setupStage/moveStage).
-   The zone is tall and the stage is pinned; scrolling carries the cards through.
-   Inside a card each part stands at its own depth, --z (px) x --depth.
+   THE GALLERY: a diorama per app and game (app.js diorama/setupStage/moveStage).
+   The zone is tall and the stage is pinned; scrolling carries one box after another past.
+   A box is laid out at its design size (--bw wide, --bd deep, --bh walls, --bb base, unitless
+   px) and scaled by --k to fit the window. y points down, z towards the viewer.
    ============================================================ */
 .gallery {
-  position: relative; background: var(--ink);
-  --W: min(1080px, 88vw); --H: min(620px, 76vh); --depth: 1;
+  position: relative;
+  background: radial-gradient(120% 75% at 50% 112%, #1f33c4 0%, #121a52 42%, var(--ink) 78%);
+  --bw: 780; --bd: 420; --bh: 260; --bb: 190; --k: 1; --ps: 1;
 }
-.stage-sticky { position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden; perspective: 1400px; perspective-origin: 50% 45%; }
+.stage-sticky { position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden; perspective: 1500px; perspective-origin: 50% 38%; }
 .stage { position: absolute; inset: 0; transform-style: preserve-3d; }
-.scene {
-  position: absolute; left: 50%; top: 50%; width: var(--W); height: var(--H);
-  margin: calc(var(--H) / -2) 0 0 calc(var(--W) / -2);
-  transform-style: preserve-3d; will-change: transform, opacity;
+.scene { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; will-change: transform, opacity; }
+
+.dio {
+  --yaw: 24deg; --pitch: -24deg;
+  position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d;
+  transform: translateY(calc(var(--k) * -20px)) scale(var(--k)) rotateX(var(--pitch)) rotateY(var(--yaw));
+}
+.dio > div { position: absolute; left: 0; top: 0; transform-style: preserve-3d; }
+
+/* the floor, the walls (facing in, so the near ones vanish from outside) and the base */
+.dio-floor {
+  width: calc(var(--bw) * 1px); height: calc(var(--bd) * 1px);
+  margin: calc(var(--bd) * -0.5px) 0 0 calc(var(--bw) * -0.5px);
+  transform: translateY(calc(var(--bh) * 0.5px)) rotateX(90deg);
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 2px, transparent 2px 65px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.07) 0 2px, transparent 2px 55px),
+    linear-gradient(180deg, #cfcabb, #e6e2d6);
+}
+.dio-wall { height: calc(var(--bh) * 1px); backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; }
+.dio-back {
+  width: calc(var(--bw) * 1px); margin: calc(var(--bh) * -0.5px) 0 0 calc(var(--bw) * -0.5px);
+  transform: translateZ(calc(var(--bd) * -0.5px));
+  background: linear-gradient(180deg, #2b46ff 0%, #2340f0 70%, #1d35cf 100%);
+}
+.dio-left, .dio-right {
+  width: calc(var(--bd) * 1px); margin: calc(var(--bh) * -0.5px) 0 0 calc(var(--bd) * -0.5px);
+  background: linear-gradient(90deg, #1a2fbf, #2139e0);
+}
+.dio-left { transform: translateX(calc(var(--bw) * -0.5px)) rotateY(90deg); }
+.dio-right { transform: translateX(calc(var(--bw) * 0.5px)) rotateY(-90deg); background: linear-gradient(270deg, #1a2fbf, #2139e0); }
+.dio-base { height: calc(var(--bb) * 1px); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.dio-front {
+  width: calc(var(--bw) * 1px); margin: calc(var(--bb) * -0.5px) 0 0 calc(var(--bw) * -0.5px);
+  transform: translateY(calc((var(--bh) + var(--bb)) * 0.5px)) translateZ(calc(var(--bd) * 0.5px));
+  background: #141414; box-shadow: inset 0 4px 0 var(--accent), inset 0 0 0 1px #2a2a2a;
+}
+.dio-base-left, .dio-base-right {
+  width: calc(var(--bd) * 1px); margin: calc(var(--bb) * -0.5px) 0 0 calc(var(--bd) * -0.5px);
+  background: #0b0b0b; box-shadow: inset 0 4px 0 #7a9900;
+}
+.dio-base-left { transform: translateY(calc((var(--bh) + var(--bb)) * 0.5px)) translateX(calc(var(--bw) * -0.5px)) rotateY(-90deg); }
+.dio-base-right { transform: translateY(calc((var(--bh) + var(--bb)) * 0.5px)) translateX(calc(var(--bw) * 0.5px)) rotateY(90deg); }
+
+/* the number painted big on the back wall */
+.dio-num { position: absolute; left: 30px; bottom: 18px; font-size: 150px; line-height: 0.84; color: var(--paper); }
+
+/* things standing on the floor: each at its spot, turned to face the viewer, with a shadow under it */
+.dio > .prop {
+  width: 0; height: 0;
+  transform:
+    translate3d(calc(var(--x) * var(--bw) * 1px), calc(var(--bh) * 0.5px), calc(var(--z) * var(--bd) * 1px))
+    rotateY(calc(var(--yaw) * -1));
+}
+.prop img {
+  position: absolute; left: 0; bottom: 0; height: calc(var(--h) * var(--ps) * 1px); width: auto; max-width: calc(var(--h) * var(--ps) * 1.7px);
+  object-fit: contain; transform: translateX(-50%); user-select: none;
+}
+.prop::before {
+  content: ""; position: absolute; left: 0; top: 0;
+  width: calc(var(--h) * var(--ps) * 0.9px); height: calc(var(--h) * var(--ps) * 0.9px);
+  margin: calc(var(--h) * var(--ps) * -0.45px) 0 0 calc(var(--h) * var(--ps) * -0.45px);
+  border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, 0.4), transparent);
+  transform: translateY(-1px) rotateX(90deg) scaleY(0.6);
 }
 
-/* a card: the icon top left, the number far back on the right, the text in the middle, the mascot near */
-.panel {
-  position: absolute; inset: 0; color: var(--paper); transform-style: preserve-3d;
-  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); grid-template-rows: auto 1fr;
-  grid-template-areas: "icon index" "content sticker";
-  column-gap: clamp(16px, 3vw, 48px);
-  padding: clamp(26px, 5vh, 56px) clamp(26px, 4vw, 64px);
+/* the name floats over the box like a logo, turned to face the viewer */
+.dio > .dio-logo {
+  width: 0; height: 0;
+  transform: translate3d(0, calc(var(--bh) * -0.5px - 34px), calc(var(--bd) * -0.5px)) rotateY(calc(var(--yaw) * -1)) rotateX(calc(var(--pitch) * -0.6));
 }
-/* the back wall the parts stand in front of */
-.panel::before {
-  content: ""; position: absolute; inset: 0; border-radius: 22px;
-  background: #121212; box-shadow: inset 0 0 0 1px #262626;
-  transform: translateZ(calc(-260px * var(--depth)));
+.dio-logo .panel-name {
+  position: absolute; left: 0; bottom: 0; transform: translateX(-50%); margin: 0;
+  font-size: 84px; line-height: 0.86; color: var(--paper); text-align: center; white-space: nowrap;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5));
 }
-.panel > *, .panel-content > *, .panel-action > * { transform: translateZ(calc(var(--z, 0px) * var(--depth))); }
-.panel-badge, .panel-content, .panel-action { transform-style: preserve-3d; }
-.panel-badge { display: contents; }
-.panel-icon {
-  grid-area: icon; align-self: start; justify-self: start; --z: 200px;
-  height: clamp(76px, 13vh, 140px); width: auto; max-width: 180px; object-fit: contain;
-  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.55)); user-select: none;
+.dio-logo .mosaic { margin: 0 auto; }
+
+/* the base's front is the info panel */
+.dio-info {
+  position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 28px; padding: 24px 30px 20px; color: var(--paper); align-items: start;
 }
-.panel-index {
-  grid-area: index; justify-self: end; align-self: start; --z: -200px;
-  font-family: var(--display); font-weight: 900; font-size: clamp(130px, 30vh, 320px);
-  line-height: 0.82; color: var(--blue); user-select: none; pointer-events: none;
-}
-.panel-content { grid-area: content; align-self: center; position: relative; }
-.panel-sticker {
-  grid-area: sticker; justify-self: center; align-self: end; --z: 240px;
-  height: clamp(150px, 32vh, 320px); width: auto; max-width: 100%; object-fit: contain;
-  transform: translateZ(calc(var(--z) * var(--depth))) rotate(var(--tilt, 0deg));
-  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.6)); user-select: none;
-}
-.panel-sticker--p0 { --tilt: -7deg; }
-.panel-sticker--p1 { --tilt: 8deg; }
-.panel-sticker--p2 { --tilt: -4deg; }
-.panel-sticker--p3 { --tilt: 5deg; }
-.panel-sticker--p4 { --tilt: -9deg; }
-.panel-meta { --z: 50px; color: #8a8a82; display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 14px; }
+.dio-info .panel-meta { color: #a3a39b; font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 10px; }
 .panel-meta .tag { color: var(--blue-lit); }
 .panel-meta .access { display: inline-flex; align-items: center; gap: 6px; }
-.panel-name { --z: 90px; font-size: clamp(36px, 5.4vw, 72px); color: var(--paper); margin-bottom: 16px; }
+.dio-info .panel-desc { font-family: var(--body); text-wrap: pretty; color: #d6d4ca; font-size: 18px; line-height: 1.5; margin: 0; max-width: 48ch; }
+.dio-act { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; min-width: 0; }
+.dio-act .panel-action, .dio-act .line-form, .dio-act .files { width: 100%; }
+.dio-act .panel-action { display: flex; flex-direction: column; align-items: flex-end; }
 .mosaic { display: block; image-rendering: pixelated; } /* a hidden name (app.js mosaicNames) */
-.panel-desc { --z: 20px; font-family: var(--body); text-wrap: pretty; color: #b7b7ae; font-size: clamp(14px, 1.5vw, 18px); line-height: 1.55; margin: 0 0 24px; max-width: 40ch; }
-.panel-desc:empty::before { content: "— no description —"; color: #5f5f58; }
-.panel-action { --z: 60px; }
-/* "BETA VERSION" — small die-cut sticker in each app's info area */
+/* "BETA VERSION" — a die-cut sticker stuck on the panel, standing a little off it */
 .beta-sticker {
-  --z: 140px; display: inline-block;
-  transform: translateZ(calc(var(--z) * var(--depth))) rotate(-3deg);
+  display: inline-block; transform: translateZ(14px) rotate(-3deg);
   background: var(--accent); color: var(--ink);
   font-family: var(--mono); font-weight: 700; text-transform: uppercase;
   letter-spacing: 0.14em; font-size: 11px;
   padding: 5px 12px; border-radius: 999px;
-  box-shadow: 0 0 0 3px rgba(236, 234, 225, 0.92), 0 10px 18px rgba(0, 0, 0, 0.45);
-  margin: 0 0 18px;
+  box-shadow: 0 0 0 3px rgba(236, 234, 225, 0.92), 0 8px 14px rgba(0, 0, 0, 0.45);
 }
-.soon-panel { grid-template-areas: "index index" "content content"; }
-.soon-panel .panel-index { justify-self: start; }
 .soon-sub { white-space: normal; }
-
-/* a cover before each group: its word far back, its icons floating at their own depths in front */
-.cover-card { grid-template-areas: none; place-items: center; }
-.cover-card::before { background: var(--blue); box-shadow: none; }
-.cover-word { --z: -120px; grid-area: 1 / 1 / -1 / -1; font-size: clamp(100px, 19vw, 290px); color: var(--paper); line-height: 0.8; }
-.cover-range {
-  --z: 160px; position: absolute; left: clamp(26px, 4vw, 64px); top: clamp(26px, 5vh, 56px);
-  font-family: var(--mono); font-size: 14px; letter-spacing: 0.22em; color: var(--on-blue-2);
-}
-.cover-icon {
-  position: absolute; height: clamp(64px, 12vh, 128px); width: auto; max-width: 160px; object-fit: contain;
-  transform: translate(-50%, -50%) translateZ(calc(var(--z) * var(--depth)));
-  filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.45)); user-select: none; pointer-events: none;
-}
-
-/* the code form wraps, so a WRONG CODE line sits under the field, not beside the button */
-.panel .line-form { max-width: 360px; }
+.dio--cover .dio-logo .panel-name { font-size: 132px; }
 
 @media (max-width: 760px) {
-  .gallery { --W: 90vw; --H: 80vh; --depth: 0.55; }
-  .panel {
-    grid-template-columns: auto 1fr; grid-template-rows: auto 1fr auto;
-    grid-template-areas: "icon index" "content content" "sticker sticker";
-    padding: 22px 20px;
-  }
-  .panel-index { font-size: clamp(76px, 14vh, 130px); }
-  .panel-icon { height: clamp(52px, 9vh, 80px); }
-  .panel-sticker { height: clamp(90px, 18vh, 150px); justify-self: end; }
-  .panel-name { font-size: clamp(30px, 9vw, 44px); }
-  .soon-panel { grid-template-areas: "index index" "content content" "sticker sticker"; }
-  .cover-word { font-size: clamp(72px, 24vw, 140px); }
-  .cover-icon { height: clamp(46px, 8vh, 72px); }
+  .gallery { --bw: 460; --bd: 300; --bh: 230; --bb: 260; --ps: 0.62; }
+  .dio-info { grid-template-columns: 1fr; gap: 14px; padding: 20px 22px; }
+  .dio-info .panel-desc { font-size: 19px; }
+  .dio-info .panel-meta { font-size: 15px; }
+  .dio-act, .dio-act .panel-action { align-items: flex-start; }
+  .dio-logo .panel-name { font-size: 50px; }
+  .dio--cover .dio-logo .panel-name { font-size: 96px; }
+  .dio-num { font-size: 120px; }
 }
 
 /* footer = the studio's about / contact card */
@@ -293,12 +308,12 @@ input { caret-color: var(--accent); }
 .files .empty, .panel .empty { font-family: var(--mono); color: #8a8a82; font-size: 13px; letter-spacing: 0.1em; padding: 14px 0; }
 
 /* ============================================================
-   Reduced motion: the cards stand in a column, flat, nothing moves.
+   Reduced motion: the boxes stand one under another, still; nothing moves.
    ============================================================ */
-.gallery.flat .stage-sticky { position: static; height: auto; perspective: none; padding: 40px 0; }
-.gallery.flat .stage { position: static; display: flex; flex-direction: column; align-items: center; gap: 28px; }
-.gallery.flat .scene { position: relative; left: auto; top: auto; margin: 0; transform: none !important; }
-.gallery.flat .scene * { transform: none !important; }
+.gallery.flat .stage-sticky { position: static; height: auto; }
+.gallery.flat .stage { position: static; }
+.gallery.flat .scene { position: relative; left: auto; top: auto; width: 100%; height: 92vh; transform: none !important; opacity: 1 !important; }
+.gallery.flat .dio { left: 50%; top: 50%; }
 
 /* ============================================================
    Mobile (<=760px): the cards stack their parts in one column with
@@ -333,13 +348,13 @@ input { caret-color: var(--accent); }
 /* the code form wraps, so a WRONG CODE line sits under the field, not beside the button */
 .app-pw { flex-wrap: wrap; }
 .app-pw .err { flex-basis: 100%; margin: 4px 0 0; }
-/* in 3D the card's own box would catch clicks meant for the controls standing in front of it */
-.gallery .stage, .gallery .scene, .gallery .panel { pointer-events: none; }
-.gallery .panel a, .gallery .panel button, .gallery .panel input, .gallery .panel form { pointer-events: auto; }
+/* in 3D the box's own faces would catch clicks meant for the controls standing in front of it */
+.gallery * { pointer-events: none; }
+.gallery a, .gallery button, .gallery input, .gallery form { pointer-events: auto; }
 
 /* 3D letters (app.js extrude): a face and its darker copies stepping back make each letter a solid
    block; every letter stands at its own depth (--lz) and drifts slowly towards you and back */
-.gallery .panel-index, .gallery .panel-name, .gallery .cover-word { transform-style: preserve-3d; }
+.gallery .panel-name, .gallery .dio-num { transform-style: preserve-3d; }
 .l3 {
   display: inline-block; position: relative; transform-style: preserve-3d;
   transform: translateZ(var(--lz, 0px)) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));

@@ -2,7 +2,7 @@
 // No gate: the page lands directly on the hero ("OUR APPS, ONE PLACE.") + gallery.
 // Per-app codes only: app list is public; each app's files are either open
 // (plaintext) or locked (AES-encrypted with that app's own code).
-// The gallery is a row of cards in a 3D space, each card's parts at their own depths; Lenis smooths the scroll.
+// The gallery is a row of dioramas, one per app and game, carried past as the page scrolls; Lenis smooths it.
 //
 // DINO_DATA shape:
 //   { config:{title,heroSub},
@@ -244,32 +244,70 @@ function renderFiles(box, payload) {
   });
 }
 
-/* ---------- the gallery: one card per screen, each card a small 3D space ---------- */
-// Inside a card the parts stand at different depths (CSS --z): the number far back, the text in
-// the middle, the icon and the mascot near. Scrolling carries the cards through the space, each
-// turning as it comes in and goes out, so the depths slide against each other; the pointer tilts
-// the card in front. Before the apps and before the games a cover holds that group's icons, each
-// at its own depth.
+/* ---------- the gallery: each app and game a diorama, a small open box seen from above ---------- */
+// The box has a floor, a back wall with the card's number on it, two side walls and a thick base.
+// Things from the app or game stand on the floor at their own spots (mascot, icon, stickers), each
+// with a shadow; the name floats above the box like a logo; the base's front is the info panel
+// (version, platforms, the line, the buttons). Walls face inwards and vanish from outside, so the
+// near walls never block the view in. Scrolling carries one box after another past the camera;
+// the pointer turns the box in front.
 
-// where the icons sit on a cover (left %, top %, depth px), around the word, never on it
-const COVER_SPOTS = [
-  [9, 14, 220], [78, 9, -140], [86, 64, 300], [13, 70, -60], [56, 82, 140],
-  [66, 22, 40], [30, 8, -220], [40, 74, 360], [92, 36, 80],
-];
+// floor spots: x across (-0.5 left .. 0.5 right), z deep (-0.5 back .. 0.5 front), h height px
+const SPOTS = {
+  mascot: [0.22, 0.08, 230],
+  icon: [-0.3, -0.18, 110],
+  extra: [[-0.02, -0.3, 120], [0.4, -0.28, 105]],
+  cover: [
+    [-0.34, -0.22], [0.02, -0.3], [0.34, -0.2], [-0.16, 0.1], [0.2, 0.12],
+    [-0.4, 0.22], [0.4, 0.24], [0.02, 0.28], [-0.1, -0.05], [0.12, -0.08],
+  ],
+};
 
 const stage = { zone: null, scenes: [], px: 0, py: 0, tx: 0, ty: 0 };
 
-function coverCard(word, range, icons) {
-  const p = document.createElement('article');
-  p.className = 'panel cover-card';
-  p.innerHTML =
-    `<h2 class="cover-word display">${escapeHtml(word)}</h2>` +
-    `<span class="cover-range">${escapeHtml(range)}</span>` +
-    icons.map((src, k) => {
-      const [x, y, z] = COVER_SPOTS[k % COVER_SPOTS.length];
-      return `<img class="cover-icon" src="${escapeHtml(src)}" alt="" style="left:${x}%;top:${y}%;--z:${z}px" />`;
-    }).join('');
-  return p;
+function prop(src, [x, z, h], alt = '') {
+  return `<div class="prop" style="--x:${x};--z:${z};--h:${h}"><img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" /></div>`;
+}
+
+// card: the article a card builder made (its parts are moved into the box, listeners and all)
+function diorama(card, { num = '', props = '', logo = null, kind = '' } = {}) {
+  const pick = (s) => card.querySelector(s);
+  const d = document.createElement('article');
+  d.className = 'dio' + (kind ? ` dio--${kind}` : '');
+  d.innerHTML =
+    '<div class="dio-floor"></div>' +
+    `<div class="dio-wall dio-back"><span class="dio-num display">${escapeHtml(num)}</span></div>` +
+    '<div class="dio-wall dio-left"></div><div class="dio-wall dio-right"></div>' +
+    '<div class="dio-base dio-front"><div class="dio-info"><div class="dio-text"></div><div class="dio-act"></div></div></div>' +
+    '<div class="dio-base dio-base-left"></div><div class="dio-base dio-base-right"></div>' +
+    props +
+    '<div class="dio-logo"></div>';
+  const name = logo || pick('.panel-name');
+  if (name) $('.dio-logo', d).appendChild(name);
+  const text = $('.dio-text', d), act = $('.dio-act', d);
+  ['.panel-meta', '.panel-desc'].forEach((s) => { const el = pick(s); if (el) text.appendChild(el); });
+  ['.beta-sticker', '.panel-action'].forEach((s) => { const el = pick(s); if (el) act.appendChild(el); });
+  return d;
+}
+
+function cardProps(card, extras = []) {
+  const icon = card.querySelector('.panel-icon');
+  const mascot = card.querySelector('.panel-sticker');
+  let html = '';
+  if (icon && icon.getAttribute('src')) html += prop(icon.getAttribute('src'), SPOTS.icon, icon.alt);
+  extras.forEach((src, k) => { if (SPOTS.extra[k]) html += prop(src, SPOTS.extra[k]); });
+  if (mascot && mascot.getAttribute('src')) html += prop(mascot.getAttribute('src'), SPOTS.mascot, mascot.alt);
+  return html;
+}
+
+function coverDiorama(word, range, icons) {
+  const logo = document.createElement('h2');
+  logo.className = 'panel-name display';
+  logo.textContent = word;
+  const shell = document.createElement('div');
+  shell.innerHTML = `<div class="panel-meta"><span class="tag">${escapeHtml(range)}</span></div>`;
+  const props = icons.map((src, k) => prop(src, [...SPOTS.cover[k % SPOTS.cover.length], 96])).join('');
+  return diorama(shell, { props, logo, kind: 'cover' });
 }
 
 function setupStage() {
@@ -277,22 +315,29 @@ function setupStage() {
   const games = Array.isArray(window.DINO_GAMES) ? window.DINO_GAMES : [];
   const n = (i) => String(i).padStart(2, '0');
 
-  const cards = [coverCard('APPS', `${n(1)}—${n(apps.length)}`, apps.filter((a) => a.icon).map((a) => a.icon))];
-  apps.forEach((a, i) => cards.push(buildPanel(a, i).firstElementChild));
+  const boxes = [coverDiorama('APPS', `${n(1)}—${n(apps.length)}`, apps.filter((a) => a.icon).map((a) => a.icon))];
+  apps.forEach((a, i) => {
+    const card = buildPanel(a, i).firstElementChild;
+    boxes.push(diorama(card, { num: n(i + 1), props: cardProps(card) }));
+  });
   if (games.length) {
-    cards.push(coverCard('GAMES', `${n(apps.length + 1)}—${n(apps.length + games.length)}`,
-      games.flatMap((g) => [g.icon, ...(g.stickers || [])]).filter(Boolean)));
-    games.forEach((g, k) => cards.push(buildGamePanel(g, apps.length + k)));
+    boxes.push(coverDiorama('GAMES', `${n(apps.length + 1)}—${n(apps.length + games.length)}`,
+      games.map((g) => g.icon).filter(Boolean)));
+    games.forEach((g, k) => {
+      const card = buildGamePanel(g, apps.length + k);
+      boxes.push(diorama(card, { num: n(apps.length + k + 1), props: cardProps(card, g.stickers || []) }));
+    });
   }
-  cards.push(buildComingSoonPanel(apps.length + games.length + 1));
+  const soon = buildComingSoonPanel(apps.length + games.length + 1);
+  boxes.push(diorama(soon, { num: n(apps.length + games.length + 1), kind: 'soon' }));
 
   stage.zone = $('#gallery');
   const room = $('.stage', stage.zone);
   room.replaceChildren();
-  stage.scenes = cards.map((card) => {
+  stage.scenes = boxes.map((box) => {
     const scene = document.createElement('div');
     scene.className = 'scene';
-    scene.appendChild(card);
+    scene.appendChild(box);
     room.appendChild(scene);
     return scene;
   });
@@ -308,7 +353,7 @@ function setupStage() {
     stage.ty = (e.clientY / window.innerHeight) * 2 - 1;
   }, { passive: true });
   requestAnimationFrame(function follow() {
-    // the tilt eases after the pointer instead of snapping to it
+    // the turn eases after the pointer instead of snapping to it
     stage.px += (stage.tx - stage.px) * 0.08;
     stage.py += (stage.ty - stage.py) * 0.08;
     moveStage();
@@ -318,7 +363,14 @@ function setupStage() {
 
 function sizeStage() {
   const z = stage.zone;
-  // one screen to arrive, then most of a screen per card
+  // the box is laid out at its design size (CSS --bw/--bd/--bh/--bb) and scaled to fit the window
+  const cs = getComputedStyle(z);
+  const v = (name) => parseFloat(cs.getPropertyValue(name)) || 0;
+  const wide = v('--bw') * 0.94 + v('--bd') * 0.34; // the box's width seen turned
+  const tall = 120 + v('--bh') + v('--bb') + v('--bd') * 0.36; // logo, walls, base, the floor seen from above
+  const k = Math.min(1, (window.innerWidth * 0.94) / wide, (window.innerHeight * 0.9) / tall);
+  z.style.setProperty('--k', k.toFixed(3));
+  // one screen to arrive, then most of a screen per box
   z.style.height = z.classList.contains('flat') ? '' : `${window.innerHeight * (1 + (stage.scenes.length - 1) * 0.8)}px`;
   if (lenis) lenis.resize();
   moveStage();
@@ -334,7 +386,7 @@ function moveStage() {
   const total = z.offsetHeight - window.innerHeight;
   const p = (total > 0 ? clamp(-rect.top / total, 0, 1) : 0) * (count - 1);
   const k = Math.floor(p);
-  // rest on a card for the first and last fifth of each step, move in between
+  // rest on a box for the first and last fifth of each step, move in between
   const at = k >= count - 1 ? count - 1 : k + ease(clamp((p - k - 0.2) / 0.6, 0, 1));
   const W = window.innerWidth;
   stage.scenes.forEach((scene, i) => {
@@ -344,10 +396,10 @@ function moveStage() {
     scene.style.visibility = '';
     const near = 1 - Math.min(1, far);
     scene.style.transform =
-      `translateX(${d * W * 0.62}px) translateZ(${-far * 520}px) rotateY(${-d * 48}deg)` +
-      ` rotateX(${-stage.py * 7 * near}deg) rotateY(${stage.px * 10 * near}deg)`;
+      `translateX(${d * W * 0.7}px) translateZ(${-far * 600}px) rotateY(${-d * 30}deg)` +
+      ` rotateX(${-stage.py * 5 * near}deg) rotateY(${stage.px * 14 * near}deg)`;
     scene.style.opacity = String(clamp(1.25 - far * 0.9, 0, 1));
-    scene.inert = far > 0.15; // only the card in front takes clicks and focus
+    scene.inert = far > 0.15; // only the box in front takes clicks and focus
   });
 }
 
@@ -389,8 +441,8 @@ function extrude(el, layers, step) {
 }
 
 function extrudeAll() {
-  $$('.gallery .panel-index, .gallery .cover-word').forEach((el) => extrude(el, 14, 3.6));
-  $$('.gallery .panel-name:not([data-mosaic])').forEach((el) => extrude(el, 9, 2.4));
+  $$('.gallery .dio-num').forEach((el) => extrude(el, 12, 3.6));
+  $$('.gallery .panel-name:not([data-mosaic])').forEach((el) => extrude(el, 12, 3));
 }
 
 /* ---------- draggable hero stickers (drag & drop toy) ---------- */
