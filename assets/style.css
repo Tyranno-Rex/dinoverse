@@ -151,7 +151,7 @@ input { caret-color: var(--accent); }
 .scene { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; will-change: transform, opacity; }
 
 .dio {
-  --yaw: 10deg; --pitch: -32deg;
+  --yaw: 0deg; --pitch: -32deg;
   position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d;
   transform: translateY(calc(var(--k) * var(--bb) * -0.5px)) scale(var(--k)) rotateX(var(--pitch)) rotateY(var(--yaw));
 }
@@ -222,7 +222,7 @@ input { caret-color: var(--accent); }
     translate3d(calc(var(--fx) * var(--bw) * 1px), calc(var(--fy) * var(--bh) * 1px), calc(var(--fz) * var(--bd) * 1px))
     rotateY(calc(var(--yaw) * -1));
 }
-.dio-text { --fx: -0.46; --fy: 0.5; --fz: -0.12; }
+.dio-text { --fx: -0.46; --fy: 0.5; --fz: 0.1; }
 /* the words stand on the floor like the props: the column's foot is on it, with a shadow */
 .dio-text::before {
   content: ""; position: absolute; left: calc(var(--bw) * -0.02px); top: 0;
@@ -240,7 +240,7 @@ input { caret-color: var(--accent); }
 .panel-meta .access { display: inline-flex; align-items: center; gap: 6px; }
 .dio-text .panel-desc {
   transform-style: preserve-3d; font-family: var(--display); font-weight: 900; letter-spacing: -0.02em;
-  color: var(--ink); font-size: 33px; line-height: 1.28; margin: 0; text-wrap: pretty;
+  color: var(--ink); font-size: 30px; line-height: 1.26; margin: 0; text-wrap: pretty;
 }
 /* each word a solid block: the face, and darker copies stepping back behind it */
 .panel-desc .w { display: inline-block; position: relative; transform-style: preserve-3d; transform: translateZ(var(--wz, 0px)); }
@@ -251,7 +251,7 @@ input { caret-color: var(--accent); }
 }
 /* the name, first and biggest */
 .dio-text .dio-title {
-  --fz2: 70px; margin: 0 0 18px; font-size: 112px; line-height: 0.86; color: var(--paper); white-space: nowrap;
+  --fz2: 70px; margin: 0 0 18px; font-size: 96px; line-height: 0.86; color: var(--paper); white-space: nowrap;
   filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.35));
 }
 .dio--cover .dio-text .dio-title { font-size: 220px; }
@@ -278,8 +278,8 @@ input { caret-color: var(--accent); }
 
 @media (max-width: 760px) {
   .gallery { --ps: 0.8; }
-  .dio { --yaw: 8deg; --pitch: -38deg; }
-  .dio-text { --fz: -0.3; --fw-shadow: 0.96; }
+  .dio { --yaw: 0deg; --pitch: -38deg; }
+  .dio-text { --fz: 0.02; --fw-shadow: 0.96; }
   .prop--mascot { --x: 0.26 !important; --z: 0.3 !important; }
   .dio-text .dio-pane { --fw: 0.92; }
   .dio-act .dio-pane { --fw: 0.7; }
@@ -287,7 +287,7 @@ input { caret-color: var(--accent); }
   .dio-text .dio-title { font-size: 72px; }
   .dio--cover .dio-text .dio-title { font-size: 130px; }
   .dio-text .panel-meta { font-size: 14px; }
-  .dio-num { font-size: 120px; top: auto; bottom: 24%; right: 24px; }
+  .dio-num { font-size: 84px; top: 10px; bottom: auto; right: 18px; }
 }
 }
 
@@ -410,3 +410,5 @@ input { caret-color: var(--accent); }
 .dio-text .beta-sticker { --fz2: 0px; margin-bottom: 12px; }
 /* the version tag is a dark chip, readable over the blue wall and the light floor alike */
 .dio-text .panel-meta .tag { color: var(--accent); background: var(--ink); padding: 2px 7px; border-radius: 3px; }
+/* the words lean back from their foot on the floor, towards the camera looking down, so they read */
+.dio-text .dio-pane { transform-origin: 0 100%; transform: rotateX(calc(var(--pitch) * -0.8)); }

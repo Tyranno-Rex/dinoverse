@@ -256,7 +256,7 @@ function renderFiles(box, payload) {
 const SPOTS = {
   mascot: [0.27, 0.04, 300],
   icon: [0.46, -0.34, 150],
-  extra: [[-0.04, 0.44, 118], [-0.3, 0.38, 125]],
+  extra: [[0.16, 0.42, 118], [0.44, 0.36, 125]],
   cover: [
     [-0.34, -0.22], [0.02, -0.3], [0.34, -0.2], [-0.16, 0.1], [0.2, 0.12],
     [-0.4, 0.22], [0.4, 0.24], [0.02, 0.28], [-0.1, -0.05], [0.12, -0.08],
@@ -388,7 +388,7 @@ function sizeStage() {
   const narrow = vw <= 760;
   const bw = narrow ? 520 : 1000, bb = narrow ? 40 : 60;
   let bd = narrow ? 420 : 560;
-  const yaw = (narrow ? 8 : 10) * Math.PI / 180, pitch = (narrow ? 38 : 32) * Math.PI / 180;
+  const yaw = 0, pitch = (narrow ? 38 : 32) * Math.PI / 180;
   const k = (vw * (narrow ? 0.96 : 0.9)) / (bw * Math.cos(yaw) + bd * Math.sin(yaw));
   // seen from above, the walls stand foreshortened and the floor shows its depth
   const room = (vh * (narrow ? 0.86 : 0.92)) / k - bb; // the height the box may take, in design px
@@ -426,7 +426,7 @@ function moveStage() {
     const near = 1 - Math.min(1, far);
     scene.style.transform =
       `translateX(${d * W * 0.7}px) translateZ(${-far * 600}px) rotateY(${-d * 30}deg)` +
-      ` rotateX(${-stage.py * 5 * near}deg) rotateY(${stage.px * 14 * near}deg)`;
+      ` rotateX(${-stage.py * 2 * near}deg) rotateY(${stage.px * 4 * near}deg)`;
     scene.style.opacity = String(clamp(1.25 - far * 0.9, 0, 1));
     scene.inert = far > 0.15; // only the box in front takes clicks and focus
   });
