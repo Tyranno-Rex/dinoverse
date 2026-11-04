@@ -254,9 +254,9 @@ function renderFiles(box, payload) {
 
 // floor spots: x across (-0.5 left .. 0.5 right), z deep (-0.5 back .. 0.5 front), h height px
 const SPOTS = {
-  mascot: [0.22, 0.08, 230],
-  icon: [0.1, 0.3, 110],
-  extra: [[0.44, -0.26, 105], [-0.24, 0.3, 100]],
+  mascot: [0.27, 0.04, 300],
+  icon: [0.46, -0.34, 150],
+  extra: [[-0.04, 0.44, 118], [-0.3, 0.38, 125]],
   cover: [
     [-0.34, -0.22], [0.02, -0.3], [0.34, -0.2], [-0.16, 0.1], [0.2, 0.12],
     [-0.4, 0.22], [0.4, 0.24], [0.02, 0.28], [-0.1, -0.05], [0.12, -0.08],
@@ -281,13 +281,13 @@ function diorama(card, { num = '', props = '', logo = null, kind = '' } = {}) {
     '<div class="dio-base dio-front"></div>' +
     '<div class="dio-base dio-base-left"></div><div class="dio-base dio-base-right"></div>' +
     props +
-    '<div class="dio-logo"></div>' +
     '<div class="dio-float dio-text"><div class="dio-pane"></div></div>' +
     '<div class="dio-float dio-act"><div class="dio-pane"></div></div>';
-  const name = logo || pick('.panel-name');
-  if (name) $('.dio-logo', d).appendChild(name);
-  // the words hang in the air inside the box, nothing is written on its faces
+  // the words hang in the air inside the box, nothing is written on its faces: the name first,
+  // big, then the sticker, the tags and the line
   const text = $('.dio-text .dio-pane', d), act = $('.dio-act .dio-pane', d);
+  const name = logo || pick('.panel-name');
+  if (name) { name.classList.add('dio-title'); text.appendChild(name); }
   ['.beta-sticker', '.panel-meta', '.panel-desc'].forEach((s) => { const el = pick(s); if (el) text.appendChild(el); });
   const action = pick('.panel-action');
   if (action) act.appendChild(action);
@@ -296,12 +296,17 @@ function diorama(card, { num = '', props = '', logo = null, kind = '' } = {}) {
   return d;
 }
 
-// each word of a line stands at its own small depth, so the line reads as hanging in 3D
+// each word of a line is a solid block (its face and darker copies stepping back) standing at its
+// own small depth, so the line reads as heavy type hanging in 3D
 function floatWords(el) {
   const words = el.textContent.split(/\s+/).filter(Boolean);
+  const LAYERS = 5;
   el.setAttribute('aria-label', el.textContent);
-  el.innerHTML = words.map((w, i) =>
-    `<span class="w" aria-hidden="true" style="--wz:${((i * 7) % 5) * 6}px">${escapeHtml(w)}</span>`).join(' ');
+  el.innerHTML = words.map((w, i) => {
+    let sides = '';
+    for (let k = LAYERS; k >= 1; k--) sides += `<span class="w-side" style="--k:${k};--fade:${(k / LAYERS).toFixed(2)}">${escapeHtml(w)}</span>`;
+    return `<span class="w" aria-hidden="true" style="--wz:${((i * 7) % 5) * 6}px">${sides}<span class="w-face">${escapeHtml(w)}</span></span>`;
+  }).join(' ');
 }
 
 function cardProps(card, extras = []) {
@@ -320,7 +325,7 @@ function coverDiorama(word, range, icons) {
   logo.textContent = word;
   const shell = document.createElement('div');
   shell.innerHTML = `<div class="panel-meta"><span class="tag">${escapeHtml(range)}</span></div>`;
-  const props = icons.map((src, k) => prop(src, [...SPOTS.cover[k % SPOTS.cover.length], 96])).join('');
+  const props = icons.map((src, k) => prop(src, [...SPOTS.cover[k % SPOTS.cover.length], 130])).join('');
   return diorama(shell, { props, logo, kind: 'cover' });
 }
 
@@ -377,13 +382,17 @@ function setupStage() {
 
 function sizeStage() {
   const z = stage.zone;
-  // the box is laid out at its design size (CSS --bw/--bd/--bh/--bb) and scaled to fit the window
-  const cs = getComputedStyle(z);
-  const v = (name) => parseFloat(cs.getPropertyValue(name)) || 0;
-  const wide = v('--bw') * 0.94 + v('--bd') * 0.34; // the box's width seen turned
-  const tall = 120 + v('--bh') + v('--bb') + v('--bd') * 0.36; // logo, walls, base, the floor seen from above
-  const k = Math.min(1, (window.innerWidth * 0.94) / wide, (window.innerHeight * 0.9) / tall);
-  z.style.setProperty('--k', k.toFixed(3));
+  // One box fills the screen. It is laid out at a design width (--bw) and scaled (--k) to the
+  // window's width; its walls are made as tall as the window then has room for.
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const narrow = vw <= 760;
+  const bw = narrow ? 520 : 1000, bd = narrow ? 300 : 380, bb = narrow ? 40 : 60;
+  const yaw = (narrow ? 8 : 10) * Math.PI / 180, pitch = (narrow ? 10 : 14) * Math.PI / 180;
+  const k = (vw * (narrow ? 0.96 : 0.9)) / (bw * Math.cos(yaw) + bd * Math.sin(yaw));
+  const bh = Math.max(300, (vh * (narrow ? 0.84 : 0.9)) / k - bb - bd * Math.sin(pitch));
+  z.style.setProperty('--bw', bw); z.style.setProperty('--bd', bd); z.style.setProperty('--bb', bb);
+  z.style.setProperty('--bh', Math.round(bh));
+  z.style.setProperty('--k', k.toFixed(4));
   // one screen to arrive, then most of a screen per box
   z.style.height = z.classList.contains('flat') ? '' : `${window.innerHeight * (1 + (stage.scenes.length - 1) * 0.8)}px`;
   if (lenis) lenis.resize();

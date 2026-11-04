@@ -151,9 +151,9 @@ input { caret-color: var(--accent); }
 .scene { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; will-change: transform, opacity; }
 
 .dio {
-  --yaw: 24deg; --pitch: -24deg;
+  --yaw: 10deg; --pitch: -14deg;
   position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d;
-  transform: translateY(calc(var(--k) * -20px)) scale(var(--k)) rotateX(var(--pitch)) rotateY(var(--yaw));
+  transform: translateY(calc(var(--k) * var(--bb) * -0.5px)) scale(var(--k)) rotateX(var(--pitch)) rotateY(var(--yaw));
 }
 .dio > div { position: absolute; left: 0; top: 0; transform-style: preserve-3d; }
 
@@ -193,7 +193,7 @@ input { caret-color: var(--accent); }
 .dio-base-right { transform: translateY(calc((var(--bh) + var(--bb)) * 0.5px)) translateX(calc(var(--bw) * 0.5px)) rotateY(90deg); }
 
 /* the number standing big on the back wall */
-.dio-num { position: absolute; right: 30px; top: 16px; font-size: 150px; line-height: 0.84; color: var(--paper); }
+.dio-num { position: absolute; right: 40px; top: 24px; font-size: 230px; line-height: 0.84; color: var(--paper); }
 
 /* things standing on the floor: each at its spot, turned to face the viewer, with a shadow under it */
 .dio > .prop {
@@ -214,18 +214,6 @@ input { caret-color: var(--accent); }
   transform: translateY(-1px) rotateX(90deg) scaleY(0.6);
 }
 
-/* the name floats over the box like a logo, turned to face the viewer */
-.dio > .dio-logo {
-  width: 0; height: 0;
-  transform: translate3d(0, calc(var(--bh) * -0.5px - 34px), calc(var(--bd) * -0.5px)) rotateY(calc(var(--yaw) * -1)) rotateX(calc(var(--pitch) * -0.6));
-}
-.dio-logo .panel-name {
-  position: absolute; left: 0; bottom: 0; transform: translateX(-50%); margin: 0;
-  font-size: 84px; line-height: 0.86; color: var(--paper); text-align: center; white-space: nowrap;
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5));
-}
-.dio-logo .mosaic { margin: 0 auto; }
-
 /* the words float in the air inside the box, turned to the viewer: the line and its tags in front
    of the back wall, the buttons over the front of the floor. Nothing is written on the faces. */
 .dio > .dio-float {
@@ -234,20 +222,33 @@ input { caret-color: var(--accent); }
     translate3d(calc(var(--fx) * var(--bw) * 1px), calc(var(--fy) * var(--bh) * 1px), calc(var(--fz) * var(--bd) * 1px))
     rotateY(calc(var(--yaw) * -1)) rotateX(calc(var(--pitch) * -0.5));
 }
-.dio-text { --fx: -0.47; --fy: -0.44; --fz: -0.3; }
-.dio-act { --fx: -0.46; --fy: 0.5; --fz: 0.4; }
+.dio-text { --fx: -0.46; --fy: -0.46; --fz: -0.4; }
+.dio-act { --fx: -0.46; --fy: 0.5; --fz: 0.42; }
 .dio-pane { position: absolute; left: 0; top: 0; width: calc(var(--bw) * var(--fw) * 1px); transform-style: preserve-3d; color: var(--paper); }
-.dio-text .dio-pane { --fw: 0.5; }
-.dio-act .dio-pane { --fw: 0.36; top: auto; bottom: 18px; }
+.dio-text .dio-pane { --fw: 0.6; }
+.dio-act .dio-pane { --fw: 0.34; top: auto; bottom: 22px; }
 .dio-pane > * { transform: translateZ(var(--fz2, 0px)); }
-.dio-text .panel-meta { --fz2: 30px; color: var(--on-blue); font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 12px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
+.dio-text .panel-meta { --fz2: 30px; color: var(--on-blue); font-size: 15px; font-weight: 700; display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 12px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
 .dio-text .panel-meta .tag { color: var(--accent); }
 .panel-meta .access { display: inline-flex; align-items: center; gap: 6px; }
 .dio-text .panel-desc {
-  transform-style: preserve-3d; font-family: var(--body); color: var(--paper); font-size: 21px; line-height: 1.45;
-  margin: 0; text-wrap: pretty; font-weight: 600;
+  transform-style: preserve-3d; font-family: var(--display); font-weight: 900; letter-spacing: -0.02em;
+  color: var(--paper); font-size: 33px; line-height: 1.1; margin: 0; text-wrap: pretty;
 }
-.panel-desc .w { display: inline-block; transform: translateZ(var(--wz, 0px)); text-shadow: 0 6px 14px rgba(0, 0, 0, 0.4); }
+/* each word a solid block: the face, and darker copies stepping back behind it */
+.panel-desc .w { display: inline-block; position: relative; transform-style: preserve-3d; transform: translateZ(var(--wz, 0px)); }
+.w-face { position: relative; }
+.w-side {
+  position: absolute; left: 0; top: 0; transform: translateZ(calc(var(--k) * -2.4px));
+  color: color-mix(in srgb, var(--blue) calc(70% - var(--fade) * 40%), #000);
+}
+/* the name, first and biggest */
+.dio-text .dio-title {
+  --fz2: 70px; margin: 0 0 18px; font-size: 112px; line-height: 0.86; color: var(--paper); white-space: nowrap;
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.35));
+}
+.dio--cover .dio-text .dio-title { font-size: 220px; }
+.dio-title .mosaic { margin: 0; }
 .dio-act .panel-action { display: flex; flex-direction: column; align-items: flex-start; }
 .dio-act .line-form, .dio-act .files { width: 100%; }
 .dio-act .link-btn {
@@ -267,19 +268,20 @@ input { caret-color: var(--accent); }
   box-shadow: 0 0 0 3px rgba(236, 234, 225, 0.92), 0 8px 14px rgba(0, 0, 0, 0.45);
 }
 .soon-sub { white-space: normal; }
-.dio--cover .dio-logo .panel-name { font-size: 132px; }
 
 @media (max-width: 760px) {
-  .gallery { --bw: 460; --bd: 320; --bh: 420; --bb: 70; --ps: 0.62; }
-  .dio-text { --fx: -0.46; --fy: -0.36; }
+  .gallery { --ps: 0.8; }
+  .dio { --yaw: 8deg; --pitch: -10deg; }
+  .dio-text { --fy: -0.4; }
   .prop--mascot { --x: 0.26 !important; --z: 0.3 !important; }
   .dio-text .dio-pane { --fw: 0.92; }
   .dio-act .dio-pane { --fw: 0.7; }
-  .dio-text .panel-desc { font-size: 21px; }
-  .dio-text .panel-meta { font-size: 15px; }
-  .dio-logo .panel-name { font-size: 50px; }
-  .dio--cover .dio-logo .panel-name { font-size: 96px; }
-  .dio-num { font-size: 96px; top: 10px; }
+  .dio-text .panel-desc { font-size: 34px; }
+  .dio-text .dio-title { font-size: 72px; }
+  .dio--cover .dio-text .dio-title { font-size: 130px; }
+  .dio-text .panel-meta { font-size: 14px; }
+  .dio-num { font-size: 120px; top: auto; bottom: 24%; right: 24px; }
+}
 }
 
 /* footer = the studio's about / contact card */
