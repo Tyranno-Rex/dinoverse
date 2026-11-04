@@ -151,7 +151,7 @@ input { caret-color: var(--accent); }
 .scene { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; will-change: transform, opacity; }
 
 .dio {
-  --yaw: 10deg; --pitch: -14deg;
+  --yaw: 10deg; --pitch: -32deg;
   position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d;
   transform: translateY(calc(var(--k) * var(--bb) * -0.5px)) scale(var(--k)) rotateX(var(--pitch)) rotateY(var(--yaw));
 }
@@ -220,26 +220,33 @@ input { caret-color: var(--accent); }
   width: 0; height: 0;
   transform:
     translate3d(calc(var(--fx) * var(--bw) * 1px), calc(var(--fy) * var(--bh) * 1px), calc(var(--fz) * var(--bd) * 1px))
-    rotateY(calc(var(--yaw) * -1)) rotateX(calc(var(--pitch) * -0.5));
+    rotateY(calc(var(--yaw) * -1));
 }
-.dio-text { --fx: -0.46; --fy: -0.46; --fz: -0.4; }
+.dio-text { --fx: -0.46; --fy: 0.5; --fz: -0.12; }
+/* the words stand on the floor like the props: the column's foot is on it, with a shadow */
+.dio-text::before {
+  content: ""; position: absolute; left: calc(var(--bw) * -0.02px); top: 0;
+  width: calc(var(--bw) * var(--fw-shadow, 0.64) * 1px); height: 110px; margin-top: -55px;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.32), transparent);
+  transform: translateY(-1px) rotateX(90deg);
+}
 .dio-act { --fx: -0.46; --fy: 0.5; --fz: 0.42; }
 .dio-pane { position: absolute; left: 0; top: 0; width: calc(var(--bw) * var(--fw) * 1px); transform-style: preserve-3d; color: var(--paper); }
-.dio-text .dio-pane { --fw: 0.6; }
+.dio-text .dio-pane { --fw: 0.56; top: auto; bottom: 0; }
 .dio-act .dio-pane { --fw: 0.34; top: auto; bottom: 22px; }
 .dio-pane > * { transform: translateZ(var(--fz2, 0px)); }
-.dio-text .panel-meta { --fz2: 30px; color: var(--on-blue); font-size: 15px; font-weight: 700; display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 12px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
-.dio-text .panel-meta .tag { color: var(--accent); }
+.dio-text .panel-meta { --fz2: 10px; color: var(--ink); font-size: 15px; font-weight: 700; display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 14px; }
+.dio-text .panel-meta .tag { color: var(--blue); }
 .panel-meta .access { display: inline-flex; align-items: center; gap: 6px; }
 .dio-text .panel-desc {
   transform-style: preserve-3d; font-family: var(--display); font-weight: 900; letter-spacing: -0.02em;
-  color: var(--paper); font-size: 33px; line-height: 1.1; margin: 0; text-wrap: pretty;
+  color: var(--ink); font-size: 33px; line-height: 1.28; margin: 0; text-wrap: pretty;
 }
 /* each word a solid block: the face, and darker copies stepping back behind it */
 .panel-desc .w { display: inline-block; position: relative; transform-style: preserve-3d; transform: translateZ(var(--wz, 0px)); }
 .w-face { position: relative; }
 .w-side {
-  position: absolute; left: 0; top: 0; transform: translateZ(calc(var(--k) * -2.4px));
+  position: absolute; left: 0; top: 0; transform: translateZ(calc(var(--k) * -1.6px));
   color: color-mix(in srgb, var(--blue) calc(70% - var(--fade) * 40%), #000);
 }
 /* the name, first and biggest */
@@ -271,8 +278,8 @@ input { caret-color: var(--accent); }
 
 @media (max-width: 760px) {
   .gallery { --ps: 0.8; }
-  .dio { --yaw: 8deg; --pitch: -10deg; }
-  .dio-text { --fy: -0.4; }
+  .dio { --yaw: 8deg; --pitch: -38deg; }
+  .dio-text { --fz: -0.3; --fw-shadow: 0.96; }
   .prop--mascot { --x: 0.26 !important; --z: 0.3 !important; }
   .dio-text .dio-pane { --fw: 0.92; }
   .dio-act .dio-pane { --fw: 0.7; }
@@ -393,3 +400,13 @@ input { caret-color: var(--accent); }
 }
 @media (prefers-reduced-motion: reduce) { .l3 { animation: none; } }
 .gallery.flat .l3-side { display: none; }
+
+/* standing on the light floor, the words are dark with blue sides, so they read as solid letters */
+.dio-text .dio-title { color: var(--ink); filter: none; }
+.dio-text .l3-side, .dio-text .w-side { color: color-mix(in srgb, var(--blue) calc(90% - var(--fade) * 45%), #000); }
+/* letters standing on the floor stand straight and still */
+.dio-text .l3 { animation: none; transform: none; }
+.dio-text .dio-title { margin-bottom: 30px; }
+.dio-text .beta-sticker { --fz2: 0px; margin-bottom: 12px; }
+/* the version tag is a dark chip, readable over the blue wall and the light floor alike */
+.dio-text .panel-meta .tag { color: var(--accent); background: var(--ink); padding: 2px 7px; border-radius: 3px; }

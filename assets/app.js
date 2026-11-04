@@ -305,7 +305,7 @@ function floatWords(el) {
   el.innerHTML = words.map((w, i) => {
     let sides = '';
     for (let k = LAYERS; k >= 1; k--) sides += `<span class="w-side" style="--k:${k};--fade:${(k / LAYERS).toFixed(2)}">${escapeHtml(w)}</span>`;
-    return `<span class="w" aria-hidden="true" style="--wz:${((i * 7) % 5) * 6}px">${sides}<span class="w-face">${escapeHtml(w)}</span></span>`;
+    return `<span class="w" aria-hidden="true" style="--wz:${((i * 7) % 3) * 3}px">${sides}<span class="w-face">${escapeHtml(w)}</span></span>`;
   }).join(' ');
 }
 
@@ -386,11 +386,17 @@ function sizeStage() {
   // window's width; its walls are made as tall as the window then has room for.
   const vw = window.innerWidth, vh = window.innerHeight;
   const narrow = vw <= 760;
-  const bw = narrow ? 520 : 1000, bd = narrow ? 300 : 380, bb = narrow ? 40 : 60;
-  const yaw = (narrow ? 8 : 10) * Math.PI / 180, pitch = (narrow ? 10 : 14) * Math.PI / 180;
+  const bw = narrow ? 520 : 1000, bb = narrow ? 40 : 60;
+  let bd = narrow ? 420 : 560;
+  const yaw = (narrow ? 8 : 10) * Math.PI / 180, pitch = (narrow ? 38 : 32) * Math.PI / 180;
   const k = (vw * (narrow ? 0.96 : 0.9)) / (bw * Math.cos(yaw) + bd * Math.sin(yaw));
-  const bh = Math.max(300, (vh * (narrow ? 0.84 : 0.9)) / k - bb - bd * Math.sin(pitch));
-  z.style.setProperty('--bw', bw); z.style.setProperty('--bd', bd); z.style.setProperty('--bb', bb);
+  // seen from above, the walls stand foreshortened and the floor shows its depth
+  const room = (vh * (narrow ? 0.86 : 0.92)) / k - bb; // the height the box may take, in design px
+  let bh = Math.max(300, (room - bd * Math.sin(pitch)) / Math.cos(pitch));
+  // on a tall screen the walls would tower; keep them in proportion and give the floor the rest
+  const tallest = bw * 0.85;
+  if (bh > tallest) { bh = tallest; bd = Math.max(bd, (room - bh * Math.cos(pitch)) / Math.sin(pitch)); }
+  z.style.setProperty('--bw', bw); z.style.setProperty('--bd', Math.round(bd)); z.style.setProperty('--bb', bb);
   z.style.setProperty('--bh', Math.round(bh));
   z.style.setProperty('--k', k.toFixed(4));
   // one screen to arrive, then most of a screen per box
