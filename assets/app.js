@@ -2,7 +2,7 @@
 // No gate: the page lands directly on the hero ("OUR APPS, ONE PLACE.") + gallery.
 // Per-app codes only: app list is public; each app's files are either open
 // (plaintext) or locked (AES-encrypted with that app's own code).
-// The gallery is two dice (apps, games) that roll face to face as the page scrolls; Lenis smooths it.
+// The gallery is a row of cards in a 3D space, each card's parts at their own depths; Lenis smooths the scroll.
 //
 // DINO_DATA shape:
 //   { config:{title,heroSub},
@@ -72,7 +72,8 @@ function initLenis() {
 
 /* ---------- start (no gate) ---------- */
 function startSite() {
-  setupDice();
+  setupStage();
+  extrudeAll();
   mosaicNames();
   $$('#app [data-split]').forEach(splitText);
   let mosaicTimer = null;
@@ -243,163 +244,153 @@ function renderFiles(box, payload) {
   });
 }
 
-/* ---------- the gallery: two dice, one for the apps and one for the games ---------- */
-// Every card is a face of a die. Scrolling rolls the die over to its next face, a tumble that
-// rests on each face for a while; the die hops a little and the faces turning away darken.
-// Faces are laid out at a fixed design size (FACE px square) and scaled to the window.
-const FACE = 560;
-// The order a die shows its faces in: each is next to the one before, so every step is one tumble.
-const ROLL = ['front', 'top', 'right', 'back', 'bottom', 'left'];
-const PIPS = { front: 1, top: 2, right: 3, back: 6, bottom: 5, left: 4 }; // opposite faces add up to 7
+/* ---------- the gallery: one card per screen, each card a small 3D space ---------- */
+// Inside a card the parts stand at different depths (CSS --z): the number far back, the text in
+// the middle, the icon and the mascot near. Scrolling carries the cards through the space, each
+// turning as it comes in and goes out, so the depths slide against each other; the pointer tilts
+// the card in front. Before the apps and before the games a cover holds that group's icons, each
+// at its own depth.
 
-// quaternions [w, x, y, z]
-const qAxis = (x, y, z, deg) => { const h = (deg * Math.PI) / 360, s = Math.sin(h); return [Math.cos(h), x * s, y * s, z * s]; };
-const qConj = (q) => [q[0], -q[1], -q[2], -q[3]];
-const qMul = (a, b) => [
-  a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
-  a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
-  a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
-  a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0],
+// where the icons sit on a cover (left %, top %, depth px), around the word, never on it
+const COVER_SPOTS = [
+  [9, 14, 220], [78, 9, -140], [86, 64, 300], [13, 70, -60], [56, 82, 140],
+  [66, 22, 40], [30, 8, -220], [40, 74, 360], [92, 36, 80],
 ];
-function qSlerp(a, b, t) {
-  let d = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
-  if (d < 0) { b = b.map((v) => -v); d = -d; }
-  if (d > 0.9995) return a.map((v, i) => v + (b[i] - v) * t);
-  const th = Math.acos(d), s = Math.sin(th);
-  const wa = Math.sin((1 - t) * th) / s, wb = Math.sin(t * th) / s;
-  return a.map((v, i) => v * wa + b[i] * wb);
-}
-function qMat([w, x, y, z]) { // rows of the 3x3 rotation
-  return [
-    [1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)],
-    [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)],
-    [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)],
-  ];
-}
-const css3d = (R) => `matrix3d(${R[0][0]},${R[1][0]},${R[2][0]},0,${R[0][1]},${R[1][1]},${R[2][1]},0,${R[0][2]},${R[1][2]},${R[2][2]},0,0,0,0,1)`;
-// how squarely face f looks at the viewer once the die is turned by C: the z of its turned normal
-const facing = (C, F) => C[2][0] * F[0][2] + C[2][1] * F[1][2] + C[2][2] * F[2][2];
 
-// where each face sits on the die (y points down the screen, z towards the viewer)
-const SLOT_Q = {
-  front: [1, 0, 0, 0],
-  top: qAxis(1, 0, 0, 90),
-  right: qAxis(0, 1, 0, 90),
-  back: qAxis(0, 1, 0, 180),
-  bottom: qAxis(1, 0, 0, -90),
-  left: qAxis(0, 1, 0, -90),
-};
+const stage = { zone: null, scenes: [], px: 0, py: 0, tx: 0, ty: 0 };
 
-const dice = [];
-
-// cards: the elements for the faces the die shows, in order; the faces it never stops on show pips
-function buildDie(zone, cards) {
-  const die = $('.die', zone);
-  die.replaceChildren();
-  const faces = ROLL.map((slot, k) => {
-    const face = document.createElement('div');
-    face.className = 'face';
-    const body = document.createElement('div');
-    body.className = 'face-body';
-    if (cards[k]) body.appendChild(cards[k]);
-    else body.appendChild(pipFace(PIPS[slot]));
-    face.appendChild(body);
-    die.appendChild(face);
-    return { el: face, slot, R: qMat(SLOT_Q[slot]) };
-  });
-  dice.push({ zone, faces, stops: Math.max(1, Math.min(cards.length, ROLL.length)) });
-}
-
-function pipFace(n) {
-  const spots = { 1: [5], 2: [3, 7], 3: [3, 5, 7], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] }[n];
-  const p = document.createElement('div');
-  p.className = 'panel pip-face';
-  p.setAttribute('aria-hidden', 'true');
-  for (let i = 1; i <= 9; i++) {
-    const s = document.createElement('span');
-    if (spots.includes(i)) s.className = 'pip';
-    p.appendChild(s);
-  }
-  return p;
-}
-
-function coverFace(word, range) {
+function coverCard(word, range, icons) {
   const p = document.createElement('article');
-  p.className = 'panel cover-face';
-  p.innerHTML = `<h2 class="cover-word display">${escapeHtml(word)}</h2><span class="cover-range">${escapeHtml(range)}</span>`;
+  p.className = 'panel cover-card';
+  p.innerHTML =
+    `<h2 class="cover-word display">${escapeHtml(word)}</h2>` +
+    `<span class="cover-range">${escapeHtml(range)}</span>` +
+    icons.map((src, k) => {
+      const [x, y, z] = COVER_SPOTS[k % COVER_SPOTS.length];
+      return `<img class="cover-icon" src="${escapeHtml(src)}" alt="" style="left:${x}%;top:${y}%;--z:${z}px" />`;
+    }).join('');
   return p;
 }
 
-function sizeDice() {
-  const S = Math.round(Math.min(window.innerWidth * 0.88, window.innerHeight * 0.72, 620));
-  dice.forEach((d) => {
-    d.zone.style.setProperty('--S', S + 'px');
-    d.zone.style.setProperty('--k', S / FACE);
-    d.faces.forEach((f) => { f.el.style.transform = `${css3d(f.R)} translateZ(${S / 2}px)`; });
-    if (!d.zone.classList.contains('flat')) {
-      // one screen to arrive, then most of a screen per tumble
-      d.zone.style.height = `${window.innerHeight * (1 + (d.stops - 1) * 0.85)}px`;
-    } else d.zone.style.height = '';
-  });
-  if (lenis) lenis.resize();
-  rollDice();
-}
-
-const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-
-function rollDice() {
-  dice.forEach((d) => {
-    const { zone, faces, stops } = d;
-    if (zone.classList.contains('flat')) return;
-    const rect = zone.getBoundingClientRect();
-    const total = zone.offsetHeight - window.innerHeight;
-    const p = (total > 0 ? clamp(-rect.top / total, 0, 1) : 0) * (stops - 1);
-    const k = Math.min(Math.floor(p), stops - 1);
-    // rest on a face for the first and last fifth of each step, tumble in between
-    const t = k >= stops - 1 ? 0 : ease(clamp((p - k - 0.2) / 0.6, 0, 1));
-    const from = qConj(SLOT_Q[faces[k].slot]);
-    const to = qConj(SLOT_Q[faces[Math.min(k + 1, stops - 1)].slot]);
-    const C = qMat(qSlerp(from, to, t));
-    const S = parseFloat(zone.style.getPropertyValue('--S')) || FACE;
-    const hop = Math.sin(Math.PI * t);
-    // The die rests a little turned so its sides show. Turning it about its centre would swing the
-    // face in front sideways and towards the camera, so the face's centre is moved back to where
-    // an unturned face would be: on screen centre, at its true size.
-    const yaw = 12 - hop * 6, pitch = -9;
-    const T = qMat(qMul(qAxis(1, 0, 0, pitch), qAxis(0, 1, 0, yaw)));
-    const h = S / 2;
-    const [vx, vy, vz] = [T[0][2] * h, T[1][2] * h, T[2][2] * h];
-    $('.die-hop', zone).style.transform =
-      `translate3d(${-vx}px, ${-vy - hop * S * 0.06}px, ${-vz - hop * S * 0.4}px) rotateX(${pitch}deg) rotateY(${yaw}deg)`;
-    $('.die', zone).style.transform = css3d(C);
-    faces.forEach((f) => {
-      const z = facing(C, f.R);
-      f.el.style.setProperty('--shade', ((1 - clamp(z, 0, 1)) * 0.7).toFixed(3));
-      f.el.inert = z < 0.9; // only the face turned to the viewer takes clicks and focus
-    });
-  });
-}
-
-function setupDice() {
+function setupStage() {
   const apps = (DATA && Array.isArray(DATA.apps)) ? DATA.apps : [];
   const games = Array.isArray(window.DINO_GAMES) ? window.DINO_GAMES : [];
   const n = (i) => String(i).padStart(2, '0');
 
-  const appCards = [coverFace('APPS', `${n(1)}—${n(apps.length)}`)];
-  apps.forEach((a, i) => appCards.push(buildPanel(a, i).firstElementChild));
-  buildDie($('#apps'), appCards.slice(0, ROLL.length));
+  const cards = [coverCard('APPS', `${n(1)}—${n(apps.length)}`, apps.filter((a) => a.icon).map((a) => a.icon))];
+  apps.forEach((a, i) => cards.push(buildPanel(a, i).firstElementChild));
+  if (games.length) {
+    cards.push(coverCard('GAMES', `${n(apps.length + 1)}—${n(apps.length + games.length)}`,
+      games.flatMap((g) => [g.icon, ...(g.stickers || [])]).filter(Boolean)));
+    games.forEach((g, k) => cards.push(buildGamePanel(g, apps.length + k)));
+  }
+  cards.push(buildComingSoonPanel(apps.length + games.length + 1));
 
-  const first = apps.length + 1;
-  const gameCards = [coverFace('GAMES', `${n(first)}—${n(apps.length + games.length)}`)];
-  games.forEach((g, k) => gameCards.push(buildGamePanel(g, apps.length + k)));
-  gameCards.push(buildComingSoonPanel(apps.length + games.length + 1));
-  buildDie($('#games'), gameCards.slice(0, ROLL.length));
+  stage.zone = $('#gallery');
+  const room = $('.stage', stage.zone);
+  room.replaceChildren();
+  stage.scenes = cards.map((card) => {
+    const scene = document.createElement('div');
+    scene.className = 'scene';
+    scene.appendChild(card);
+    room.appendChild(scene);
+    return scene;
+  });
 
-  if (REDUCED()) dice.forEach((d) => d.zone.classList.add('flat'));
-  sizeDice();
-  window.addEventListener('resize', sizeDice);
-  window.addEventListener('scroll', () => requestAnimationFrame(rollDice), { passive: true });
-  if (lenis) lenis.on('scroll', rollDice);
+  if (REDUCED()) stage.zone.classList.add('flat');
+  sizeStage();
+  window.addEventListener('resize', sizeStage);
+  window.addEventListener('scroll', () => requestAnimationFrame(moveStage), { passive: true });
+  if (lenis) lenis.on('scroll', moveStage);
+  window.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    stage.tx = (e.clientX / window.innerWidth) * 2 - 1;
+    stage.ty = (e.clientY / window.innerHeight) * 2 - 1;
+  }, { passive: true });
+  requestAnimationFrame(function follow() {
+    // the tilt eases after the pointer instead of snapping to it
+    stage.px += (stage.tx - stage.px) * 0.08;
+    stage.py += (stage.ty - stage.py) * 0.08;
+    moveStage();
+    requestAnimationFrame(follow);
+  });
+}
+
+function sizeStage() {
+  const z = stage.zone;
+  // one screen to arrive, then most of a screen per card
+  z.style.height = z.classList.contains('flat') ? '' : `${window.innerHeight * (1 + (stage.scenes.length - 1) * 0.8)}px`;
+  if (lenis) lenis.resize();
+  moveStage();
+}
+
+const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+function moveStage() {
+  const z = stage.zone;
+  if (!z || z.classList.contains('flat')) return;
+  const count = stage.scenes.length;
+  const rect = z.getBoundingClientRect();
+  const total = z.offsetHeight - window.innerHeight;
+  const p = (total > 0 ? clamp(-rect.top / total, 0, 1) : 0) * (count - 1);
+  const k = Math.floor(p);
+  // rest on a card for the first and last fifth of each step, move in between
+  const at = k >= count - 1 ? count - 1 : k + ease(clamp((p - k - 0.2) / 0.6, 0, 1));
+  const W = window.innerWidth;
+  stage.scenes.forEach((scene, i) => {
+    const d = i - at; // 0: in front, 1: next, -1: just gone
+    const far = Math.abs(d);
+    if (far > 1.6) { scene.style.visibility = 'hidden'; scene.inert = true; return; }
+    scene.style.visibility = '';
+    const near = 1 - Math.min(1, far);
+    scene.style.transform =
+      `translateX(${d * W * 0.62}px) translateZ(${-far * 520}px) rotateY(${-d * 48}deg)` +
+      ` rotateX(${-stage.py * 7 * near}deg) rotateY(${stage.px * 10 * near}deg)`;
+    scene.style.opacity = String(clamp(1.25 - far * 0.9, 0, 1));
+    scene.inert = far > 0.15; // only the card in front takes clicks and focus
+  });
+}
+
+/* ---------- 3D letters: every display letter a solid block floating at its own depth ---------- */
+// Each letter is drawn once as its face and again a few times behind it, each copy a little
+// further back and darker, so under the stage's perspective it reads as a letter with thickness.
+// Each letter also stands at its own depth and drifts slowly forward and back.
+function extrude(el, layers, step) {
+  if (el.dataset.extruded) return;
+  el.dataset.extruded = '1';
+  el.setAttribute('aria-label', el.textContent.replace(/\s+/g, ' ').trim());
+  el.style.setProperty('--step', step + 'px');
+  let i = 0;
+  const walk = (node) => {
+    [...node.childNodes].forEach((n) => {
+      if (n.nodeType === Node.ELEMENT_NODE) { walk(n); return; }
+      if (n.nodeType !== Node.TEXT_NODE) return;
+      const frag = document.createDocumentFragment();
+      for (const ch of n.textContent) {
+        if (/\s/.test(ch)) { frag.appendChild(document.createTextNode(ch)); continue; }
+        const l = document.createElement('span');
+        l.className = 'l3';
+        l.setAttribute('aria-hidden', 'true');
+        l.style.setProperty('--lz', `${Math.round(((i * 37) % 11) * 4)}px`); // a steady scatter, 0-40px
+        l.style.setProperty('--ld', `${-((i * 0.7) % 5).toFixed(2)}s`);
+        // and is turned a little its own way, so its sides show
+        l.style.setProperty('--rx', `${((i * 53) % 9) * 3.5 - 14}deg`);
+        l.style.setProperty('--ry', `${((i * 29) % 9) * 4 - 16}deg`);
+        i++;
+        let html = '';
+        for (let k = layers; k >= 1; k--) html += `<span class="l3-side" style="--k:${k};--fade:${(k / layers).toFixed(2)}">${escapeHtml(ch)}</span>`;
+        l.innerHTML = html + `<span class="l3-face">${escapeHtml(ch)}</span>`;
+        frag.appendChild(l);
+      }
+      n.replaceWith(frag);
+    });
+  };
+  walk(el);
+}
+
+function extrudeAll() {
+  $$('.gallery .panel-index, .gallery .cover-word').forEach((el) => extrude(el, 14, 3.6));
+  $$('.gallery .panel-name:not([data-mosaic])').forEach((el) => extrude(el, 9, 2.4));
 }
 
 /* ---------- draggable hero stickers (drag & drop toy) ---------- */
