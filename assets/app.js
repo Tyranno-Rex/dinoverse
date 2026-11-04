@@ -76,15 +76,17 @@ function startSite() {
   const apps = (DATA && Array.isArray(DATA.apps)) ? DATA.apps : [];
   renderPanels(apps);
   mosaicNames();
+  layoutDrums();
   $$('#app [data-split]').forEach(splitText);
   if (lenis) lenis.resize();
   setupHScroll();
   placePanelMascots();
+  requestAnimationFrame(turnDrums);
   let mascotTimer = null;
   window.addEventListener('resize', () => {
     clearTimeout(mascotTimer);
     // the type size follows the window, so the mosaic is redrawn at the new size
-    mascotTimer = setTimeout(() => { mosaicNames(); placePanelMascots(); }, 160);
+    mascotTimer = setTimeout(() => { mosaicNames(); layoutDrums(); placePanelMascots(); }, 160);
   });
 }
 
@@ -119,7 +121,7 @@ function mosaicNames() {
 /* ---------- render app panels ---------- */
 function renderPanels(apps) {
   const track = $('#htrack');
-  $$('.panel:not(.intro-panel)', track).forEach((n) => n.remove());
+  track.replaceChildren(buildIntroPanel('APPS'));
 
   if (!apps.length) {
     const p = document.createElement('article');
@@ -130,15 +132,15 @@ function renderPanels(apps) {
     apps.forEach((app, i) => track.appendChild(buildPanel(app, i)));
   }
 
-  // the games share one card after the apps, numbering continues (3 apps + the games -> teaser "05")
+  // each game gets its own card after the apps; the numbering runs on (3 apps + 4 games -> teaser "08")
   const games = Array.isArray(window.DINO_GAMES) ? window.DINO_GAMES : [];
   if (games.length) {
-    track.appendChild(buildGamesIntro());
-    track.appendChild(buildGamesPanel(games, apps.length));
+    track.appendChild(buildIntroPanel('GAMES'));
+    games.forEach((g, k) => track.appendChild(buildGamePanel(g, apps.length + k)));
   }
 
   // teaser card after the apps and games
-  track.appendChild(buildComingSoonPanel(apps.length + (games.length ? 1 : 0) + 1));
+  track.appendChild(buildComingSoonPanel(apps.length + games.length + 1));
 }
 
 function buildPanel(app, i) {
@@ -182,38 +184,92 @@ function buildPanel(app, i) {
   return node;
 }
 
-/* ---------- games: the intro word, then one card for all of them ---------- */
-function buildGamesIntro() {
+/* ---------- the APPS / GAMES dividers: the word wrapped round a turning drum ---------- */
+// The word runs three times round a ring of letters seen slightly from above; the ring turns on its
+// own and the scroll winds it further, so moving from the apps to the games turns the drums.
+function buildIntroPanel(word) {
   const p = document.createElement('article');
   p.className = 'panel intro-panel';
-  p.innerHTML = '<h2 class="intro-big display" data-split>GAMES</h2>';
+  p.innerHTML =
+    `<h2 class="visually-hidden">${escapeHtml(word)}</h2>` +
+    '<div class="drum" aria-hidden="true"><div class="drum-ring"></div></div>';
+  const ring = $('.drum-ring', p);
+  for (const ch of `${word} ✦ `.repeat(3)) {
+    if (ch === ' ') continue;
+    const span = document.createElement('span');
+    span.className = 'drum-ch display' + (ch === '✦' ? ' drum-star' : '');
+    span.textContent = ch;
+    ring.appendChild(span);
+  }
   return p;
 }
 
-// None is out yet: their icons by the number, what they will run on, then each one's name (as a
-// mosaic), version and line; their stickers share the zone below.
-function buildGamesPanel(games, i) {
-  const p = document.createElement('article');
-  p.className = 'panel games-panel';
-  const platforms = [...new Set(games.flatMap((g) => g.platforms || []))];
-  p.innerHTML =
-    '<div class="panel-badge"><div class="panel-icons">' +
-      games.filter((g) => g.icon).map((g) => `<img class="panel-icon" src="${escapeHtml(g.icon)}" alt="" />`).join('') +
-      '</div><span class="panel-index">' + String(i + 1).padStart(2, '0') + '</span></div>' +
-    '<div class="panel-content">' +
-      '<div class="panel-meta">' + platforms.map((x) => `<span>${PLATFORM_LABEL[x] || escapeHtml(x)}</span>`).join('') +
-        '<span>NOT YET</span></div>' +
-      games.map((g) =>
-        '<div class="game-entry"><div class="game-entry-head"><h2 class="game-name display"></h2>' +
-          `<span class="game-version">v${escapeHtml(g.version || '')}</span></div>` +
-          `<p class="panel-desc">${escapeHtml(g.description || '')}</p></div>`).join('') +
-    '</div>' +
-    games.filter((g) => g.image).map((g, k) => `<img class="panel-sticker panel-sticker--p${k % 5}" src="${escapeHtml(g.image)}" alt="" />`).join('');
-  $$('.game-name', p).forEach((el, k) => {
-    const name = flatName(games[k].name || games[k].id);
-    if (games[k].mosaic) el.dataset.mosaic = name; // drawn over as blocks once laid out (mosaicNames)
-    el.textContent = name;
+// Lay each drum's letters round the ring, the ring sized to the panel, letters spaced by their width.
+function layoutDrums() {
+  $$('.drum').forEach((drum) => {
+    const chs = $$('.drum-ch', drum);
+    const panelW = drum.parentElement.clientWidth;
+    const radius = Math.min(panelW * 0.34, window.innerHeight * 0.28);
+    chs.forEach((c) => { c.style.fontSize = '100px'; c.style.transform = 'none'; });
+    const widths = chs.map((c) => c.getBoundingClientRect().width);
+    const gap = 8;
+    const total = widths.reduce((a, w) => a + w + gap, 0);
+    const scale = (2 * Math.PI * radius) / total; // the letters just close the circle
+    let at = 0;
+    drum.style.setProperty('--r', radius + 'px');
+    chs.forEach((c, k) => {
+      const w = (widths[k] + gap) * scale;
+      const deg = ((at + w / 2) / (2 * Math.PI * radius)) * 360;
+      at += w;
+      c.dataset.deg = deg;
+      c.style.fontSize = 100 * scale + 'px';
+      c.style.transform = `translate(-50%, -50%) rotateY(${deg}deg) translateZ(${radius}px)`;
+    });
   });
+}
+
+let drumSpin = 0, drumLast = 0;
+function turnDrums(now) {
+  const dt = drumLast ? Math.min(64, now - drumLast) : 0;
+  drumLast = now;
+  if (!REDUCED()) drumSpin += dt * 0.012; // degrees per ms: a turn in about half a minute
+  const sec = $('#hscroll');
+  const rect = sec.getBoundingClientRect();
+  const total = sec.offsetHeight - window.innerHeight;
+  const wound = total > 0 && !sec.classList.contains('native') ? clamp(-rect.top / total, 0, 1) * 540 : 0;
+  $$('.drum').forEach((drum, k) => {
+    const turn = drumSpin + wound * (k % 2 ? -1 : 1); // the two drums turn against each other
+    drum.firstElementChild.style.transform = `rotateX(-14deg) rotateY(${-turn}deg)`;
+    $$('.drum-ch', drum).forEach((c) => {
+      // a letter faces the viewer when its own angle and the ring's add up to near 0
+      const a = (((+c.dataset.deg - turn) % 360) + 360) % 360;
+      c.classList.toggle('back', a > 90 && a < 270);
+    });
+  });
+  requestAnimationFrame(turnDrums);
+}
+
+/* ---------- each game's card: icon and number, version, platforms, NOT YET, the name as a mosaic, one line ---------- */
+function buildGamePanel(g, i) {
+  const p = document.createElement('article');
+  p.className = 'panel game-panel';
+  p.innerHTML =
+    '<div class="panel-badge">' +
+      (g.icon ? `<img class="panel-icon" src="${escapeHtml(g.icon)}" alt="" />` : '') +
+      `<span class="panel-index">${String(i + 1).padStart(2, '0')}</span></div>` +
+    '<div class="panel-content">' +
+      '<div class="panel-meta">' +
+        (g.version ? `<span class="tag">v${escapeHtml(g.version)}</span>` : '') +
+        (g.platforms || []).map((x) => `<span>${PLATFORM_LABEL[x] || escapeHtml(x)}</span>`).join('') +
+        '<span>NOT YET</span></div>' +
+      '<h2 class="panel-name display"></h2>' +
+      `<p class="panel-desc">${escapeHtml(g.description || '')}</p>` +
+    '</div>' +
+    (g.image ? `<img class="panel-sticker panel-sticker--p${i % 5}" src="${escapeHtml(g.image)}" alt="" />` : '');
+  const nameEl = $('.panel-name', p);
+  const name = g.name || g.id;
+  if (g.mosaic) nameEl.dataset.mosaic = name; // drawn over as blocks once laid out (mosaicNames)
+  nameEl.textContent = flatName(name);
   return p;
 }
 
@@ -231,7 +287,6 @@ function buildComingSoonPanel(n) {
 }
 
 /* ---------- scatter each panel's mascot randomly in the zone below its content ---------- */
-// A panel with several (the games' card) splits the zone's width between them so none overlap.
 function placePanelMascots() {
   $$('#htrack .panel').forEach((panel) => {
     const ms = $$('.panel-sticker', panel);

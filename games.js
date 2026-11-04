@@ -1,5 +1,5 @@
 // Public game list — hand-edited, no secrets. Separate from data.js so the app generator never
-// touches it. None is out yet, so they share one card (assets/app.js buildGamesPanel).
+// touches it. Each game gets a card of its own after the apps (assets/app.js buildGamePanel).
 // `mosaic`: the name is shown only as a mosaic — and the names here are gibberish stand-ins, so
 // neither the source nor an un-blurred mosaic says which game it is. Images live in image/games/.
 // `stickers` go up on the hero with the apps' ones.
@@ -36,5 +36,16 @@ window.DINO_GAMES = [
     icon: 'image/games/g3-icon.png',
     image: 'image/games/g3-mascot.png',
     stickers: ['image/games/g3-ace.png', 'image/games/g3-joker.png'],
+  },
+  {
+    id: 'g4',
+    name: 'Fujo\nKemadi',
+    mosaic: true,
+    description: 'A management game: a one-person video studio grows into a production company, one video at a time.',
+    version: '0.0.1',
+    platforms: ['win'],
+    icon: 'image/games/g4-icon.png',
+    image: 'image/games/g4-mascot.png',
+    stickers: ['image/games/g4-camera.png', 'image/games/g4-chair.png'],
   },
 ];

@@ -34,6 +34,7 @@ body {
   overflow-x: hidden;
 }
 .hidden { display: none !important; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 ::selection { background: var(--blue); color: var(--paper); }
 .footer ::selection { background: var(--accent); color: var(--ink); }
 html { scrollbar-color: var(--ink) var(--paper); }
@@ -197,23 +198,22 @@ input { caret-color: var(--accent); }
 /* taller card → start content below the big number instead of centering it */
 .soon-panel { width: min(680px, 90vw); justify-content: flex-start; padding-top: clamp(200px, 30vh, 300px); }
 
-/* ---------- the games' one card: icons in a row by the number, then one entry per game ---------- */
-.games-panel { width: min(680px, 90vw); justify-content: flex-start; padding-top: clamp(170px, 26vh, 260px); }
-.panel-icons { display: flex; align-items: center; gap: clamp(8px, 1.4vw, 16px); }
-.games-panel .panel-icon { height: clamp(44px, 7vh, 84px); }
-.game-entry + .game-entry { margin-top: clamp(14px, 2.4vh, 24px); }
-.game-entry-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-bottom: 8px; }
-.game-name { font-size: clamp(22px, 2.6vw, 32px); color: var(--paper); }
-.game-version { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; color: var(--blue-lit); }
-.games-panel .panel-desc { font-size: clamp(13px, 1.4vw, 16px); line-height: 1.5; margin: 0; }
-.games-panel .panel-sticker { height: clamp(90px, 15vh, 150px); }
 .soon-sub { white-space: normal; }
 
-/* intro + footer big words */
-/* wide enough (and with trimmed side padding) that the big "APPS" word fits
-   inside the panel instead of spilling past its right border into panel 01 */
-.intro-panel { width: min(560px, 86vw); justify-content: center; color: var(--paper); padding-left: clamp(24px, 4vw, 36px); padding-right: clamp(24px, 4vw, 36px); }
-.intro-big { font-size: clamp(64px, 14vh, 180px); color: transparent; -webkit-text-stroke: 2px var(--blue); white-space: nowrap; }
+/* ---------- the APPS / GAMES dividers: a drum of letters turning in 3D (app.js layoutDrums/turnDrums) ---------- */
+.intro-panel { width: min(620px, 86vw); padding: 0; overflow: hidden; }
+.drum { position: absolute; inset: 0; perspective: 1000px; perspective-origin: 50% 40%; }
+.drum-ring { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; will-change: transform; }
+.drum-ch {
+  position: absolute; left: 0; top: 0; line-height: 1; letter-spacing: 0;
+  color: var(--blue); backface-visibility: visible; white-space: nowrap;
+}
+/* the far side of the ring is seen through: outlined, so the near side reads first */
+.drum-ch.back { color: transparent; -webkit-text-stroke: 1.5px var(--blue); opacity: 0.6; }
+.drum-star { color: var(--accent); }
+.drum-ch.drum-star.back { -webkit-text-stroke-color: var(--accent); }
+
+/* footer big words */
 
 /* footer = the studio's about / contact card */
 .footer {
@@ -301,18 +301,14 @@ input { caret-color: var(--accent); }
   }
   .hscroll.native .htrack { display: flex; height: auto; }
   .hscroll.native .panel { width: 86vw; height: auto; min-height: 86vh; scroll-snap-align: start; }
-  .hscroll.native .intro-panel { width: 78vw; }
+  .hscroll.native .intro-panel { width: 86vw; }
   .hscroll.native .soon-panel { width: 90vw; padding-top: clamp(120px, 22vh, 200px); }
-  .hscroll.native .games-panel { width: 90vw; padding-top: clamp(150px, 23vh, 220px); }
 
   /* pinned-mobile (default, non-reduced-motion): panels stay one screen tall and
      are clipped, so trim oversized desktop widths/spacing to give content room. */
   .panel { width: 86vw; }
-  .intro-panel { width: 78vw; }
+  .intro-panel { width: 86vw; }
   .soon-panel { width: 90vw; padding-top: clamp(120px, 20vh, 200px); }
-  .games-panel { width: 90vw; padding-top: clamp(150px, 23vh, 220px); } /* clear of the big number */
-  .games-panel .panel-icon { height: clamp(34px, 10vw, 56px); }
-  .games-panel .panel-sticker { height: clamp(60px, 18vw, 96px); }
 
   /* desktop-style badge kept (icon far left, number far right), a bit smaller */
   .panel-index { font-size: clamp(56px, 16vh, 120px); }
@@ -323,7 +319,6 @@ input { caret-color: var(--accent); }
   /* nothing clips: every line wraps */
   .panel-name, .panel-desc { white-space: normal; }
   .panel-meta { white-space: normal; flex-wrap: wrap; gap: 8px 14px; }
-  .intro-big { font-size: clamp(52px, 20vw, 110px); white-space: normal; }
     .footer-cols { flex-direction: column; gap: clamp(26px, 5vh, 40px); }
   .footer-verse { white-space: normal; }
   .footer-ref { white-space: normal; }
