@@ -144,7 +144,7 @@ input { caret-color: var(--accent); }
 .gallery {
   position: relative;
   background: radial-gradient(120% 75% at 50% 112%, #1f33c4 0%, #121a52 42%, var(--ink) 78%);
-  --bw: 780; --bd: 420; --bh: 260; --bb: 190; --k: 1; --ps: 1;
+  --bw: 780; --bd: 420; --bh: 300; --bb: 90; --k: 1; --ps: 1;
 }
 .stage-sticky { position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden; perspective: 1500px; perspective-origin: 50% 38%; }
 .stage { position: absolute; inset: 0; transform-style: preserve-3d; }
@@ -183,7 +183,7 @@ input { caret-color: var(--accent); }
 .dio-front {
   width: calc(var(--bw) * 1px); margin: calc(var(--bb) * -0.5px) 0 0 calc(var(--bw) * -0.5px);
   transform: translateY(calc((var(--bh) + var(--bb)) * 0.5px)) translateZ(calc(var(--bd) * 0.5px));
-  background: #141414; box-shadow: inset 0 4px 0 var(--accent), inset 0 0 0 1px #2a2a2a;
+  background: #121212; box-shadow: inset 0 4px 0 var(--accent), inset 0 0 0 1px #2a2a2a;
 }
 .dio-base-left, .dio-base-right {
   width: calc(var(--bd) * 1px); margin: calc(var(--bb) * -0.5px) 0 0 calc(var(--bd) * -0.5px);
@@ -192,8 +192,8 @@ input { caret-color: var(--accent); }
 .dio-base-left { transform: translateY(calc((var(--bh) + var(--bb)) * 0.5px)) translateX(calc(var(--bw) * -0.5px)) rotateY(-90deg); }
 .dio-base-right { transform: translateY(calc((var(--bh) + var(--bb)) * 0.5px)) translateX(calc(var(--bw) * 0.5px)) rotateY(90deg); }
 
-/* the number painted big on the back wall */
-.dio-num { position: absolute; left: 30px; bottom: 18px; font-size: 150px; line-height: 0.84; color: var(--paper); }
+/* the number standing big on the back wall */
+.dio-num { position: absolute; right: 30px; top: 16px; font-size: 150px; line-height: 0.84; color: var(--paper); }
 
 /* things standing on the floor: each at its spot, turned to face the viewer, with a shadow under it */
 .dio > .prop {
@@ -226,22 +226,40 @@ input { caret-color: var(--accent); }
 }
 .dio-logo .mosaic { margin: 0 auto; }
 
-/* the base's front is the info panel */
-.dio-info {
-  position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1fr) 270px;
-  gap: 28px; padding: 24px 30px 20px; color: var(--paper); align-items: start;
+/* the words float in the air inside the box, turned to the viewer: the line and its tags in front
+   of the back wall, the buttons over the front of the floor. Nothing is written on the faces. */
+.dio > .dio-float {
+  width: 0; height: 0;
+  transform:
+    translate3d(calc(var(--fx) * var(--bw) * 1px), calc(var(--fy) * var(--bh) * 1px), calc(var(--fz) * var(--bd) * 1px))
+    rotateY(calc(var(--yaw) * -1)) rotateX(calc(var(--pitch) * -0.5));
 }
-.dio-info .panel-meta { color: #a3a39b; font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 10px; }
-.panel-meta .tag { color: var(--blue-lit); }
+.dio-text { --fx: -0.47; --fy: -0.44; --fz: -0.3; }
+.dio-act { --fx: -0.46; --fy: 0.5; --fz: 0.4; }
+.dio-pane { position: absolute; left: 0; top: 0; width: calc(var(--bw) * var(--fw) * 1px); transform-style: preserve-3d; color: var(--paper); }
+.dio-text .dio-pane { --fw: 0.5; }
+.dio-act .dio-pane { --fw: 0.36; top: auto; bottom: 18px; }
+.dio-pane > * { transform: translateZ(var(--fz2, 0px)); }
+.dio-text .panel-meta { --fz2: 30px; color: var(--on-blue); font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 12px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
+.dio-text .panel-meta .tag { color: var(--accent); }
 .panel-meta .access { display: inline-flex; align-items: center; gap: 6px; }
-.dio-info .panel-desc { font-family: var(--body); text-wrap: pretty; color: #d6d4ca; font-size: 18px; line-height: 1.5; margin: 0; max-width: 48ch; }
-.dio-act { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; min-width: 0; }
-.dio-act .panel-action, .dio-act .line-form, .dio-act .files { width: 100%; }
-.dio-act .panel-action { display: flex; flex-direction: column; align-items: flex-end; }
+.dio-text .panel-desc {
+  transform-style: preserve-3d; font-family: var(--body); color: var(--paper); font-size: 21px; line-height: 1.45;
+  margin: 0; text-wrap: pretty; font-weight: 600;
+}
+.panel-desc .w { display: inline-block; transform: translateZ(var(--wz, 0px)); text-shadow: 0 6px 14px rgba(0, 0, 0, 0.4); }
+.dio-act .panel-action { display: flex; flex-direction: column; align-items: flex-start; }
+.dio-act .line-form, .dio-act .files { width: 100%; }
+.dio-act .link-btn {
+  background: var(--ink); padding: 10px 14px; border-radius: 6px; box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
+}
+.dio-act .line-form { background: var(--ink); padding: 8px 12px; border-radius: 6px; box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45); }
+.dio-act .files { background: var(--ink); padding: 0 14px; border-radius: 6px; }
+.dio-act .err { color: #ff7a6e; }
 .mosaic { display: block; image-rendering: pixelated; } /* a hidden name (app.js mosaicNames) */
-/* "BETA VERSION" — a die-cut sticker stuck on the panel, standing a little off it */
+/* "BETA VERSION" — a die-cut sticker floating ahead of the line */
 .beta-sticker {
-  display: inline-block; transform: translateZ(14px) rotate(-3deg);
+  display: inline-block; --fz2: 70px; transform: translateZ(var(--fz2)) rotate(-3deg); margin-bottom: 14px;
   background: var(--accent); color: var(--ink);
   font-family: var(--mono); font-weight: 700; text-transform: uppercase;
   letter-spacing: 0.14em; font-size: 11px;
@@ -252,14 +270,16 @@ input { caret-color: var(--accent); }
 .dio--cover .dio-logo .panel-name { font-size: 132px; }
 
 @media (max-width: 760px) {
-  .gallery { --bw: 460; --bd: 300; --bh: 230; --bb: 260; --ps: 0.62; }
-  .dio-info { grid-template-columns: 1fr; gap: 14px; padding: 20px 22px; }
-  .dio-info .panel-desc { font-size: 19px; }
-  .dio-info .panel-meta { font-size: 15px; }
-  .dio-act, .dio-act .panel-action { align-items: flex-start; }
+  .gallery { --bw: 460; --bd: 320; --bh: 420; --bb: 70; --ps: 0.62; }
+  .dio-text { --fx: -0.46; --fy: -0.36; }
+  .prop--mascot { --x: 0.26 !important; --z: 0.3 !important; }
+  .dio-text .dio-pane { --fw: 0.92; }
+  .dio-act .dio-pane { --fw: 0.7; }
+  .dio-text .panel-desc { font-size: 21px; }
+  .dio-text .panel-meta { font-size: 15px; }
   .dio-logo .panel-name { font-size: 50px; }
   .dio--cover .dio-logo .panel-name { font-size: 96px; }
-  .dio-num { font-size: 120px; }
+  .dio-num { font-size: 96px; top: 10px; }
 }
 
 /* footer = the studio's about / contact card */

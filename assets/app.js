@@ -255,8 +255,8 @@ function renderFiles(box, payload) {
 // floor spots: x across (-0.5 left .. 0.5 right), z deep (-0.5 back .. 0.5 front), h height px
 const SPOTS = {
   mascot: [0.22, 0.08, 230],
-  icon: [-0.3, -0.18, 110],
-  extra: [[-0.02, -0.3, 120], [0.4, -0.28, 105]],
+  icon: [0.1, 0.3, 110],
+  extra: [[0.44, -0.26, 105], [-0.24, 0.3, 100]],
   cover: [
     [-0.34, -0.22], [0.02, -0.3], [0.34, -0.2], [-0.16, 0.1], [0.2, 0.12],
     [-0.4, 0.22], [0.4, 0.24], [0.02, 0.28], [-0.1, -0.05], [0.12, -0.08],
@@ -265,8 +265,8 @@ const SPOTS = {
 
 const stage = { zone: null, scenes: [], px: 0, py: 0, tx: 0, ty: 0 };
 
-function prop(src, [x, z, h], alt = '') {
-  return `<div class="prop" style="--x:${x};--z:${z};--h:${h}"><img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" /></div>`;
+function prop(src, [x, z, h], alt = '', cls = '') {
+  return `<div class="prop${cls ? ` prop--${cls}` : ''}" style="--x:${x};--z:${z};--h:${h}"><img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" /></div>`;
 }
 
 // card: the article a card builder made (its parts are moved into the box, listeners and all)
@@ -278,16 +278,30 @@ function diorama(card, { num = '', props = '', logo = null, kind = '' } = {}) {
     '<div class="dio-floor"></div>' +
     `<div class="dio-wall dio-back"><span class="dio-num display">${escapeHtml(num)}</span></div>` +
     '<div class="dio-wall dio-left"></div><div class="dio-wall dio-right"></div>' +
-    '<div class="dio-base dio-front"><div class="dio-info"><div class="dio-text"></div><div class="dio-act"></div></div></div>' +
+    '<div class="dio-base dio-front"></div>' +
     '<div class="dio-base dio-base-left"></div><div class="dio-base dio-base-right"></div>' +
     props +
-    '<div class="dio-logo"></div>';
+    '<div class="dio-logo"></div>' +
+    '<div class="dio-float dio-text"><div class="dio-pane"></div></div>' +
+    '<div class="dio-float dio-act"><div class="dio-pane"></div></div>';
   const name = logo || pick('.panel-name');
   if (name) $('.dio-logo', d).appendChild(name);
-  const text = $('.dio-text', d), act = $('.dio-act', d);
-  ['.panel-meta', '.panel-desc'].forEach((s) => { const el = pick(s); if (el) text.appendChild(el); });
-  ['.beta-sticker', '.panel-action'].forEach((s) => { const el = pick(s); if (el) act.appendChild(el); });
+  // the words hang in the air inside the box, nothing is written on its faces
+  const text = $('.dio-text .dio-pane', d), act = $('.dio-act .dio-pane', d);
+  ['.beta-sticker', '.panel-meta', '.panel-desc'].forEach((s) => { const el = pick(s); if (el) text.appendChild(el); });
+  const action = pick('.panel-action');
+  if (action) act.appendChild(action);
+  const desc = $('.panel-desc', text);
+  if (desc) floatWords(desc);
   return d;
+}
+
+// each word of a line stands at its own small depth, so the line reads as hanging in 3D
+function floatWords(el) {
+  const words = el.textContent.split(/\s+/).filter(Boolean);
+  el.setAttribute('aria-label', el.textContent);
+  el.innerHTML = words.map((w, i) =>
+    `<span class="w" aria-hidden="true" style="--wz:${((i * 7) % 5) * 6}px">${escapeHtml(w)}</span>`).join(' ');
 }
 
 function cardProps(card, extras = []) {
@@ -296,7 +310,7 @@ function cardProps(card, extras = []) {
   let html = '';
   if (icon && icon.getAttribute('src')) html += prop(icon.getAttribute('src'), SPOTS.icon, icon.alt);
   extras.forEach((src, k) => { if (SPOTS.extra[k]) html += prop(src, SPOTS.extra[k]); });
-  if (mascot && mascot.getAttribute('src')) html += prop(mascot.getAttribute('src'), SPOTS.mascot, mascot.alt);
+  if (mascot && mascot.getAttribute('src')) html += prop(mascot.getAttribute('src'), SPOTS.mascot, mascot.alt, 'mascot');
   return html;
 }
 
