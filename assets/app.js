@@ -19,6 +19,15 @@ const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
 const PLATFORM_LABEL = { win: 'WINDOWS', android: 'ANDROID', mac: 'MACOS', linux: 'LINUX', web: 'WEB', ios: 'IOS', steam: 'STEAM' };
+
+// One drawn icon set (1.5px stroke, square caps) instead of emoji and unicode arrows.
+const ICON_PATHS = {
+  lock: '<rect x="3.5" y="7.5" width="9" height="6.5"/><path d="M5.5 7.5V5a2.5 2.5 0 0 1 5 0v2.5"/>',
+  card: '<rect x="2" y="4" width="12" height="8.5"/><path d="M2 7h12M4.5 10.5h3"/>',
+  down: '<path d="M8 2.5v10M3.5 8l4.5 4.5L12.5 8"/>',
+};
+const svgIcon = (name) =>
+  `<svg class="ico" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" aria-hidden="true">${ICON_PATHS[name]}</svg>`;
 // A name may carry explicit line breaks ("Brachy\nCalendar"); flat() is for alt text.
 const flatName = (s) => s.replace(/\n/g, ' ');
 const REDUCED = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -165,8 +174,8 @@ function buildPanel(app, i) {
   const bits = [];
   if (app.version) bits.push(`<span class="tag">v${escapeHtml(app.version)}</span>`);
   (app.platforms || []).forEach((p) => bits.push(`<span>${PLATFORM_LABEL[p] || escapeHtml(p)}</span>`));
-  const access = app.lock === 'own' ? '🔒 APP CODE' : (app.paid ? '💳 PAID' : '↓ FREE');
-  bits.push(`<span>${access}</span>`);
+  const access = app.lock === 'own' ? svgIcon('lock') + 'APP CODE' : (app.paid ? svgIcon('card') + 'PAID' : svgIcon('down') + 'FREE');
+  bits.push(`<span class="access">${access}</span>`);
   meta.innerHTML = bits.join('');
 
   wirePanel(node, app);
@@ -215,7 +224,6 @@ function buildComingSoonPanel(n) {
   p.innerHTML =
     '<div class="panel-badge"><span class="panel-index">' + String(n).padStart(2, '0') + '</span></div>' +
     '<div class="panel-content">' +
-      '<div class="panel-meta"><span class="tag">COMING SOON</span><span>In the works</span></div>' +
       '<h2 class="panel-name display">MORE<br>TO COME</h2>' +
       '<p class="panel-desc soon-sub">More is on the way.</p>' +
     '</div>';
@@ -298,7 +306,7 @@ function renderFiles(box, payload) {
     a.className = 'file-link';
     a.href = f.url; a.setAttribute('download', ''); a.rel = 'noopener';
     a.innerHTML = `<span>${escapeHtml(f.label || 'DOWNLOAD')}</span>` +
-      `<span>${f.size ? `<span class="meta">${escapeHtml(f.size)}</span> ` : ''}<span class="dl">↓</span></span>`;
+      `<span>${f.size ? `<span class="meta">${escapeHtml(f.size)}</span> ` : ''}<span class="dl">${svgIcon('down')}</span></span>`;
     box.appendChild(a);
   });
 }
