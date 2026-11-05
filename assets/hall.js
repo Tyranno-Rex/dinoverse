@@ -16,8 +16,8 @@ const FONT = '"Helvetica Neue", Helvetica, Arial, sans-serif';
 const COLORS = { ink: '#0c0c0c', paper: '#eceae1', blue: '#2b46ff', lime: '#ccff00' };
 
 // the hall's layout, in metres: the aisle runs from the entrance (z > 0) towards -z
-const AISLE = 4.4; // half its width: how far the player may step to either side
-const BOOTH = { w: 6, d: 4, h: 3 }; // a booth's width along the aisle, its depth, its walls
+const AISLE = 2.7; // half its width: how far the player may step to either side
+const BOOTH = { w: 6.4, d: 4.4, h: 3.4 }; // a booth's width along the aisle, its depth, its walls
 const pad = (i) => String(i).padStart(2, '0');
 
 /* ---------- textures drawn on canvases ---------- */
@@ -163,6 +163,18 @@ function capsule({ marker = false } = {}) {
   return g;
 }
 
+// everyone but the player is the studio's mascot, SoWhat-Dino, standing as a cut-out that faces
+// the camera and flips to the way it walks
+const DINO = 'image/sowhat-dino.png';
+function dino(height = 1.55) {
+  const g = new THREE.Group();
+  const c = cutout(DINO, height, [0, 0]);
+  const m = c.children[0];
+  g.add(c);
+  g.userData.body = m; g.userData.baseY = height / 2; g.userData.face = m;
+  return g;
+}
+
 // mascots and stickers stand as cut-outs that turn to face the camera
 const billboards = [];
 function cutout(src, height, at) {
@@ -179,7 +191,7 @@ function cutout(src, height, at) {
 
 /* ---------- a booth ---------- */
 // side: -1 on the left of the aisle (opening towards +x), 1 on the right, 0 at the far end
-function booth({ side, z, num, name, mosaic, line, palette, screen, mascot, extras = [] }) {
+function booth({ side, z, num, name, mosaic, line, palette, screen, mascot, extras = [], staffed = true }) {
   const { w, d, h } = BOOTH;
   const g = new THREE.Group();
   const wall = mat(palette.wall), trim = mat(palette.trim);
@@ -201,8 +213,8 @@ function booth({ side, z, num, name, mosaic, line, palette, screen, mascot, extr
   g.add(box(1.4, 0.86, 0.08, [frame, frame, frame, frame, new THREE.MeshBasicMaterial({ map: screenTexture(screen) }), frame], [1.1, 1.5, -0.1]));
   g.add(box(0.12, 0.12, 0.12, frame, [1.1, 1.01, -0.1]));
   // someone minding the booth
-  const staff = capsule(); staff.position.set(1.1, 0, -0.95); staff.userData.idle = Math.random() * 6;
-  g.add(staff); idlers.push(staff);
+  const staff = dino(1.35); staff.position.set(1.1, 0, -0.95); staff.userData.idle = Math.random() * 6;
+  if (staffed) { g.add(staff); idlers.push(staff); }
   // the mascot as a cut-out, stickers by the table
   if (mascot) g.add(cutout(mascot, 1.9, [-1.9, 1.1]));
   extras.forEach((src, k) => g.add(cutout(src, 0.8, [[-0.6, 1.45], [2.5, 1.5]][k] || [0, 1.5])));
@@ -269,12 +281,39 @@ function start() {
   aisle.rotation.x = -Math.PI / 2; aisle.position.set(0, 0.005, -22); aisle.receiveShadow = true;
   scene.add(aisle);
 
+  // the hall's walls close in behind the booths and at the far end, hung with banners
+  const reach = AISLE + 0.4 + BOOTH.d + 0.6;
+  const hallLen = 6 * (BOOTH.w + 0.3) + 20;
+  const hallWall = mat(0x16182a);
+  scene.add(box(0.4, 9, hallLen, hallWall, [-reach, 4.5, 3 - hallLen / 2]), box(0.4, 9, hallLen, hallWall, [reach, 4.5, 3 - hallLen / 2]));
+  const banner = (word, palette, at, rotY) => {
+    const t = signTexture(word, { bg: palette.signHex, fg: palette.signFg });
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(5.4, 1.0), new THREE.MeshBasicMaterial({ map: t }));
+    m.position.set(...at); m.rotation.y = rotY; scene.add(m);
+  };
+  // pennant strings and light rails over the aisle
+  const flagColors = [0x2b46ff, 0xccff00, 0xeceae1, 0x2b46ff, 0xccff00];
+  const flagGeo = new THREE.ConeGeometry(0.13, 0.36, 3);
+  const rail = mat(0x222226);
+  const overhead = new THREE.Group(); // pennants and lamps: hidden while a booth has the camera, which looks down through them
+  scene.add(overhead);
+  for (let z = 1; z > 3 - hallLen + 6; z -= 3.2) {
+    overhead.add(box(reach * 2, 0.05, 0.05, rail, [0, 7.6, z]));
+    for (let x = -reach + 0.5; x < reach - 0.3; x += 0.55) {
+      const f = new THREE.Mesh(flagGeo, mat(flagColors[Math.abs(Math.round(x * 3 + z)) % flagColors.length]));
+      f.rotation.x = Math.PI; f.position.set(x, 7.4 - Math.sin(((x + reach) / (reach * 2)) * Math.PI) * 0.45, z);
+      overhead.add(f);
+    }
+  }
+  const lamp = new THREE.MeshBasicMaterial({ color: 0xfff6dd });
+  for (let z = -1.6; z > 3 - hallLen + 6; z -= 6.4) overhead.add(box(1.8, 0.1, 0.5, lamp, [0, 8.2, z]));
+
   // corner signs at the start of each side
   const corner = (word, x, palette) => {
     const sign = signTexture(word, { bg: palette.signHex, fg: palette.signFg });
     const post = mat(0x1a1a1a);
-    const s = box(5.2, 1.2, 0.2, [post, post, post, post, mat(0xffffff, { map: sign }), post], [x, 4.6, -2.6]);
-    scene.add(s, box(0.12, 4.0, 0.12, post, [x - 2.3, 2.0, -2.6]), box(0.12, 4.0, 0.12, post, [x + 2.3, 2.0, -2.6]));
+    const s = box(4.2, 0.95, 0.2, [post, post, post, post, mat(0xffffff, { map: sign }), post], [x, 5.3, 0.4]);
+    scene.add(s, box(0.12, 4.9, 0.12, post, [x - 1.9, 2.45, 0.4]), box(0.12, 4.9, 0.12, post, [x + 1.9, 2.45, 0.4]));
   };
   const APP_PAL = {
     wall: 0x2b46ff, trim: 0x1a2fbf, carpet: 0x1d2fb8, table: 0xccff00,
@@ -287,6 +326,10 @@ function start() {
   const SOON_PAL = { ...APP_PAL, wall: 0x2a2a30, trim: 0x15151a, carpet: 0x18181c, table: 0xccff00, wallHex: '#2a2a30' };
   corner('APPS', -(AISLE + 2.4), APP_PAL);
   corner('GAMES', AISLE + 2.4, GAME_PAL);
+  for (let k = 0; k < 4; k++) {
+    banner('APPS', APP_PAL, [-reach + 0.25, 6.6, -4 - k * 7], Math.PI / 2);
+    banner('GAMES', GAME_PAL, [reach - 0.25, 6.6, -4 - k * 7], -Math.PI / 2);
+  }
 
   // the booths, each with its card ready beside the view
   const panel = section.querySelector('.booth-panel');
@@ -299,26 +342,33 @@ function start() {
     const front = new THREE.Vector3(0, 0, BOOTH.d / 2 + 1.2).applyMatrix4(g.matrixWorld);
     booths.push({ group: g, card, front });
   };
-  const spacing = BOOTH.w + 1.6;
+  const spacing = BOOTH.w + 0.3; // booths stand shoulder to shoulder
   APPS.forEach((a, i) => {
     const card = window.buildPanel(a, i).firstElementChild;
-    add({ side: -1, z: -6 - i * spacing, num: pad(i + 1), name: (a.name || a.id), line: a.description, palette: APP_PAL, screen: a.icon, mascot: a.image }, card);
+    add({ side: -1, z: -4.2 - i * spacing, num: pad(i + 1), name: (a.name || a.id), line: a.description, palette: APP_PAL, screen: a.icon, mascot: a.image }, card);
   });
   GAMES.forEach((gm, k) => {
     const card = window.buildGamePanel(gm, APPS.length + k);
-    add({ side: 1, z: -6 - k * spacing, num: pad(APPS.length + k + 1), name: gm.name || gm.id, mosaic: !!gm.mosaic, line: gm.description, palette: GAME_PAL, screen: gm.icon, mascot: gm.image, extras: gm.stickers || [] }, card);
+    add({ side: 1, z: -4.2 - k * spacing, num: pad(APPS.length + k + 1), name: gm.name || gm.id, mosaic: !!gm.mosaic, line: gm.description, palette: GAME_PAL, screen: gm.icon, mascot: gm.image, extras: gm.stickers || [] }, card);
   });
-  const farZ = -6 - Math.max(APPS.length, GAMES.length) * spacing - 3;
+  // the app row is shorter: the studio's own booth fills the gap, a booth with nothing to open
+  for (let i = APPS.length; i < GAMES.length; i++) {
+    const g = booth({ side: -1, z: -4.2 - i * spacing, num: '★', name: 'SURVIVING DINOS STUDIO', line: 'Diverse things. No extinction.', palette: APP_PAL, mascot: DINO, staffed: false });
+    scene.add(g);
+  }
+  const farZ = -4.2 - Math.max(APPS.length, GAMES.length) * spacing + spacing / 2 - BOOTH.d / 2 - AISLE;
+  scene.add(box(reach * 2, 9, 0.4, hallWall, [0, 4.5, farZ - BOOTH.d / 2 - 0.4]));
   add({ side: 0, z: farZ, num: pad(APPS.length + GAMES.length + 1), name: 'MORE TO COME', line: 'More is on the way.', palette: SOON_PAL }, window.buildComingSoonPanel(APPS.length + GAMES.length + 1));
-  const minZ = farZ + BOOTH.d / 2 + 0.8, maxZ = 7;
+  const minZ = farZ + BOOTH.d / 2 + 0.8, maxZ = 2.5;
+  scene.fog = new THREE.Fog(0x0c0c0c, 18, 46);
 
   // the player, and visitors wandering the aisle
   const player = capsule({ marker: true });
-  player.position.set(0, 0, 5);
+  player.position.set(0, 0, 2.2);
   scene.add(player);
   const visitors = [];
-  for (let i = 0; i < 6; i++) {
-    const v = capsule();
+  for (let i = 0; i < 11; i++) {
+    const v = dino(1.35 + Math.random() * 0.4);
     v.position.set((Math.random() * 2 - 1) * (AISLE - 0.8), 0, minZ + Math.random() * (maxZ - minZ - 4));
     v.userData.goal = v.position.clone(); v.userData.wait = Math.random() * 3;
     scene.add(v); visitors.push(v);
@@ -363,7 +413,7 @@ function start() {
   const camPos = new THREE.Vector3(0, 4.6, 12.5), camLook = new THREE.Vector3(0, 1, 0);
   camera.position.copy(camPos);
   let focused = null, visible = false, last = performance.now();
-  const tmpPos = new THREE.Vector3(), tmpLook = new THREE.Vector3();
+  const tmpPos = new THREE.Vector3(), tmpLook = new THREE.Vector3(), tmpQ = new THREE.Quaternion();
 
   const io = new IntersectionObserver((entries) => {
     const r = entries[0].intersectionRatio;
@@ -389,6 +439,7 @@ function start() {
     focused = b;
     panel.classList.toggle('open', !!b);
     section.classList.toggle('hall--focus', !!b);
+    overhead.visible = !b;
     if (b) { b.card.hidden = false; window.mosaicNames && window.mosaicNames(); }
     // on a phone the joystick moves up above the card
     if (joy) joy.style.bottom = b && section.clientWidth < 760 ? `${panel.offsetHeight + 24}px` : '';
@@ -449,16 +500,25 @@ function start() {
           u.wait = 0.5 + Math.random() * 3; return;
         }
         v.position.x += (dx / dd) * 1.3 * dt; v.position.z += (dz / dd) * 1.3 * dt;
-        v.rotation.y = Math.atan2(-dx, -dz);
-        v.userData.body.position.y = 0.84 + Math.abs(Math.sin(now / 110 + v.id)) * 0.05;
+        u.dir = dx; // the cut-out faces the way it walks (see below)
+        u.body.position.y = u.baseY + Math.abs(Math.sin(now / 110 + v.id)) * 0.06;
       });
-      idlers.forEach((s) => { if (s.userData.body) s.userData.body.position.y = 0.84 + Math.sin(now / 900 + (s.userData.idle || 0)) * 0.025; });
+      idlers.forEach((s) => { const u = s.userData; if (u.body) u.body.position.y = u.baseY + Math.sin(now / 900 + (u.idle || 0)) * 0.03; });
     }
     // cut-outs turn to the camera
     billboards.forEach((m) => {
       m.getWorldPosition(tmpPos);
-      const parentRot = m.parent.parent ? m.parent.parent.rotation.y : 0;
+      m.parent.getWorldQuaternion(tmpQ);
+      const parentRot = 2 * Math.atan2(tmpQ.y, tmpQ.w); // everything here turns about y only
       m.rotation.y = Math.atan2(camera.position.x - tmpPos.x, camera.position.z - tmpPos.z) - parentRot;
+    });
+    // a walking dino looks the way it goes: the picture faces left, so it flips when heading right
+    visitors.forEach((v) => {
+      const u = v.userData, m = u.face;
+      if (u.dir === undefined || Math.abs(u.dir) < 0.05) return;
+      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+      const goingRight = u.dir * right.x > 0;
+      m.scale.x = Math.abs(m.scale.x) * (goingRight ? -1 : 1);
     });
 
     renderer.render(scene, camera);
