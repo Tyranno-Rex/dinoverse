@@ -244,7 +244,42 @@ function renderFiles(box, payload) {
   });
 }
 
-/* ---------- the gallery: each app and game a diorama, a small open box seen from above ---------- */
+/* ---------- booth furniture: a demo table, a monitor on it, and capsule people ---------- */
+// A box is drawn from its faces (top, front, sides), standing on the floor at (x, z) as fractions
+// of the booth, w/d/h as fractions of its width. The people are plain capsules, like a game
+// engine's placeholder player: one behind the table, visitors walking past in front and behind.
+function solid(cls, [x, z], [w, d, h], faces = '', lift = 0) {
+  return `<div class="solid ${cls}" style="--x:${x};--z:${z};--sw:${w};--sd:${d};--sh:${h};--lift:${lift}">` +
+    '<i class="s-top"></i><i class="s-front">' + faces + '</i><i class="s-left"></i><i class="s-right"></i><i class="s-back"></i></div>';
+}
+
+function capsule(kind, [x, z], extra = '') {
+  return `<div class="cap cap--${kind}" style="--x:${x};--z:${z};${extra}"><i class="cap-body"></i></div>`;
+}
+
+const BOOTH = {
+  table: { at: [0.3, -0.06], size: [0.26, 0.17, 0.085] },
+  screen: { at: [0.3, -0.09], size: [0.15, 0.018, 0.105] },
+  staff: [0.22, -0.26],
+};
+
+function boothFurniture(screenSrc) {
+  const t = BOOTH.table, s = BOOTH.screen;
+  return solid('table', t.at, t.size) +
+    // the monitor stands on the table: its foot is the table's height up
+    solid('monitor', s.at, s.size, screenSrc ? `<img src="${escapeHtml(screenSrc)}" alt="" />` : '', t.size[2]) +
+    capsule('staff', BOOTH.staff) +
+    capsule('walk', [0, 0.34], '--from:0.12;--to:0.44;--dur:11s;--delay:-3s') +
+    capsule('walk', [0, -0.44], '--from:0.14;--to:0.46;--dur:14s;--delay:-9s');
+}
+
+function hallPeople() {
+  return capsule('walk', [0, 0.3], '--from:-0.1;--to:0.44;--dur:12s;--delay:-2s') +
+    capsule('walk', [0, -0.38], '--from:0.12;--to:0.44;--dur:17s;--delay:-11s') +
+    capsule('walk', [0, 0.05], '--from:0.1;--to:0.44;--dur:9s;--delay:-6s');
+}
+
+/* ---------- the gallery: each app and game a booth at a game jam, a small open box seen from above ---------- */
 // The box has a floor, a back wall with the card's number on it, two side walls and a thick base.
 // Things from the app or game stand on the floor at their own spots (mascot, icon, stickers), each
 // with a shadow; the name floats above the box like a logo; the base's front is the info panel
@@ -252,10 +287,11 @@ function renderFiles(box, payload) {
 // near walls never block the view in. Scrolling carries one box after another past the camera;
 // the pointer turns the box in front.
 
+// Each box is a booth: a demo table with a monitor showing the icon, the mascot standing by it as a
+// cutout, a capsule standing behind the table and capsule visitors walking past.
 // floor spots: x across (-0.5 left .. 0.5 right), z deep (-0.5 back .. 0.5 front), h height px
 const SPOTS = {
-  mascot: [0.27, 0.04, 300],
-  icon: [0.46, -0.34, 150],
+  mascot: [0.42, -0.3, 250],
   extra: [[0.16, 0.42, 118], [0.44, 0.36, 125]],
   cover: [
     [-0.34, -0.22], [0.02, -0.3], [0.34, -0.2], [-0.16, 0.1], [0.2, 0.12],
@@ -270,7 +306,7 @@ function prop(src, [x, z, h], alt = '', cls = '') {
 }
 
 // card: the article a card builder made (its parts are moved into the box, listeners and all)
-function diorama(card, { num = '', props = '', logo = null, kind = '' } = {}) {
+function diorama(card, { num = '', props = '', logo = null, kind = '', screen = null } = {}) {
   const pick = (s) => card.querySelector(s);
   const d = document.createElement('article');
   d.className = 'dio' + (kind ? ` dio--${kind}` : '');
@@ -281,6 +317,7 @@ function diorama(card, { num = '', props = '', logo = null, kind = '' } = {}) {
     '<div class="dio-base dio-front"></div>' +
     '<div class="dio-base dio-base-left"></div><div class="dio-base dio-base-right"></div>' +
     props +
+    (kind === 'cover' ? hallPeople() : boothFurniture(screen)) +
     '<div class="dio-float dio-text"><div class="dio-pane"></div></div>' +
     '<div class="dio-float dio-act"><div class="dio-pane"></div></div>';
   // the words hang in the air inside the box, nothing is written on its faces: the name first,
@@ -310,10 +347,8 @@ function floatWords(el) {
 }
 
 function cardProps(card, extras = []) {
-  const icon = card.querySelector('.panel-icon');
   const mascot = card.querySelector('.panel-sticker');
   let html = '';
-  if (icon && icon.getAttribute('src')) html += prop(icon.getAttribute('src'), SPOTS.icon, icon.alt);
   extras.forEach((src, k) => { if (SPOTS.extra[k]) html += prop(src, SPOTS.extra[k]); });
   if (mascot && mascot.getAttribute('src')) html += prop(mascot.getAttribute('src'), SPOTS.mascot, mascot.alt, 'mascot');
   return html;
@@ -337,14 +372,14 @@ function setupStage() {
   const boxes = [coverDiorama('APPS', `${n(1)}—${n(apps.length)}`, apps.filter((a) => a.icon).map((a) => a.icon))];
   apps.forEach((a, i) => {
     const card = buildPanel(a, i).firstElementChild;
-    boxes.push(diorama(card, { num: n(i + 1), props: cardProps(card) }));
+    boxes.push(diorama(card, { num: n(i + 1), props: cardProps(card), screen: a.icon }));
   });
   if (games.length) {
     boxes.push(coverDiorama('GAMES', `${n(apps.length + 1)}—${n(apps.length + games.length)}`,
       games.map((g) => g.icon).filter(Boolean)));
     games.forEach((g, k) => {
       const card = buildGamePanel(g, apps.length + k);
-      boxes.push(diorama(card, { num: n(apps.length + k + 1), props: cardProps(card, g.stickers || []) }));
+      boxes.push(diorama(card, { num: n(apps.length + k + 1), props: cardProps(card, g.stickers || []), screen: g.icon }));
     });
   }
   const soon = buildComingSoonPanel(apps.length + games.length + 1);
