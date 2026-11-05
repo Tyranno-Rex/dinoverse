@@ -21,15 +21,18 @@
         <span class="line accent" data-split>NO ONE SAW COMING.</span>
       </h1>
       <p class="hero-sub" id="hero-sub">DIVERSE THINGS. NO EXTINCTION.</p>
-      <a class="scroll-cue" href="#gallery" aria-label="Scroll down">
+      <a class="scroll-cue" href="#hall" aria-label="Scroll down">
         <span class="scroll-cue-label">SCROLL</span>
         <svg class="scroll-cue-arrow" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" aria-hidden="true"><path d="M8 2.5v10M3.5 8l4.5 4.5L12.5 8"/></svg>
       </a>
     </section>
 
-    <!-- The gallery: the cards in a 3D space, built by assets/app.js setupStage -->
-    <section class="gallery" id="gallery" aria-label="Apps and games">
-      <div class="stage-sticky"><div class="stage"></div></div>
+    <!-- The jam hall: a 3D floor with the app booths on the left and the game booths on the right
+         (assets/hall.js). Walk up to a booth and its card opens in the panel. -->
+    <section class="hall" id="hall" aria-label="Apps and games">
+      <aside class="booth-panel" aria-live="polite"></aside>
+      <p class="hall-hint"><span class="hall-hint-keys">WASD / ARROW KEYS</span><span class="hall-hint-touch">DRAG THE CIRCLE</span> TO WALK · STEP UP TO A BOOTH</p>
+      <div class="joystick" hidden aria-hidden="true"><span class="joystick-knob"></span></div>
     </section>
 
     <footer class="footer">
@@ -94,5 +97,6 @@
   <script src="data.js"></script>
   <script src="games.js"></script>
   <script src="assets/app.js"></script>
+  <script type="module" src="assets/hall.js"></script>
 </body>
 </html>

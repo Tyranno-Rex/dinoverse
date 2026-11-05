@@ -40,7 +40,7 @@ body {
 html { scrollbar-color: var(--ink) var(--paper); }
 input { caret-color: var(--accent); }
 :focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
-.gallery :focus-visible, .footer :focus-visible { outline-color: var(--accent); }
+.hall :focus-visible, .footer :focus-visible { outline-color: var(--accent); }
 .ico { display: inline-block; width: 1.1em; height: 1.1em; vertical-align: -0.2em; flex: 0 0 auto; }
 
 /* ---------- display + kinetic type ---------- */
@@ -136,164 +136,76 @@ input { caret-color: var(--accent); }
 }
 
 /* ============================================================
-   THE GALLERY: a diorama per app and game (app.js diorama/setupStage/moveStage).
-   The zone is tall and the stage is pinned; scrolling carries one box after another past.
-   A box is laid out at its design size (--bw wide, --bd deep, --bh walls, --bb base, unitless
-   px) and scaled by --k to fit the window. y points down, z towards the viewer.
+   THE JAM HALL (assets/hall.js): a 3D floor in a canvas filling the section;
+   the focused booth's card opens in a panel beside it.
    ============================================================ */
-.gallery {
-  position: relative;
-  background: radial-gradient(120% 75% at 50% 112%, #1f33c4 0%, #121a52 42%, var(--ink) 78%);
-  --bw: 780; --bd: 420; --bh: 300; --bb: 90; --k: 1; --ps: 1;
-}
-.stage-sticky { position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden; perspective: 1500px; perspective-origin: 50% 38%; }
-.stage { position: absolute; inset: 0; transform-style: preserve-3d; }
-.scene { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; will-change: transform, opacity; }
+.hall { position: relative; height: 100vh; height: 100dvh; background: var(--ink); overflow: hidden; }
+.hall-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; }
 
-.dio {
-  --yaw: 0deg; --pitch: -32deg;
-  position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d;
-  transform: translateY(calc(var(--k) * var(--bb) * -0.5px)) scale(var(--k)) rotateX(var(--pitch)) rotateY(var(--yaw));
+/* the card of the booth in focus */
+.booth-panel {
+  position: absolute; z-index: 2; right: clamp(16px, 3vw, 40px); top: 50%;
+  width: min(420px, 38vw); max-height: 84vh; overflow: auto;
+  transform: translate(24px, -50%); opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(12, 12, 12, 0.92); border-radius: 14px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), inset 0 0 0 1px #2a2a2a;
 }
-.dio > div { position: absolute; left: 0; top: 0; transform-style: preserve-3d; }
-
-/* the floor, the walls (facing in, so the near ones vanish from outside) and the base */
-.dio-floor {
-  width: calc(var(--bw) * 1px); height: calc(var(--bd) * 1px);
-  margin: calc(var(--bd) * -0.5px) 0 0 calc(var(--bw) * -0.5px);
-  transform: translateY(calc(var(--bh) * 0.5px)) rotateX(90deg);
-  background:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 2px, transparent 2px 65px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.07) 0 2px, transparent 2px 55px),
-    linear-gradient(180deg, #cfcabb, #e6e2d6);
-}
-.dio-wall { height: calc(var(--bh) * 1px); backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; }
-.dio-back {
-  width: calc(var(--bw) * 1px); margin: calc(var(--bh) * -0.5px) 0 0 calc(var(--bw) * -0.5px);
-  transform: translateZ(calc(var(--bd) * -0.5px));
-  background: linear-gradient(180deg, #2b46ff 0%, #2340f0 70%, #1d35cf 100%);
-}
-.dio-left, .dio-right {
-  width: calc(var(--bd) * 1px); margin: calc(var(--bh) * -0.5px) 0 0 calc(var(--bd) * -0.5px);
-  background: linear-gradient(90deg, #1a2fbf, #2139e0);
-}
-.dio-left { transform: translateX(calc(var(--bw) * -0.5px)) rotateY(90deg); }
-.dio-right { transform: translateX(calc(var(--bw) * 0.5px)) rotateY(-90deg); background: linear-gradient(270deg, #1a2fbf, #2139e0); }
-.dio-base { height: calc(var(--bb) * 1px); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-.dio-front {
-  width: calc(var(--bw) * 1px); margin: calc(var(--bb) * -0.5px) 0 0 calc(var(--bw) * -0.5px);
-  transform: translateY(calc((var(--bh) + var(--bb)) * 0.5px)) translateZ(calc(var(--bd) * 0.5px));
-  background: #121212; box-shadow: inset 0 4px 0 var(--accent), inset 0 0 0 1px #2a2a2a;
-}
-.dio-base-left, .dio-base-right {
-  width: calc(var(--bd) * 1px); margin: calc(var(--bb) * -0.5px) 0 0 calc(var(--bd) * -0.5px);
-  background: #0b0b0b; box-shadow: inset 0 4px 0 #7a9900;
-}
-.dio-base-left { transform: translateY(calc((var(--bh) + var(--bb)) * 0.5px)) translateX(calc(var(--bw) * -0.5px)) rotateY(-90deg); }
-.dio-base-right { transform: translateY(calc((var(--bh) + var(--bb)) * 0.5px)) translateX(calc(var(--bw) * 0.5px)) rotateY(90deg); }
-
-/* the number standing big on the back wall */
-.dio-num { position: absolute; right: 40px; top: 24px; font-size: 230px; line-height: 0.84; color: var(--paper); }
-
-/* things standing on the floor: each at its spot, turned to face the viewer, with a shadow under it */
-.dio > .prop {
-  width: 0; height: 0;
-  transform:
-    translate3d(calc(var(--x) * var(--bw) * 1px), calc(var(--bh) * 0.5px), calc(var(--z) * var(--bd) * 1px))
-    rotateY(calc(var(--yaw) * -1));
-}
-.prop img {
-  position: absolute; left: 0; bottom: 0; height: calc(var(--h) * var(--ps) * 1px); width: auto; max-width: calc(var(--h) * var(--ps) * 1.7px);
-  object-fit: contain; transform: translateX(-50%); user-select: none;
-}
-.prop::before {
-  content: ""; position: absolute; left: 0; top: 0;
-  width: calc(var(--h) * var(--ps) * 0.9px); height: calc(var(--h) * var(--ps) * 0.9px);
-  margin: calc(var(--h) * var(--ps) * -0.45px) 0 0 calc(var(--h) * var(--ps) * -0.45px);
-  border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, 0.4), transparent);
-  transform: translateY(-1px) rotateX(90deg) scaleY(0.6);
-}
-
-/* the words float in the air inside the box, turned to the viewer: the line and its tags in front
-   of the back wall, the buttons over the front of the floor. Nothing is written on the faces. */
-.dio > .dio-float {
-  width: 0; height: 0;
-  transform:
-    translate3d(calc(var(--fx) * var(--bw) * 1px), calc(var(--fy) * var(--bh) * 1px), calc(var(--fz) * var(--bd) * 1px))
-    rotateY(calc(var(--yaw) * -1));
-}
-.dio-text { --fx: -0.46; --fy: 0.5; --fz: 0.1; }
-/* the words stand on the floor like the props: the column's foot is on it, with a shadow */
-.dio-text::before {
-  content: ""; position: absolute; left: calc(var(--bw) * -0.02px); top: 0;
-  width: calc(var(--bw) * var(--fw-shadow, 0.64) * 1px); height: 110px; margin-top: -55px;
-  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.32), transparent);
-  transform: translateY(-1px) rotateX(90deg);
-}
-.dio-act { --fx: -0.46; --fy: 0.5; --fz: 0.42; }
-.dio-pane { position: absolute; left: 0; top: 0; width: calc(var(--bw) * var(--fw) * 1px); transform-style: preserve-3d; color: var(--paper); }
-.dio-text .dio-pane { --fw: 0.56; top: auto; bottom: 0; }
-.dio-act .dio-pane { --fw: 0.34; top: auto; bottom: 22px; }
-.dio-pane > * { transform: translateZ(var(--fz2, 0px)); }
-.dio-text .panel-meta { --fz2: 10px; color: var(--ink); font-size: 15px; font-weight: 700; display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 14px; }
-.dio-text .panel-meta .tag { color: var(--blue); }
+.booth-panel.open { opacity: 1; transform: translate(0, -50%); pointer-events: auto; }
+.booth-card { display: flex; flex-direction: column; gap: 0; padding: 26px 26px 22px; color: var(--paper); position: relative; }
+.booth-card[hidden] { display: none; }
+.booth-card .panel-badge { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.booth-card .panel-icon { height: 52px; width: auto; }
+.booth-card .panel-index { font-family: var(--display); font-weight: 900; font-size: 56px; line-height: 0.9; color: var(--blue-lit); margin-left: auto; }
+.booth-card .panel-sticker { display: none; }
+.booth-card .panel-meta { color: #a3a39b; display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 12px; }
+.panel-meta .tag { color: var(--accent); }
 .panel-meta .access { display: inline-flex; align-items: center; gap: 6px; }
-.dio-text .panel-desc {
-  transform-style: preserve-3d; font-family: var(--display); font-weight: 900; letter-spacing: -0.02em;
-  color: var(--ink); font-size: 30px; line-height: 1.26; margin: 0; text-wrap: pretty;
-}
-/* each word a solid block: the face, and darker copies stepping back behind it */
-.panel-desc .w { display: inline-block; position: relative; transform-style: preserve-3d; transform: translateZ(var(--wz, 0px)); }
-.w-face { position: relative; }
-.w-side {
-  position: absolute; left: 0; top: 0; transform: translateZ(calc(var(--k) * -1.6px));
-  color: color-mix(in srgb, var(--blue) calc(70% - var(--fade) * 40%), #000);
-}
-/* the name, first and biggest */
-.dio-text .dio-title {
-  --fz2: 70px; margin: 0 0 18px; font-size: 96px; line-height: 0.86; color: var(--paper); white-space: nowrap;
-  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.35));
-}
-.dio--cover .dio-text .dio-title { font-size: 220px; }
-.dio-title .mosaic { margin: 0; }
-.dio-act .panel-action { display: flex; flex-direction: column; align-items: flex-start; }
-.dio-act .line-form, .dio-act .files { width: 100%; }
-.dio-act .link-btn {
-  background: var(--ink); padding: 10px 14px; border-radius: 6px; box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
-}
-.dio-act .line-form { background: var(--ink); padding: 8px 12px; border-radius: 6px; box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45); }
-.dio-act .files { background: var(--ink); padding: 0 14px; border-radius: 6px; }
-.dio-act .err { color: #ff7a6e; }
+.booth-card .panel-name { font-size: clamp(34px, 3.6vw, 48px); color: var(--paper); margin: 0 0 14px; }
+.booth-card .panel-desc { font-family: var(--body); font-size: 16px; line-height: 1.55; color: #d6d4ca; margin: 0 0 20px; text-wrap: pretty; }
 .mosaic { display: block; image-rendering: pixelated; } /* a hidden name (app.js mosaicNames) */
-/* "BETA VERSION" — a die-cut sticker floating ahead of the line */
 .beta-sticker {
-  display: inline-block; --fz2: 70px; transform: translateZ(var(--fz2)) rotate(-3deg); margin-bottom: 14px;
+  align-self: flex-start; transform: rotate(-3deg); margin: 0 0 14px;
   background: var(--accent); color: var(--ink);
   font-family: var(--mono); font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.14em; font-size: 11px;
-  padding: 5px 12px; border-radius: 999px;
-  box-shadow: 0 0 0 3px rgba(236, 234, 225, 0.92), 0 8px 14px rgba(0, 0, 0, 0.45);
+  letter-spacing: 0.14em; font-size: 11px; padding: 5px 12px; border-radius: 999px;
 }
 .soon-sub { white-space: normal; }
 
-@media (max-width: 760px) {
-  .gallery { --ps: 0.8; }
-  .dio { --yaw: 0deg; --pitch: -38deg; }
-  .dio-text { --fz: 0.02; --fw-shadow: 0.96; }
-  .prop--mascot { --x: 0.42 !important; --z: 0.36 !important; }
-  /* the booth sits at the front of the deep floor, below the words */
-  .gallery { --cps: 1.35; }
-  .dio > .table { --x: 0.18 !important; --z: 0.3 !important; }
-  .dio > .monitor { --x: 0.18 !important; --z: 0.27 !important; }
-  .dio > .cap--staff { --x: 0.06 !important; --z: 0.18 !important; }
-  .dio-text .dio-pane { --fw: 0.92; }
-  .dio-act .dio-pane { --fw: 0.7; }
-  .dio-text .panel-desc { font-size: 34px; }
-  .dio-text .dio-title { font-size: 72px; }
-  .dio--cover .dio-text .dio-title { font-size: 130px; }
-  .dio-text .panel-meta { font-size: 14px; }
-  .dio-num { font-size: 84px; top: 10px; bottom: auto; right: 18px; }
+/* how to walk */
+.hall-hint {
+  position: absolute; z-index: 2; left: 50%; bottom: 18px; transform: translateX(-50%); margin: 0;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; white-space: nowrap;
+  color: var(--paper); background: rgba(12, 12, 12, 0.72); padding: 8px 14px; border-radius: 999px; pointer-events: none;
 }
+.hall-hint-touch { display: none; }
+.hall-hint { transition: opacity 0.25s; }
+.hall--focus .hall-hint { opacity: 0; }
+@media (pointer: coarse) { .hall-hint-keys { display: none; } .hall-hint-touch { display: inline; } }
+
+/* the touch joystick: drag the knob inside the circle */
+.joystick {
+  position: absolute; z-index: 3; left: 24px; bottom: 64px; width: 120px; height: 120px; border-radius: 50%;
+  transition: bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(236, 234, 225, 0.16); box-shadow: inset 0 0 0 2px rgba(236, 234, 225, 0.5);
+  touch-action: none; display: grid; place-items: center;
+}
+.joystick[hidden] { display: none; }
+.joystick-knob { width: 52px; height: 52px; border-radius: 50%; background: var(--accent); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4); pointer-events: none; }
+
+/* no WebGL: the cards one under another */
+.hall--flat { height: auto; padding: 60px clamp(16px, 5vw, 60px); }
+.hall--flat .booth-panel, .hall--flat .hall-hint { display: none; }
+.hall-list { display: grid; gap: 24px; max-width: 640px; margin: 0 auto; }
+.hall-list > .panel { background: #141414; border-radius: 14px; padding: 26px; color: var(--paper); }
+
+@media (max-width: 760px) {
+  /* the card rises from the bottom; the booth stays in view above it */
+  .booth-panel { left: 12px; right: 12px; top: auto; bottom: 12px; width: auto; max-height: 52vh; transform: translateY(24px); }
+  .booth-panel.open { transform: none; }
+  .booth-card { padding: 20px 20px 18px; }
+  .booth-card .panel-index { font-size: 40px; }
+  .hall-hint { bottom: auto; top: 64px; }
+  .booth-panel.open ~ .joystick { opacity: 0.5; }
 }
 
 /* footer = the studio's about / contact card */
@@ -342,16 +254,7 @@ input { caret-color: var(--accent); }
 .files .empty, .panel .empty { font-family: var(--mono); color: #8a8a82; font-size: 13px; letter-spacing: 0.1em; padding: 14px 0; }
 
 /* ============================================================
-   Reduced motion: the boxes stand one under another, still; nothing moves.
-   ============================================================ */
-.gallery.flat .stage-sticky { position: static; height: auto; }
-.gallery.flat .stage { position: static; }
-.gallery.flat .scene { position: relative; left: auto; top: auto; width: 100%; height: 92vh; transform: none !important; opacity: 1 !important; }
-.gallery.flat .dio { left: 50%; top: 50%; }
-
-/* ============================================================
-   Mobile (<=760px): the cards stack their parts in one column with
-   shallower depths; the hero and footer type shrink and wrap.
+   Mobile (<=760px): the hero and footer type shrink and wrap.
    ============================================================ */
 @media (max-width: 760px) {
   /* hero: shrink + allow wrap so long headlines never clip off-screen */
@@ -382,108 +285,3 @@ input { caret-color: var(--accent); }
 /* the code form wraps, so a WRONG CODE line sits under the field, not beside the button */
 .app-pw { flex-wrap: wrap; }
 .app-pw .err { flex-basis: 100%; margin: 4px 0 0; }
-/* in 3D the box's own faces would catch clicks meant for the controls standing in front of it */
-.gallery * { pointer-events: none; }
-.gallery a, .gallery button, .gallery input, .gallery form { pointer-events: auto; }
-
-/* 3D letters (app.js extrude): a face and its darker copies stepping back make each letter a solid
-   block; every letter stands at its own depth (--lz) and drifts slowly towards you and back */
-.gallery .panel-name, .gallery .dio-num { transform-style: preserve-3d; }
-.l3 {
-  display: inline-block; position: relative; transform-style: preserve-3d;
-  transform: translateZ(var(--lz, 0px)) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-  animation: l3-drift 6s ease-in-out var(--ld, 0s) infinite alternate;
-}
-.l3-face { position: relative; display: inline-block; }
-.l3-side {
-  position: absolute; left: 0; top: 0;
-  transform: translateZ(calc(var(--k) * var(--step) * -1));
-  color: color-mix(in srgb, currentColor calc(52% - var(--fade) * 30%), #000);
-}
-@keyframes l3-drift {
-  to { transform: translateZ(calc(var(--lz, 0px) + 30px)) rotateX(calc(var(--rx, 0deg) * -0.6)) rotateY(calc(var(--ry, 0deg) * -0.6)); }
-}
-@media (prefers-reduced-motion: reduce) { .l3 { animation: none; } }
-.gallery.flat .l3-side { display: none; }
-
-/* standing on the light floor, the words are dark with blue sides, so they read as solid letters */
-.dio-text .dio-title { color: var(--ink); filter: none; }
-.dio-text .l3-side, .dio-text .w-side { color: color-mix(in srgb, var(--blue) calc(90% - var(--fade) * 45%), #000); }
-/* letters standing on the floor stand straight and still */
-.dio-text .l3 { animation: none; transform: none; }
-.dio-text .dio-title { margin-bottom: 30px; }
-.dio-text .beta-sticker { --fz2: 0px; margin-bottom: 12px; }
-/* the version tag is a dark chip, readable over the blue wall and the light floor alike */
-.dio-text .panel-meta .tag { color: var(--accent); background: var(--ink); padding: 2px 7px; border-radius: 3px; }
-/* the words lean back from their foot on the floor, towards the camera looking down, so they read */
-.dio-text .dio-pane { transform-origin: 0 100%; transform: rotateX(calc(var(--pitch) * -0.8)); }
-
-/* ============================================================
-   Booth furniture (app.js boothFurniture): solid boxes drawn from their faces,
-   and capsule people. Sizes are fractions of the booth's width (--bw).
-   ============================================================ */
-.dio > .solid {
-  width: 0; height: 0;
-  --W: calc(var(--sw) * var(--bw) * 1px); --D: calc(var(--sd) * var(--bw) * 1px); --H: calc(var(--sh) * var(--bw) * 1px);
-  transform: translate3d(calc(var(--x) * var(--bw) * 1px),
-    calc(var(--bh) * 0.5px - var(--lift) * var(--bw) * 1px), calc(var(--z) * var(--bd) * 1px));
-}
-.solid > i { position: absolute; left: 0; top: 0; display: block; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-.solid .s-top { width: var(--W); height: var(--D); margin: calc(var(--D) / -2) 0 0 calc(var(--W) / -2); transform: translateY(calc(var(--H) * -1)) rotateX(90deg); }
-.solid .s-front, .solid .s-back { width: var(--W); height: var(--H); margin: calc(var(--H) / -2) 0 0 calc(var(--W) / -2); }
-.solid .s-front { transform: translateY(calc(var(--H) / -2)) translateZ(calc(var(--D) / 2)); }
-.solid .s-back { transform: translateY(calc(var(--H) / -2)) translateZ(calc(var(--D) / -2)) rotateY(180deg); }
-.solid .s-left, .solid .s-right { width: var(--D); height: var(--H); margin: calc(var(--H) / -2) 0 0 calc(var(--D) / -2); }
-.solid .s-left { transform: translateX(calc(var(--W) / -2)) translateY(calc(var(--H) / -2)) rotateY(-90deg); }
-.solid .s-right { transform: translateX(calc(var(--W) / 2)) translateY(calc(var(--H) / -2)) rotateY(90deg); }
-/* a shadow on whatever it stands on */
-.dio > .solid::before {
-  content: ""; position: absolute; left: 0; top: 0;
-  width: calc(var(--W) * 1.25); height: calc(var(--D) * 2.4); margin: calc(var(--D) * -1.2) 0 0 calc(var(--W) * -0.625);
-  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.28), transparent);
-  transform: translateY(-1px) rotateX(90deg);
-}
-/* the demo table: dark top, the front draped in the studio's lime */
-.table .s-top { background: #1c1c22; }
-.table .s-front { background: linear-gradient(180deg, var(--accent) 0 78%, #a8d400 78% 100%); }
-.table .s-left, .table .s-right { background: #9fc600; }
-.table .s-back { background: #7f9e00; }
-/* the monitor: a dark frame, the screen showing the icon */
-.monitor .s-top, .monitor .s-left, .monitor .s-right, .monitor .s-back { background: #0e0e10; }
-.monitor .s-front {
-  background: #0b0d1a; box-shadow: inset 0 0 0 7px #0e0e10, 0 0 40px rgba(112, 133, 255, 0.35);
-  display: grid; place-items: center;
-}
-.monitor .s-front img { height: 72%; width: auto; max-width: 80%; object-fit: contain; filter: drop-shadow(0 0 12px rgba(112, 133, 255, 0.6)); }
-.dio > .monitor::before { display: none; }
-
-/* capsule people: a grey capsule like a game engine's placeholder player, with a shadow */
-.dio > .cap {
-  width: 0; height: 0; --CH: calc(var(--bw) * 0.19px * var(--cps, 1)); --CW: calc(var(--CH) / 2);
-  transform: translate3d(calc(var(--x) * var(--bw) * 1px), calc(var(--bh) * 0.5px), calc(var(--z) * var(--bd) * 1px));
-}
-.cap::before {
-  content: ""; position: absolute; left: 0; top: 0; width: calc(var(--CW) * 1.6); height: calc(var(--CW) * 1.6);
-  margin: calc(var(--CW) * -0.8) 0 0 calc(var(--CW) * -0.8); border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.35), transparent);
-  transform: translateY(-1px) rotateX(90deg);
-}
-.cap-body {
-  position: absolute; left: calc(var(--CW) / -2); bottom: 0; width: var(--CW); height: var(--CH); display: block;
-  border-radius: calc(var(--CW) / 2);
-  background:
-    radial-gradient(60% 18% at 50% 10%, rgba(255, 255, 255, 0.55), transparent 70%),
-    linear-gradient(90deg, #6f6f73 0%, #b9b9bd 22%, #ececee 45%, #d4d4d8 62%, #9a9a9e 82%, #5f5f63 100%);
-  box-shadow: inset 0 -10px 16px rgba(0, 0, 0, 0.22);
-}
-/* visitors walk back and forth along their line, bobbing a little with each step */
-.dio > .cap--walk { animation: cap-walk var(--dur, 12s) ease-in-out var(--delay, 0s) infinite alternate; }
-.cap--walk .cap-body { animation: cap-step 0.42s ease-in-out infinite alternate; }
-.cap--staff .cap-body { animation: cap-idle 2.8s ease-in-out infinite alternate; }
-@keyframes cap-walk {
-  from { transform: translate3d(calc(var(--from) * var(--bw) * 1px), calc(var(--bh) * 0.5px), calc(var(--z) * var(--bd) * 1px)); }
-  to { transform: translate3d(calc(var(--to) * var(--bw) * 1px), calc(var(--bh) * 0.5px), calc(var(--z) * var(--bd) * 1px)); }
-}
-@keyframes cap-step { to { transform: translateY(calc(var(--CH) * -0.04)); } }
-@keyframes cap-idle { to { transform: translateY(calc(var(--CH) * -0.015)) scaleY(1.01); } }
-@media (prefers-reduced-motion: reduce) { .dio > .cap--walk, .cap-body { animation: none !important; } }
